@@ -97,6 +97,79 @@ test('every action field declares a supported type', () => {
   }
 });
 
+// The rules below are the ones Gladys enforces itself in `validateManifest`
+// before installing: getting them wrong shows the user "The integration
+// manifest is invalid." with no detail, so they are worth pinning here.
+
+test('the store description fits the catalog card', () => {
+  // 10-100 characters PER LANGUAGE — the card is one line, and a long
+  // description rejects the whole manifest at install time.
+  assert.ok(manifest.description.en, 'an English description is mandatory');
+  for (const [language, text] of Object.entries(manifest.description)) {
+    assert.ok(
+      text.length >= 10 && text.length <= 100,
+      `description.${language} must be 10-100 characters, got ${text.length}`,
+    );
+  }
+});
+
+test('every human text is a multi-language object', () => {
+  // `label`, `description` and `placeholder` are ALWAYS { en, … } objects,
+  // never bare strings — including a placeholder that looks like a constant.
+  const check = (value, path) => {
+    if (value === undefined) {
+      return;
+    }
+    assert.equal(typeof value, 'object', `${path} must be a { en, … } object, not a bare value`);
+    assert.equal(typeof value.en, 'string', `${path}.en is mandatory`);
+  };
+
+  const checkField = (field, path) => {
+    check(field.label, `${path}.label`);
+    check(field.description, `${path}.description`);
+    check(field.placeholder, `${path}.placeholder`);
+    for (const [index, option] of (field.options ?? []).entries()) {
+      check(option.label, `${path}.options[${index}].label`);
+    }
+    for (const [index, link] of (field.links ?? []).entries()) {
+      check(link.label, `${path}.links[${index}].label`);
+    }
+  };
+
+  for (const [index, field] of manifest.config_schema.entries()) {
+    checkField(field, `config_schema[${index}]`);
+  }
+  for (const action of manifest.actions ?? []) {
+    check(action.label, `action "${action.key}".label`);
+    check(action.description, `action "${action.key}".description`);
+    for (const [index, field] of (action.fields ?? []).entries()) {
+      checkField(field, `action "${action.key}".fields[${index}]`);
+    }
+  }
+});
+
+test('placeholders stay on the field types that render an input', () => {
+  const allowed = new Set(['string', 'number', 'secret']);
+  for (const action of manifest.actions ?? []) {
+    for (const field of action.fields ?? []) {
+      if (field.placeholder !== undefined) {
+        assert.ok(
+          allowed.has(field.type),
+          `action "${action.key}": a ${field.type} field takes no placeholder`,
+        );
+      }
+    }
+  }
+  for (const field of manifest.config_schema) {
+    if (field.placeholder !== undefined) {
+      assert.ok(
+        allowed.has(field.type),
+        `config field "${field.key}": a ${field.type} field takes no placeholder`,
+      );
+    }
+  }
+});
+
 test('the manifest declares the cloud transport only', () => {
   // Every source is an HTTP API on the Internet: there is no local channel to
   // prefer, so Gladys must not show the "prefer local" toggle.
