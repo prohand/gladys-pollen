@@ -1,7 +1,7 @@
 # Pollens
 
 This integration exposes the **pollen risk** of the locations you choose as
-Gladys devices: one device per town, with a 0-to-5 risk level for each pollen
+Gladys devices: one device per location, with a 0-to-5 risk level for each pollen
 type.
 
 No account to create, no API key to paste.
@@ -16,9 +16,10 @@ on a ~11 km grid.
 It is queried through [Open-Meteo](https://open-meteo.com/en/docs/air-quality-api),
 which republishes CAMS as open data **with no account and no API key**.
 
-French postal codes are turned into coordinates by the **API Découpage
-administratif** ("API Géo") of data.gouv.fr / Etalab, also open and
-unauthenticated.
+The towns you type are turned into coordinates by the
+[Open-Meteo geocoding API](https://open-meteo.com/en/docs/geocoding-api), backed
+by the GeoNames database — also open and unauthenticated, and worldwide, so
+there is no country to pick anywhere in this integration.
 
 > **What about Atmo France?** Atmo France does publish a pollen index for
 > France, but its API requires an account and an authentication token that every
@@ -29,46 +30,66 @@ unauthenticated.
 
 1. Open the integration's **Configuration** tab.
 2. Click **Add a location**.
-3. Pick the country (France for now) and type the **postal code**, e.g. `75001`.
-   Leave the "Town" field empty.
+3. Type the **town**, e.g. `Montauban`. Naming the location is optional: the
+   town's name is used when you leave the field empty.
 4. Submit.
 
-If a single town matches the postal code, it is added straight away. If several
-towns share it (common in rural areas), the integration lists them: run the
-action again with the **Town** field filled in.
+Most place names are shared by several towns — there are two Montauban in France
+alone, and a dozen Paris in the world. When that happens the integration lists
+the candidates instead of guessing: run the action again with a comma and the
+region, the country or the postal code, e.g. `Montauban, Tarn-et-Garonne` or
+`Paris, France`.
+
+You can also add a point directly: fill in the **latitude** and the
+**longitude** (WGS-84 decimal degrees, both of them — one alone is not a point).
+They are read with either decimal separator, so `48,8566` works as well as
+`48.8566`. Coordinates win over the town, which is then only kept as the label
+of the location.
 
 The location then shows up in the **Discovery** tab, named
-`Pollen <Town> (<postal code>)`. Click it to create the device in Gladys — that
-is when it becomes usable in dashboards and scenes.
+`Pollens — <name>`. Click it to create the device in Gladys — that is when it
+becomes usable in dashboards and scenes.
 
 You can add up to 20 locations.
 
-## Removing a location
+## Seeing and removing your locations
 
-1. Click **List my locations** to see what is configured.
-2. Click **Remove a location** and type the **postal code** or the **town name**.
+**Show my locations** prints them, numbered:
 
-The location disappears from the Discovery tab immediately.
+```
+• 1. Home — Montauban, Tarn-et-Garonne, France (44.01810, 1.35490)
+• 2. Office — Toulouse, Haute-Garonne, France (43.60426, 1.44367)
+```
+
+Those numbers are what the deletion dropdown offers, because a dropdown declared
+in a manifest can only hold fixed options — never your location names.
+
+To remove one: click **Remove a location**, pick its number, tick **I confirm**
+and submit. Running it without the checkbox tells you which location _would_ be
+removed. The location disappears from the Discovery tab immediately, and the
+locations below it move up a rank — so print the list again before deleting a
+second one.
 
 > If you had already added the device to Gladys, delete it from the device page
-> too: Gladys never deletes a device you created on its own. Conversely, if you
-> delete the device without removing the location, it comes back in the
+> too: an integration is not allowed to delete a device you created. Conversely,
+> if you delete the device without removing the location, it comes back in the
 > Discovery tab, ready to be added again.
 
 ## What the device measures
 
-Each device exposes eight measurements:
+Each device exposes nine measurements:
 
-| Measurement         | Description                                 |
-| ------------------- | ------------------------------------------- |
-| Overall pollen risk | The highest of the six risks below (0 to 5) |
-| Dominant pollen     | The name of the pollen driving that risk    |
-| Alder               | Risk from 0 to 5                            |
-| Birch               | Risk from 0 to 5                            |
-| Grass               | Risk from 0 to 5                            |
-| Mugwort             | Risk from 0 to 5                            |
-| Olive               | Risk from 0 to 5                            |
-| Ragweed             | Risk from 0 to 5                            |
+| Measurement                | Description                                 |
+| -------------------------- | ------------------------------------------- |
+| Overall pollen risk        | The highest of the six risks below (0 to 5) |
+| Overall pollen risk (text) | The same level, spelled out                 |
+| Dominant pollen            | The name of the pollen driving that risk    |
+| Alder                      | Risk from 0 to 5                            |
+| Birch                      | Risk from 0 to 5                            |
+| Grass                      | Risk from 0 to 5                            |
+| Mugwort                    | Risk from 0 to 5                            |
+| Olive                      | Risk from 0 to 5                            |
+| Ragweed                    | Risk from 0 to 5                            |
 
 The risk scale is:
 
@@ -87,11 +108,16 @@ a heavy one for ragweed, whose allergenic power is far stronger. The thresholds
 follow the bands published by the European Aeroallergen Network (EAN) and reused
 by the CAMS pollen products.
 
-Every measurement keeps its history, so you can chart the pollen season of your
-town.
+The numeric measurements keep their history, so you can chart the pollen season
+of your town.
 
 When the model has no value for a species at that position, **nothing is
 published** for that species — a missing measurement is not a zero risk.
+
+> On a dashboard, the "device in a room" box labels a risk value with the names
+> Gladys knows, which stop at 3: levels 4 and 5 show up as "Unknown" there. The
+> text measurement carries the exact wording, which is what to display next to
+> it.
 
 ## Using the risk in a scene
 
@@ -107,23 +133,25 @@ sensor in a scene. A few ideas:
 Each location is refreshed hourly by default. The CAMS forecast is recomputed
 once a day and interpolated hourly, so going below one hour gains nothing. The
 interval is configurable between 15 minutes and 24 hours in the Configuration
-tab.
+tab. A device you have just created is refreshed straight away, without waiting
+for the next cycle.
 
 ## Geographic coverage
 
 The CAMS forecast covers the **European domain**. A location outside that area
-is rejected when you add it, rather than creating a device that would never hold
+is refused when you add it, rather than creating a device that would never hold
 a value.
-
-More countries can be added in future versions: only the "postal code →
-coordinates" step is country-specific, the pollen source is already continental.
 
 ## Troubleshooting
 
-- **"Test the pollen provider" button**: it queries the source live on your
-  first location and shows the result. The quickest way to tell a network
-  problem from a configuration one.
+- **"Test the pollen provider" button**: it queries the source live for _every_
+  location and prints one line per location, numbered like the listing. The
+  quickest way to tell a network problem from a configuration one.
 - **The logs**: read the integration logs from the Gladys UI, or with
-  `docker logs`. Set `LOG_LEVEL` to `debug` to see the URLs being queried.
-- **A device stays empty**: check that its location is still listed by "List my
+  `docker logs`. Set `LOG_LEVEL` to `debug` to see the URLs being queried and
+  the exact device payload sent to Gladys.
+- **Nothing appears in the Discovery tab**: check the integration's status in
+  the Supervision screen — when Gladys refuses a device, the reason is reported
+  there.
+- **A device stays empty**: check that its location is still listed by "Show my
   locations". A device whose location was removed is no longer refreshed.

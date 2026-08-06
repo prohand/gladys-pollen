@@ -3,37 +3,49 @@
 //
 // This integration has a single device TYPE (the pollen station) but a variable
 // NUMBER of devices: one per location the user configured. So the registry is
-// not a static list of blueprints like in the template — it is a projection of
-// `config.locations`.
+// not a static list of blueprints like in the template — each blueprint is a
+// projection of `config.locations`.
+//
+// Every blueprint exposes the same shape:
+//   - key                              : short identifier (used in logs)
+//   - deviceExternalIds(gladys, config): every external_id it publishes
+//   - buildDevices(gladys, config)     : the discovery payloads sent to Gladys
+//   - onPoll(gladys, config, id)        (optional): read of ONE device
+//   - startPolling / refresh            (optional): self-driven refresh
+//   - actions                           (optional): manifest action handlers,
+//     keyed by the action `key` declared in gladys-assistant-integration.json
 //
 // Consequence for the Discovery tab: `publishDiscoveredDevices()` REPLACES the
 // previously published list, so re-publishing after every configuration change
 // is what makes an added location appear and a removed one disappear.
 // -----------------------------------------------------------------------------
 
-import { buildDevice, deviceExternalIds, poll } from './pollenStation.js';
+import { pollenStation } from './pollenStation.js';
 
-/**
- * Build the discovery payload: one device per configured location.
- * @param {import('@gladysassistant/integration-sdk').GladysIntegration} gladys
- * @param {{ locations: import('../locations.js').Location[], poll_frequency: number }} config
- */
+export const DEVICE_BLUEPRINTS = [pollenStation];
+
+/** Build the discovery payload: every blueprint, for every watched location. */
 export function buildDiscoveredDevices(gladys, config) {
-  return config.locations.map((location) => buildDevice(gladys, location, config));
+  return DEVICE_BLUEPRINTS.flatMap((blueprint) => blueprint.buildDevices(gladys, config));
 }
 
 /**
- * Find the location a Gladys device belongs to, from its external_id.
- * Used to route `onPoll` to the right coordinates.
- * @returns {import('../locations.js').Location|undefined}
+ * Find the blueprint that owns a given device, from its external_id (used to
+ * route onPoll to the right device).
  */
-export function findLocationByDevice(gladys, config, device) {
-  return config.locations.find(
-    (location) => deviceExternalIds(gladys, location).device === device.external_id,
+export function findBlueprintByDevice(gladys, config, device) {
+  return DEVICE_BLUEPRINTS.find((blueprint) =>
+    blueprint.deviceExternalIds(gladys, config).includes(device.external_id),
   );
 }
 
-/** Poll one location and publish its states. */
-export function pollLocation(gladys, location) {
-  return poll(gladys, location);
+/**
+ * The external_ids every blueprint publishes for ONE location.
+ *
+ * Used to answer "has the user already created this location's device?", which
+ * decides what the delete action can promise: an integration may stop OFFERING a
+ * device, but the host API gives it no way to delete one the user created.
+ */
+export function locationDeviceIds(gladys, location) {
+  return DEVICE_BLUEPRINTS.map((blueprint) => blueprint.locationDeviceId(gladys, location));
 }

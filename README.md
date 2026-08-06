@@ -3,23 +3,23 @@
 ![Pollens](./cover.png)
 
 External integration for [Gladys Assistant](https://gladysassistant.com)
-exposing the **pollen risk** of the locations you choose: one device per town,
-with a 0-to-5 risk level per pollen species.
+exposing the **pollen risk** of the locations you choose: one device per
+location, with a 0-to-5 risk level per pollen species.
 
 Built from the official
 [JavaScript integration template](https://github.com/GladysAssistant/integration-template-js).
 
-**No account, no API key.** The user types a postal code and gets a device.
+**No account, no API key.** The user types a town and gets a device.
 
 - 🇫🇷 [User documentation (français)](./docs/fr.md)
 - 🇬🇧 [User documentation (English)](./docs/en.md)
 
 ## Data sources
 
-| Need                        | Source                                                                                                                                   | Auth |
-| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ---- |
-| Pollen concentrations       | [CAMS European air quality forecast](https://atmosphere.copernicus.eu/) via [Open-Meteo](https://open-meteo.com/en/docs/air-quality-api) | none |
-| Postal code → position (FR) | [API Découpage administratif](https://geo.api.gouv.fr/decoupage-administratif/communes) (data.gouv.fr / Etalab)                          | none |
+| Need                  | Source                                                                                                                                   | Auth |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ---- |
+| Pollen concentrations | [CAMS European air quality forecast](https://atmosphere.copernicus.eu/) via [Open-Meteo](https://open-meteo.com/en/docs/air-quality-api) | none |
+| Town → position       | [Open-Meteo geocoding API](https://open-meteo.com/en/docs/geocoding-api) (GeoNames)                                                      | none |
 
 CAMS is the atmospheric service of the EU Copernicus programme, operated by
 ECMWF: an official source, on a ~11 km grid, forecasting the six main allergenic
@@ -36,26 +36,43 @@ the device code.
 
 ## How it works
 
-Locations are **not** a `config_schema` field — nobody should hand-write a JSON
-array in a form. They are managed by four buttons in the Configuration screen
-and stored by the integration itself through `gladys.setConfig({ locations })`,
-the documented way to keep integration-owned state outside the schema.
+Locations are **not** `config_schema` fields — a list the user builds at runtime
+cannot be one: the Configuration screen is generated from a static manifest, and
+every field it renders that is not a `section` is an `<input>`. They are managed
+by four buttons and stored by the integration itself through
+`gladys.setConfig({ locations })`, the documented way to keep integration-owned
+state outside the schema.
 
-| Action                       | What it does                                                    |
-| ---------------------------- | --------------------------------------------------------------- |
-| **Add a location**           | Geocodes a postal code, stores the town, re-publishes Discovery |
-| **List my locations**        | Shows what is configured                                        |
-| **Remove a location**        | Drops it from the config, so it leaves the Discovery tab        |
-| **Test the pollen provider** | Live call to the source on the first location                   |
+| Action                       | What it does                                                          |
+| ---------------------------- | --------------------------------------------------------------------- |
+| **Add a location**           | Geocodes a town (or takes a point), stores it, re-publishes Discovery |
+| **Show my locations**        | The numbered listing — those numbers are what the delete picker takes |
+| **Test the pollen provider** | Live call to the source, for _every_ location                         |
+| **Remove a location**        | Drops the location it names, so it leaves the Discovery tab           |
 
 `publishDiscoveredDevices()` replaces the previously published list, so adding a
 location makes it appear in the **Discovery** tab and removing one makes it
 disappear. Creating and deleting the actual Gladys device stays the user's call,
 as for every integration.
 
-A postal code is not a town: `05100` covers four communes. Rather than guessing,
-`add_location` lists the candidates and asks the user to re-run with the town
-name.
+Most place names are shared: `Montauban` exists twice in France alone. Rather
+than guessing, `add_location` lists the candidates and asks for a comma and the
+region, the country or the postal code — `Montauban, Tarn-et-Garonne`.
+
+### Two Gladys core constraints this integration is shaped by
+
+Both were learned the hard way, and both silently emptied the Discovery tab:
+
+- **`poll_frequency` is an enum in milliseconds capped at one minute.** Any other
+  value has the _whole_ device batch refused. A pollen forecast changes once a
+  day, so the devices declare none and the integration runs its own
+  `setInterval` (`startPolling`), floored at `MIN_REFRESH_SECONDS`.
+- **Every feature needs an explicit numeric `min` and `max`** —
+  `t_device_feature.min/max` are `NOT NULL` with no default, text features
+  included.
+
+A refused batch is now logged, and reported in the Supervision screen through
+`setConnectionStatus`, instead of leaving an empty tab with no explanation.
 
 ## Device features
 
@@ -77,10 +94,11 @@ zero risk.
 ├─ index.js                          # SDK bootstrap + event wiring (no pollen logic)
 ├─ src/
 │  ├─ config.js                      # config defaults + normalization
-│  ├─ locations.js                   # the location list: parse / add / remove / match
-│  ├─ countries/                     # ← postal code -> coordinates, per country
-│  │  ├─ index.js                    #   registry
-│  │  └─ fr.js                       #   France (API Géo, data.gouv.fr)
+│  ├─ locations.js                   # the location list: normalize / upsert / remove / print
+│  ├─ locationEditor.js              # the three location actions of the Configuration screen
+│  ├─ geocoding.js                   # ← town -> coordinates (Open-Meteo geocoding)
+│  ├─ coordinates.js                 #   parsing a WGS-84 coordinate typed by a human
+│  ├─ richText.js                    #   the only emphasis an action message can carry
 │  ├─ pollen/                        # ← the pollen data sources
 │  │  ├─ index.js                    #   provider registry + grading
 │  │  ├─ openMeteo.js                #   Open-Meteo / CAMS Europe driver
@@ -94,20 +112,16 @@ zero risk.
 └─ cover.png                         # catalog cover, 800×534
 ```
 
-## Adding a country
+## There is no country to configure
 
-The pollen source is already continental, so a new country only needs its
-"postal code → coordinates" step:
-
-1. create `src/countries/<code>.js` exposing `{ code, label, postalCodePattern,
-postalCodeExample, postalCodeHint, searchPostalCode(postalCode) }`, backed by
-   an open, key-free geocoder;
-2. register it in `COUNTRIES` (`src/countries/index.js`);
-3. add its option to the `country` field of `add_location` **and** to
-   `default_country` in `gladys-assistant-integration.json`.
-
-Step 3 is the one that is easy to forget, so `test/manifest.test.js` fails CI if
-the manifest options and the implemented countries drift apart.
+Everything downstream of the geocoder — the provider, the devices, the features
+— works on a latitude and a longitude. The country only ever existed as the
+registry that knew how to read a national postal code, which made the
+integration French while its data is European. One worldwide geocoder removed
+that step: no country field, no registry to extend, no manifest option list to
+keep in sync. Coverage is decided by the provider instead — `supports()` — and a
+point outside it is refused when the location is added, rather than published as
+a device that never holds a value.
 
 ## Adding a pollen source
 
@@ -141,4 +155,4 @@ The workflows come from the official template and are repo-generic:
 Apache-2.0.
 
 Pollen data © Copernicus Atmosphere Monitoring Service (CAMS), served by
-Open-Meteo. French administrative data © data.gouv.fr / Etalab.
+Open-Meteo. Place names © GeoNames, served by Open-Meteo.
