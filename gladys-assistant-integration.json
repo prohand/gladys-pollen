@@ -1,0 +1,131 @@
+{
+  "manifest_version": 1,
+  "type": "device",
+  "name": "Pollens",
+  "description": {
+    "en": "Pollen risk (birch, grass, ragweed…) for the locations you choose, from the Copernicus CAMS European forecast. No account, no API key.",
+    "fr": "Risque pollinique (bouleau, graminées, ambroisie…) pour les lieux de votre choix, à partir de la prévision européenne CAMS de Copernicus. Sans compte ni clé d'API."
+  },
+  "version": "1.0.0",
+  "docker_image": "ghcr.io/prohand/gladys-pollen:1.0.0",
+  "gladys_version": ">=4.62.0",
+  "cover_image": "https://raw.githubusercontent.com/prohand/gladys-pollen/main/cover.png",
+  "transports": ["cloud"],
+  "config_schema": [
+    {
+      "key": "intro",
+      "type": "section",
+      "label": { "en": "How it works", "fr": "Comment ça marche" },
+      "description": {
+        "en": "Add one location per postal code with the button below: the town is geocoded, then a pollen device appears in the Discovery tab, ready to be added to Gladys. Pollen data comes from the CAMS European air quality forecast (Copernicus), republished as open data by Open-Meteo: no account and no API key are needed. French postal codes are resolved through the official API Découpage administratif (data.gouv.fr).",
+        "fr": "Ajoutez un lieu par code postal avec le bouton ci-dessous : la commune est géocodée, puis un appareil pollens apparaît dans l'onglet Découverte, prêt à être ajouté à Gladys. Les données polliniques proviennent de la prévision européenne de qualité de l'air CAMS (Copernicus), rediffusée en open data par Open-Meteo : aucun compte ni clé d'API n'est nécessaire. Les codes postaux français sont résolus via l'API Découpage administratif officielle (data.gouv.fr)."
+      },
+      "links": [
+        {
+          "url": "https://open-meteo.com/en/docs/air-quality-api",
+          "label": { "en": "Open-Meteo Air Quality API", "fr": "API Qualité de l'air Open-Meteo" }
+        },
+        {
+          "url": "https://geo.api.gouv.fr/decoupage-administratif/communes",
+          "label": { "en": "API Découpage administratif", "fr": "API Découpage administratif" }
+        }
+      ]
+    },
+    {
+      "key": "default_country",
+      "type": "select",
+      "label": { "en": "Default country", "fr": "Pays par défaut" },
+      "description": {
+        "en": "Country pre-selected when you add a location.",
+        "fr": "Pays présélectionné lorsque vous ajoutez un lieu."
+      },
+      "required": false,
+      "default": "FR",
+      "options": [{ "value": "FR", "label": { "en": "France", "fr": "France" } }]
+    },
+    {
+      "key": "poll_frequency",
+      "type": "number",
+      "label": { "en": "Refresh interval (s)", "fr": "Intervalle de rafraîchissement (s)" },
+      "description": {
+        "en": "How often each location is refreshed, in seconds. The forecast is updated once a day and interpolated hourly, so there is nothing to gain below one hour.",
+        "fr": "Fréquence de rafraîchissement de chaque lieu, en secondes. La prévision est mise à jour une fois par jour et interpolée à l'heure : descendre sous une heure n'apporte rien."
+      },
+      "required": false,
+      "default": 3600,
+      "min": 900,
+      "max": 86400
+    },
+    {
+      "key": "locations_section",
+      "type": "section",
+      "label": { "en": "Your locations", "fr": "Vos lieux" },
+      "description": {
+        "en": "Use the buttons below to add, list and remove your locations. A removed location disappears from the Discovery tab; if you had already added its device to Gladys, delete that device from the device page as well.",
+        "fr": "Utilisez les boutons ci-dessous pour ajouter, lister et supprimer vos lieux. Un lieu supprimé disparaît de l'onglet Découverte ; si vous aviez déjà ajouté son appareil dans Gladys, supprimez également cet appareil depuis la page des appareils."
+      }
+    }
+  ],
+  "actions": [
+    {
+      "key": "add_location",
+      "label": { "en": "Add a location", "fr": "Ajouter un lieu" },
+      "timeout_seconds": 30,
+      "fields": [
+        {
+          "key": "country",
+          "type": "select",
+          "label": { "en": "Country", "fr": "Pays" },
+          "required": true,
+          "default": "FR",
+          "options": [{ "value": "FR", "label": { "en": "France", "fr": "France" } }]
+        },
+        {
+          "key": "postal_code",
+          "type": "string",
+          "label": { "en": "Postal code", "fr": "Code postal" },
+          "placeholder": "75001",
+          "required": true
+        },
+        {
+          "key": "city",
+          "type": "string",
+          "label": { "en": "Town (optional)", "fr": "Commune (facultatif)" },
+          "description": {
+            "en": "Only needed when several towns share the postal code: they will be listed for you.",
+            "fr": "Utile uniquement si plusieurs communes partagent le code postal : elles vous seront listées."
+          },
+          "required": false
+        }
+      ]
+    },
+    {
+      "key": "list_locations",
+      "label": { "en": "List my locations", "fr": "Lister mes lieux" },
+      "timeout_seconds": 10
+    },
+    {
+      "key": "remove_location",
+      "label": { "en": "Remove a location", "fr": "Supprimer un lieu" },
+      "timeout_seconds": 15,
+      "fields": [
+        {
+          "key": "location",
+          "type": "string",
+          "label": { "en": "Postal code or town", "fr": "Code postal ou commune" },
+          "description": {
+            "en": "Type the postal code or the town name of the location to remove, as shown by \"List my locations\".",
+            "fr": "Saisissez le code postal ou le nom de la commune du lieu à supprimer, tel qu'affiché par « Lister mes lieux »."
+          },
+          "placeholder": "75001",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "test_provider",
+      "label": { "en": "Test the pollen provider", "fr": "Tester le fournisseur de pollens" },
+      "timeout_seconds": 30
+    }
+  ]
+}
