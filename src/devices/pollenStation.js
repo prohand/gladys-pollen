@@ -22,6 +22,7 @@ import {
   DEVICE_FEATURE_CATEGORIES,
   DEVICE_FEATURE_TYPES,
 } from '@gladysassistant/integration-sdk';
+import { DEFAULT_LANGUAGE, inLanguage } from '../language.js';
 import { allTaxa, findProvider, readPollenRisk } from '../pollen/index.js';
 import { RISK_LEVEL_LABELS, RISK_LEVEL_MAX } from '../pollen/risk.js';
 import {
@@ -58,14 +59,34 @@ const TAXON_NAMES = {
   ragweed: { en: 'Ragweed', fr: 'Ambroisie' },
 };
 
-/** English display name of a taxon (feature names are not translated by Gladys). */
-export function taxonName(taxon) {
-  return TAXON_NAMES[taxon]?.en ?? taxon;
-}
+/** Names of the features that are not about one taxon. */
+const FEATURE_NAMES = {
+  [FEATURE.OVERALL_RISK]: { en: 'Overall pollen risk', fr: 'Risque pollinique global' },
+  [FEATURE.OVERALL_RISK_TEXT]: {
+    en: 'Overall pollen risk (text)',
+    fr: 'Risque pollinique global (texte)',
+  },
+  [FEATURE.DOMINANT_POLLEN]: { en: 'Dominant pollen', fr: 'Pollen dominant' },
+};
 
-/** French display name of a taxon, for the action messages. */
-export function taxonNameFr(taxon) {
-  return TAXON_NAMES[taxon]?.fr ?? taxon;
+/** How the name of a taxon becomes the name of its risk feature. */
+const TAXON_FEATURE_NAME = {
+  en: (name) => `${name} pollen risk`,
+  fr: (name) => `Risque pollinique — ${name}`,
+};
+
+/** What the "dominant pollen" feature says when nothing is in the air. */
+const NO_DOMINANT_POLLEN = { en: 'None', fr: 'Aucun' };
+
+/**
+ * Display name of a taxon. Also the value of the "dominant pollen" state, so a
+ * dashboard reads the same word as the feature it comes from.
+ * @param {string} taxon pollen taxon key, e.g. 'birch'
+ * @param {string} [language] one of LANGUAGES; the taxon key is the last resort
+ *   for a species a future provider adds without a translation
+ */
+export function taxonName(taxon, language = DEFAULT_LANGUAGE) {
+  return TAXON_NAMES[taxon] ? inLanguage(TAXON_NAMES[taxon], language) : taxon;
 }
 
 /** External ids of the device of a location. */
@@ -121,11 +142,18 @@ function textFeature(externalId, name) {
 
 /**
  * Build the discovery payload of one location.
+ *
+ * The names are written in the configured language and nowhere else: a device
+ * name and a feature name are plain strings the core copies into its own tables
+ * when the user creates the device, so this is the ONE place where the
+ * integration has to pick a language instead of handing Gladys `{ en, fr }`.
  * @param {import('@gladysassistant/integration-sdk').GladysIntegration} gladys
  * @param {import('../locations.js').Location} location
+ * @param {string} [language] one of LANGUAGES (see src/language.js)
  */
-export function buildDevice(gladys, location) {
+export function buildDevice(gladys, location, language = DEFAULT_LANGUAGE) {
   const ids = deviceExternalIds(gladys, location);
+  const featureName = (key) => inLanguage(FEATURE_NAMES[key], language);
 
   return {
     name: `Pollens — ${location.name}`,
@@ -153,12 +181,15 @@ export function buildDevice(gladys, location) {
       // levels 4 and 5 show as "Inconnu" there. The text feature below carries
       // the exact wording, and the numeric one stays on the 0-5 scale every
       // pollen bulletin uses.
-      riskFeature(ids.feature(FEATURE.OVERALL_RISK), 'Overall pollen risk'),
-      textFeature(ids.feature(FEATURE.OVERALL_RISK_TEXT), 'Overall pollen risk (text)'),
+      riskFeature(ids.feature(FEATURE.OVERALL_RISK), featureName(FEATURE.OVERALL_RISK)),
+      textFeature(ids.feature(FEATURE.OVERALL_RISK_TEXT), featureName(FEATURE.OVERALL_RISK_TEXT)),
       ...allTaxa().map((taxon) =>
-        riskFeature(ids.feature(taxon), `${taxonName(taxon)} pollen risk`),
+        riskFeature(
+          ids.feature(taxon),
+          inLanguage(TAXON_FEATURE_NAME, language)(taxonName(taxon, language)),
+        ),
       ),
-      textFeature(ids.feature(FEATURE.DOMINANT_POLLEN), 'Dominant pollen'),
+      textFeature(ids.feature(FEATURE.DOMINANT_POLLEN), featureName(FEATURE.DOMINANT_POLLEN)),
     ],
   };
 }
@@ -167,9 +198,14 @@ export function buildDevice(gladys, location) {
  * Build the `publishStates` batch of one location from a provider reading.
  * Split out of `poll()` so the mapping "reading -> states" is testable without
  * a Gladys connection.
+ *
+ * The two TEXT states are written in the same language as the features that
+ * carry them: a stored state is a string like a feature name, translated by
+ * nobody downstream.
+ * @param {string} [language] one of LANGUAGES (see src/language.js)
  * @returns {Array<{ device_feature_external_id: string, state?: number, text?: string }>}
  */
-export function buildStates(ids, reading) {
+export function buildStates(ids, reading, language = DEFAULT_LANGUAGE) {
   const states = [];
 
   for (const [taxon, level] of Object.entries(reading.risks)) {
@@ -189,11 +225,13 @@ export function buildStates(ids, reading) {
       },
       {
         device_feature_external_id: ids.feature(FEATURE.OVERALL_RISK_TEXT),
-        text: RISK_LEVEL_LABELS[reading.overall.level].en,
+        text: inLanguage(RISK_LEVEL_LABELS[reading.overall.level], language),
       },
       {
         device_feature_external_id: ids.feature(FEATURE.DOMINANT_POLLEN),
-        text: reading.overall.taxon ? taxonName(reading.overall.taxon) : 'None',
+        text: reading.overall.taxon
+          ? taxonName(reading.overall.taxon, language)
+          : inLanguage(NO_DOMINANT_POLLEN, language),
       },
     );
   }
@@ -206,8 +244,9 @@ export function buildStates(ids, reading) {
  * Throws on an unreadable answer — `refresh` is what never throws.
  * @param {import('@gladysassistant/integration-sdk').GladysIntegration} gladys
  * @param {import('../locations.js').Location} location
+ * @param {string} [language] language of the published TEXT states
  */
-export async function poll(gladys, location) {
+export async function poll(gladys, location, language = DEFAULT_LANGUAGE) {
   const ids = deviceExternalIds(gladys, location);
   logger.info(`Polling pollen risk for ${location.name}...`);
 
@@ -216,16 +255,18 @@ export async function poll(gladys, location) {
   // ------------------------------------------------------------------ //
   const reading = await readPollenRisk(location);
 
-  const states = buildStates(ids, reading);
+  const states = buildStates(ids, reading, language);
   if (states.length === 0) {
     logger.warn(`No pollen data for ${location.name}, nothing published`);
     return reading;
   }
 
+  // The logs stay English whatever the devices are named: they are read in the
+  // container output, next to the SDK's own.
   const overall = RISK_LEVEL_LABELS[reading.overall.level]?.en ?? 'unknown';
   logger.info(
     `${location.name}: overall risk ${reading.overall.level} (${overall})` +
-      `${reading.overall.taxon ? `, dominant ${taxonName(reading.overall.taxon)}` : ''}`,
+      `${reading.overall.taxon ? `, dominant ${taxonName(reading.overall.taxon, 'en')}` : ''}`,
   );
 
   // One request for every feature of the device (batch, up to 100).
@@ -306,7 +347,9 @@ export const pollenStation = {
   },
 
   buildDevices(gladys, config) {
-    return watchedLocations(config).map((location) => buildDevice(gladys, location));
+    return watchedLocations(config).map((location) =>
+      buildDevice(gladys, location, config.language),
+    );
   },
 
   // Manifest actions owned by this device type (see the `actions` field of
@@ -331,10 +374,10 @@ export const pollenStation = {
         return {
           en:
             `risk ${level}/${RISK_LEVEL_MAX} (${RISK_LEVEL_LABELS[level].en})` +
-            `${dominant ? `, dominant ${taxonName(dominant)}` : ''} — ${reading.provider}`,
+            `${dominant ? `, dominant ${taxonName(dominant, 'en')}` : ''} — ${reading.provider}`,
           fr:
             `risque ${level}/${RISK_LEVEL_MAX} (${RISK_LEVEL_LABELS[level].fr})` +
-            `${dominant ? `, dominant ${taxonNameFr(dominant)}` : ''} — ${reading.provider}`,
+            `${dominant ? `, dominant ${taxonName(dominant, 'fr')}` : ''} — ${reading.provider}`,
         };
       });
 
@@ -367,7 +410,7 @@ export const pollenStation = {
     if (!location) {
       throw new Error(`No location watches the device ${externalId}`);
     }
-    await poll(gladys, location);
+    await poll(gladys, location, config.language);
   },
 
   /**
@@ -402,7 +445,7 @@ export const pollenStation = {
     const outcomes = await Promise.all(
       locations.map(async (location) => {
         try {
-          await poll(gladys, location);
+          await poll(gladys, location, config.language);
           return null;
         } catch (err) {
           logger.error(`Pollen refresh failed for ${describeLocation(location)}`, err);

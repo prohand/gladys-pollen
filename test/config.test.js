@@ -5,7 +5,18 @@ import { DEFAULT_CONFIG, isConfigured, normalizeConfig } from '../src/config.js'
 test('an empty config falls back on the defaults', () => {
   const config = normalizeConfig();
   assert.equal(config.poll_frequency, DEFAULT_CONFIG.poll_frequency);
+  assert.equal(config.language, 'fr');
   assert.deepEqual(config.locations, []);
+});
+
+test('the language of the names falls back on French', () => {
+  // Nothing in the host API tells an integration which language its user reads
+  // (see src/language.js): an unknown value is French, not a broken name.
+  assert.equal(normalizeConfig({ language: 'en' }).language, 'en');
+  assert.equal(normalizeConfig({ language: 'FR' }).language, 'fr');
+  assert.equal(normalizeConfig({ language: 'en-US' }).language, 'en');
+  assert.equal(normalizeConfig({ language: 'de' }).language, 'fr');
+  assert.equal(normalizeConfig({ language: null }).language, 'fr');
 });
 
 test('numbers arriving as strings from the form are coerced', () => {

@@ -11,6 +11,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { DEFAULT_CONFIG, POLL_FREQUENCY_LIMITS } from '../src/config.js';
 import { DEVICE_BLUEPRINTS } from '../src/devices/index.js';
+import { DEFAULT_LANGUAGE, LANGUAGES } from '../src/language.js';
 import { createLocationEditor } from '../src/locationEditor.js';
 import { MAX_LOCATIONS } from '../src/locations.js';
 
@@ -87,6 +88,20 @@ test('the refresh interval is clamped to the bounds the manifest declares', () =
   const field = manifest.config_schema.find((f) => f.key === 'poll_frequency');
   assert.equal(field.min, POLL_FREQUENCY_LIMITS.min);
   assert.equal(field.max, POLL_FREQUENCY_LIMITS.max);
+});
+
+test('the language dropdown offers exactly the languages the code writes', () => {
+  // The names of the devices are the one thing Gladys cannot translate for us,
+  // so the user picks their language here — French by default, because the host
+  // API never says which language the user reads (see src/language.js).
+  const field = manifest.config_schema.find((f) => f.key === 'language');
+  assert.equal(field.type, 'select');
+  assert.equal(field.default, DEFAULT_LANGUAGE);
+  assert.deepEqual(
+    field.options.map((option) => option.value),
+    LANGUAGES,
+    'a language offered in the form must be one the code can write',
+  );
 });
 
 test('section fields are purely presentational', () => {

@@ -79,6 +79,28 @@ refused coordinate, an ambiguous town, a location outside the coverage — is
 message is also the only thing the Configuration screen displays of what this
 integration has to say, hence the listing being an action too.
 
+### Names are the only text this integration has to translate itself
+
+Everything displayed — action results, connection status — is returned as
+`{ en, fr }` and rendered by the core in the reader's language. Device and
+feature **names** cannot work that way: they are plain strings stored in
+`t_device_feature.name` when the user creates the device, and the host API
+exposes no user language at all (the only one it ever returns is a messaging
+contact's, `getContacts()` / contract B.15 — this integration has no contacts).
+
+Hence `src/language.js`: `config.language`, a manifest `select`, **`fr` by
+default**. It is threaded through `buildDevice`/`buildStates`/`poll` as an
+argument rather than read from a module-level variable, so the mapping stays
+testable in both languages. The two TEXT states follow it too — a stored state is
+a string like a name, translated by nobody downstream. Anything else that speaks
+to the user stays `{ en, fr }`; `taxonName(taxon, 'en' | 'fr')` is what the
+bilingual action messages call.
+
+Re-publishing does NOT rename an existing device: the core upserts the params of
+the devices already created, never their name. A language switch therefore
+applies to the devices still to be created, which the manifest description and
+`docs/` both say.
+
 ### There is no country anywhere
 
 Everything downstream of the geocoder works on a latitude and a longitude. The

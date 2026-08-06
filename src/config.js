@@ -18,6 +18,7 @@
 // config key.
 // -----------------------------------------------------------------------------
 
+import { DEFAULT_LANGUAGE, normalizeLanguage } from './language.js';
 import { normalizeLocations, usableLocations } from './locations.js';
 
 // Re-exported so callers that only read or write a coordinate do not have to
@@ -29,6 +30,10 @@ export const DEFAULT_CONFIG = {
   // The CAMS pollen forecast is refreshed once a day and interpolated hourly:
   // polling faster than that just returns the same numbers.
   poll_frequency: 3600,
+  // The language of the device and feature names, which are plain strings the
+  // core stores as they are published — the one thing Gladys cannot translate
+  // for us (see src/language.js).
+  language: DEFAULT_LANGUAGE,
 };
 
 /** Bounds declared in the manifest for the refresh interval, in seconds. */
@@ -44,6 +49,7 @@ export function normalizeConfig(raw = {}) {
     ...DEFAULT_CONFIG,
     ...raw,
     poll_frequency: clampPollFrequency(raw.poll_frequency),
+    language: normalizeLanguage(raw.language),
     // Not a schema field: written by the integration, read back here.
     locations: normalizeLocations(raw.locations),
   };
