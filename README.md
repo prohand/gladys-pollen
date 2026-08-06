@@ -87,6 +87,23 @@ Concentrations are graded with **per-species thresholds** (`src/pollen/risk.js`)
 model has no value for publishes nothing at all — a missing measurement is not a
 zero risk.
 
+### Names are the one thing Gladys cannot translate
+
+Every message this integration displays travels as an `{ en, fr }` object and is
+rendered by the core in the language of the user reading it. A device name and a
+feature name are not messages: they are plain strings copied into the core tables
+the day the user creates the device, and the host API never tells an integration
+which language its user reads — the only language it exposes anywhere is that of
+a messaging contact (`getContacts()`, contract B.15), which this integration has
+none of.
+
+So the language of the names is a config field (`src/language.js`), **French by
+default**, and it is the only place in the code that picks a language instead of
+handing Gladys both. It also drives the two TEXT states, which are stored strings
+just like a name. Re-publishing renames nothing: the core upserts the params of
+an existing device, never its name, so a switch applies to the devices still to
+be created.
+
 ## Project structure
 
 ```
@@ -94,6 +111,7 @@ zero risk.
 ├─ index.js                          # SDK bootstrap + event wiring (no pollen logic)
 ├─ src/
 │  ├─ config.js                      # config defaults + normalization
+│  ├─ language.js                    # the language of the NAMES (the only untranslated text)
 │  ├─ locations.js                   # the location list: normalize / upsert / remove / print
 │  ├─ locationEditor.js              # the three location actions of the Configuration screen
 │  ├─ geocoding.js                   # ← town -> coordinates (Open-Meteo geocoding)

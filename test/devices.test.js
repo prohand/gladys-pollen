@@ -15,6 +15,7 @@ import {
   FEATURE,
   MIN_REFRESH_SECONDS,
   pollenStation,
+  taxonName,
   watchedLocations,
 } from '../src/devices/pollenStation.js';
 import { allTaxa } from '../src/pollen/index.js';
@@ -140,6 +141,63 @@ test('risk features are historized and bounded to 0-5', () => {
   }
 });
 
+test('the features are named in French unless the user asks for English', () => {
+  // A feature name is a plain string the core stores as it is published: Gladys
+  // translates the action messages for us, never a name (see src/language.js).
+  const gladys = createFakeGladys();
+  const french = configWith([paris]);
+  const namesOf = (config) =>
+    buildDevice(gladys, stored(paris, config), config.language).features.map((f) => f.name);
+
+  assert.deepEqual(namesOf(french), [
+    'Risque pollinique global',
+    'Risque pollinique global (texte)',
+    'Risque pollinique — Aulne',
+    'Risque pollinique — Bouleau',
+    'Risque pollinique — Graminées',
+    'Risque pollinique — Armoise',
+    'Risque pollinique — Olivier',
+    'Risque pollinique — Ambroisie',
+    'Pollen dominant',
+  ]);
+
+  const english = namesOf(configWith([paris], { language: 'en' }));
+  assert.equal(english[0], 'Overall pollen risk');
+  assert.ok(english.includes('Birch pollen risk'));
+  assert.ok(english.includes('Dominant pollen'));
+});
+
+test('the language of the names is the one of the configuration', () => {
+  const gladys = createFakeGladys();
+  const [device] = buildDiscoveredDevices(gladys, configWith([paris], { language: 'en' }));
+  assert.ok(device.features.some((feature) => feature.name === 'Ragweed pollen risk'));
+
+  // An unsupported language is French, not a device named after a taxon key.
+  const [fallback] = buildDiscoveredDevices(gladys, configWith([paris], { language: 'de' }));
+  assert.ok(fallback.features.some((feature) => feature.name === 'Risque pollinique — Ambroisie'));
+});
+
+test('renaming the features leaves the identity of the device untouched', () => {
+  // The external ids carry the history: switching language must not orphan a
+  // device the user already added to a room.
+  const gladys = createFakeGladys();
+  const french = configWith([paris]);
+  const english = configWith([paris], { language: 'en' });
+  const idsOf = (config) => [
+    buildDevice(gladys, stored(paris, config), config.language).external_id,
+    ...buildDevice(gladys, stored(paris, config), config.language).features.map(
+      (feature) => feature.external_id,
+    ),
+  ];
+  assert.deepEqual(idsOf(english), idsOf(french));
+});
+
+test('a taxon no translation knows keeps its key as a name', () => {
+  assert.equal(taxonName('birch', 'fr'), 'Bouleau');
+  assert.equal(taxonName('cypress', 'fr'), 'cypress');
+  assert.equal(taxonName('cypress', 'en'), 'cypress');
+});
+
 test('the device carries its resolved position as params', () => {
   const gladys = createFakeGladys();
   const config = configWith([paris]);
@@ -178,13 +236,27 @@ test('a reading becomes one state per taxon plus the overall trio', () => {
     overall: { level: 3, taxon: 'birch' },
   });
 
+  // The TEXT states are stored as they are published, so they follow the same
+  // language as the feature names — French unless the user says otherwise.
   assert.deepEqual(states, [
     { device_feature_external_id: ids.feature('birch'), state: 3 },
     { device_feature_external_id: ids.feature('grass'), state: 1 },
     { device_feature_external_id: ids.feature(FEATURE.OVERALL_RISK), state: 3 },
-    { device_feature_external_id: ids.feature(FEATURE.OVERALL_RISK_TEXT), text: 'moderate' },
-    { device_feature_external_id: ids.feature(FEATURE.DOMINANT_POLLEN), text: 'Birch' },
+    { device_feature_external_id: ids.feature(FEATURE.OVERALL_RISK_TEXT), text: 'moyen' },
+    { device_feature_external_id: ids.feature(FEATURE.DOMINANT_POLLEN), text: 'Bouleau' },
   ]);
+});
+
+test('the text states are written in the configured language', () => {
+  const gladys = createFakeGladys();
+  const ids = deviceExternalIds(gladys, paris);
+  const reading = { risks: { birch: 3 }, overall: { level: 3, taxon: 'birch' } };
+  const text = (states, feature) =>
+    states.find((state) => state.device_feature_external_id === ids.feature(feature)).text;
+
+  const english = buildStates(ids, reading, 'en');
+  assert.equal(text(english, FEATURE.OVERALL_RISK_TEXT), 'moderate');
+  assert.equal(text(english, FEATURE.DOMINANT_POLLEN), 'Birch');
 });
 
 test('a taxon without data publishes nothing rather than a zero', () => {
@@ -201,14 +273,12 @@ test('a taxon without data publishes nothing rather than a zero', () => {
 test('a quiet day reports no dominant pollen', () => {
   const gladys = createFakeGladys();
   const ids = deviceExternalIds(gladys, paris);
-  const states = buildStates(ids, {
-    risks: { birch: 0, grass: 0 },
-    overall: { level: 0, taxon: null },
-  });
-  const dominant = states.find(
+  const quiet = { risks: { birch: 0, grass: 0 }, overall: { level: 0, taxon: null } };
+  const dominant = buildStates(ids, quiet).find(
     (state) => state.device_feature_external_id === ids.feature(FEATURE.DOMINANT_POLLEN),
   );
-  assert.equal(dominant.text, 'None');
+  assert.equal(dominant.text, 'Aucun');
+  assert.equal(buildStates(ids, quiet, 'en').at(-1).text, 'None');
 });
 
 test('a reading with no data at all publishes nothing', () => {

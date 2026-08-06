@@ -84,12 +84,16 @@ Each device exposes nine measurements:
 | Overall pollen risk        | The highest of the six risks below (0 to 5) |
 | Overall pollen risk (text) | The same level, spelled out                 |
 | Dominant pollen            | The name of the pollen driving that risk    |
-| Alder                      | Risk from 0 to 5                            |
-| Birch                      | Risk from 0 to 5                            |
-| Grass                      | Risk from 0 to 5                            |
-| Mugwort                    | Risk from 0 to 5                            |
-| Olive                      | Risk from 0 to 5                            |
-| Ragweed                    | Risk from 0 to 5                            |
+| Alder pollen risk          | Risk from 0 to 5                            |
+| Birch pollen risk          | Risk from 0 to 5                            |
+| Grass pollen risk          | Risk from 0 to 5                            |
+| Mugwort pollen risk        | Risk from 0 to 5                            |
+| Olive pollen risk          | Risk from 0 to 5                            |
+| Ragweed pollen risk        | Risk from 0 to 5                            |
+
+> These are the names with the **Language of the device names** setting on
+> English. It defaults to **French** (`Risque pollinique — Bouleau`) — see
+> [The language of the names](#the-language-of-the-names) below.
 
 The risk scale is:
 
@@ -118,6 +122,25 @@ published** for that species — a missing measurement is not a zero risk.
 > Gladys knows, which stop at 3: levels 4 and 5 show up as "Unknown" there. The
 > text measurement carries the exact wording, which is what to display next to
 > it.
+
+## The language of the names
+
+Device and feature names are written in **French by default**: the measurements
+read `Risque pollinique global`, `Risque pollinique — Bouleau`, and the dominant
+pollen shows up as `Bouleau`. Set **Language of the device names** to English in
+the Configuration tab to get the names in the table above.
+
+Why a setting rather than your account language? Everything the integration
+_displays_ — the message under a button, the status in the Supervision screen —
+is sent to Gladys in both languages, and Gladys picks the one of the person
+reading. A device name is not a message: it is a plain text stored as it is the
+day you create the device, and nothing in the integration API says which language
+you read. So it is chosen once, here.
+
+One consequence: changing the setting renames the features of the devices **yet
+to be created**. A device already added to Gladys keeps the names it was created
+with — delete it and add it again from the Discovery tab to rename it (its
+history goes with the deleted device).
 
 ## Using the risk in a scene
 

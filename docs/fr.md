@@ -81,17 +81,17 @@ supprimer un deuxième.
 
 Chaque appareil expose neuf mesures :
 
-| Mesure                | Description                                      |
-| --------------------- | ------------------------------------------------ |
-| Risque global         | Le plus élevé des six risques ci-dessous (0 à 5) |
-| Risque global (texte) | Le même niveau, écrit en toutes lettres          |
-| Pollen dominant       | Le nom du pollen responsable du risque global    |
-| Aulne (_alder_)       | Risque de 0 à 5                                  |
-| Bouleau (_birch_)     | Risque de 0 à 5                                  |
-| Graminées (_grass_)   | Risque de 0 à 5                                  |
-| Armoise (_mugwort_)   | Risque de 0 à 5                                  |
-| Olivier (_olive_)     | Risque de 0 à 5                                  |
-| Ambroisie (_ragweed_) | Risque de 0 à 5                                  |
+| Mesure                           | Description                                      |
+| -------------------------------- | ------------------------------------------------ |
+| Risque pollinique global         | Le plus élevé des six risques ci-dessous (0 à 5) |
+| Risque pollinique global (texte) | Le même niveau, écrit en toutes lettres          |
+| Pollen dominant                  | Le nom du pollen responsable du risque global    |
+| Risque pollinique — Aulne        | Risque de 0 à 5                                  |
+| Risque pollinique — Bouleau      | Risque de 0 à 5                                  |
+| Risque pollinique — Graminées    | Risque de 0 à 5                                  |
+| Risque pollinique — Armoise      | Risque de 0 à 5                                  |
+| Risque pollinique — Olivier      | Risque de 0 à 5                                  |
+| Risque pollinique — Ambroisie    | Risque de 0 à 5                                  |
 
 L'échelle de risque est la suivante :
 
@@ -122,6 +122,26 @@ risque nul.
 > de risque avec les libellés que Gladys connaît, qui s'arrêtent à 3 : les
 > niveaux 4 et 5 s'y affichent donc « Inconnu ». La mesure texte porte le libellé
 > exact, c'est elle qu'il faut afficher à côté.
+
+## La langue des noms
+
+Ces noms sont écrits **en français par défaut**. Le réglage **Langue du nom des
+appareils**, dans l'onglet Configuration, permet de passer à l'anglais : les
+mesures s'appellent alors `Overall pollen risk`, `Birch pollen risk`, et le
+pollen dominant s'affiche `Birch` plutôt que `Bouleau`.
+
+Pourquoi un réglage et non la langue de votre compte ? Tout ce que l'intégration
+_affiche_ — les messages sous les boutons, l'état dans l'écran Supervision — est
+envoyé à Gladys dans les deux langues, et Gladys choisit celle de la personne qui
+lit. Le nom d'un appareil et de ses mesures, lui, n'est pas un message : c'est un
+texte enregistré tel quel le jour où vous créez l'appareil, et rien dans
+l'interface des intégrations ne dit dans quelle langue vous lisez. Il faut donc
+le choisir une fois ici.
+
+Conséquence : changer ce réglage renomme les mesures des appareils **restant à
+créer**. Un appareil déjà ajouté à Gladys garde les noms qu'il a reçus à sa
+création — supprimez-le et rajoutez-le depuis l'onglet Découverte pour le
+renommer (son historique, lui, est attaché à l'appareil supprimé).
 
 ## Utiliser le risque dans une scène
 
