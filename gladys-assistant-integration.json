@@ -6,16 +6,21 @@
     "en": "Pollen risk for the locations you choose, from the Copernicus CAMS European forecast.",
     "fr": "Risque pollinique pour les lieux de votre choix, via la prévision européenne CAMS de Copernicus."
   },
-  "version": "1.0.0",
-  "docker_image": "ghcr.io/prohand/gladys-pollen:1.0.0",
+  "version": "1.0.1",
+  "docker_image": "ghcr.io/prohand/gladys-pollen:1.0.1",
   "gladys_version": ">=4.62.0",
   "cover_image": "https://raw.githubusercontent.com/prohand/gladys-pollen/main/cover.png",
-  "transports": ["cloud"],
+  "transports": [
+    "cloud"
+  ],
   "config_schema": [
     {
       "key": "intro",
       "type": "section",
-      "label": { "en": "How it works", "fr": "Comment ça marche" },
+      "label": {
+        "en": "How it works",
+        "fr": "Comment ça marche"
+      },
       "description": {
         "en": "Add a location with the button below: type a town, it is geocoded, and a pollen device appears in the Discovery tab, ready to be added to Gladys. Pollen data comes from the CAMS European air quality forecast (Copernicus), republished as open data by Open-Meteo, and places are searched through the Open-Meteo geocoding API: no account and no API key are needed. Coverage is Europe, wherever the CAMS model reaches.",
         "fr": "Ajoutez un lieu avec le bouton ci-dessous : saisissez une commune, elle est géocodée, puis un appareil pollens apparaît dans l'onglet Découverte, prêt à être ajouté à Gladys. Les données polliniques proviennent de la prévision européenne de qualité de l'air CAMS (Copernicus), rediffusée en open data par Open-Meteo, et les lieux sont recherchés via l'API de géocodage Open-Meteo : aucun compte ni clé d'API n'est nécessaire. La couverture est européenne, partout où porte le modèle CAMS."
@@ -23,18 +28,27 @@
       "links": [
         {
           "url": "https://open-meteo.com/en/docs/air-quality-api",
-          "label": { "en": "Open-Meteo Air Quality API", "fr": "API Qualité de l'air Open-Meteo" }
+          "label": {
+            "en": "Open-Meteo Air Quality API",
+            "fr": "API Qualité de l'air Open-Meteo"
+          }
         },
         {
           "url": "https://open-meteo.com/en/docs/geocoding-api",
-          "label": { "en": "Open-Meteo Geocoding API", "fr": "API de géocodage Open-Meteo" }
+          "label": {
+            "en": "Open-Meteo Geocoding API",
+            "fr": "API de géocodage Open-Meteo"
+          }
         }
       ]
     },
     {
       "key": "settings_section",
       "type": "section",
-      "label": { "en": "General settings", "fr": "Réglages généraux" },
+      "label": {
+        "en": "General settings",
+        "fr": "Réglages généraux"
+      },
       "description": {
         "en": "These settings apply to every configured location.",
         "fr": "Ces réglages s'appliquent à tous les lieux configurés."
@@ -54,14 +68,29 @@
       "required": false,
       "default": "fr",
       "options": [
-        { "value": "fr", "label": { "en": "French", "fr": "Français" } },
-        { "value": "en", "label": { "en": "English", "fr": "Anglais" } }
+        {
+          "value": "fr",
+          "label": {
+            "en": "French",
+            "fr": "Français"
+          }
+        },
+        {
+          "value": "en",
+          "label": {
+            "en": "English",
+            "fr": "Anglais"
+          }
+        }
       ]
     },
     {
       "key": "poll_frequency",
       "type": "number",
-      "label": { "en": "Refresh interval (s)", "fr": "Intervalle de rafraîchissement (s)" },
+      "label": {
+        "en": "Refresh interval (s)",
+        "fr": "Intervalle de rafraîchissement (s)"
+      },
       "description": {
         "en": "How often each location is refreshed, in seconds. The forecast is updated once a day and interpolated hourly, so there is nothing to gain below one hour.",
         "fr": "Fréquence de rafraîchissement de chaque lieu, en secondes. La prévision est mise à jour une fois par jour et interpolée à l'heure : descendre sous une heure n'apporte rien."
@@ -74,7 +103,10 @@
     {
       "key": "locations_section",
       "type": "section",
-      "label": { "en": "Your locations", "fr": "Vos lieux" },
+      "label": {
+        "en": "Your locations",
+        "fr": "Vos lieux"
+      },
       "description": {
         "en": "Use the buttons below to add, list and remove your locations. They are not fields of this form: a list you build as you go cannot be one, so everything about them happens under a button, and the answer displayed there is what shows you the list.",
         "fr": "Utilisez les boutons ci-dessous pour ajouter, lister et supprimer vos lieux. Ce ne sont pas des champs de ce formulaire : une liste que l'on construit au fil de l'eau ne peut pas en être un, donc tout se passe sous un bouton et c'est la réponse affichée là qui vous montre la liste."
@@ -84,7 +116,10 @@
   "actions": [
     {
       "key": "add_location",
-      "label": { "en": "Add a location", "fr": "Ajouter un lieu" },
+      "label": {
+        "en": "Add a location",
+        "fr": "Ajouter un lieu"
+      },
       "description": {
         "en": "Geocodes the town you type and adds a location watching that point. Fill the latitude and the longitude in instead to add a point directly. Its device then shows up in the Discovery tab, and \"Show my locations\" lists it.",
         "fr": "Géocode la commune saisie et ajoute un lieu surveillant ce point. Renseignez plutôt la latitude et la longitude pour ajouter un point directement. Son appareil apparaît ensuite dans l'onglet Découverte, et « Afficher mes lieux » le liste."
@@ -94,52 +129,79 @@
         {
           "key": "name",
           "type": "string",
-          "label": { "en": "Location name", "fr": "Nom du lieu" },
+          "label": {
+            "en": "Location name",
+            "fr": "Nom du lieu"
+          },
           "description": {
             "en": "Optional: the name of the place found is used when left empty.",
             "fr": "Facultatif : le nom du lieu trouvé est utilisé si vous le laissez vide."
           },
           "required": false,
-          "placeholder": { "en": "Home", "fr": "Maison" }
+          "placeholder": {
+            "en": "Home",
+            "fr": "Maison"
+          }
         },
         {
           "key": "place",
           "type": "string",
-          "label": { "en": "Town", "fr": "Commune" },
+          "label": {
+            "en": "Town",
+            "fr": "Commune"
+          },
           "description": {
             "en": "The town to watch, anywhere in Europe. Several places share most names: add a comma and the region, the country or the postal code to narrow it down, e.g. \"Montauban, Tarn-et-Garonne\". Optional if you fill the two coordinates in below.",
             "fr": "La commune à surveiller, partout en Europe. La plupart des noms sont partagés par plusieurs lieux : ajoutez une virgule puis la région, le pays ou le code postal pour préciser, par exemple « Montauban, Tarn-et-Garonne ». Facultatif si vous renseignez les deux coordonnées ci-dessous."
           },
           "required": false,
-          "placeholder": { "en": "Montauban, France", "fr": "Montauban, France" }
+          "placeholder": {
+            "en": "Montauban, France",
+            "fr": "Montauban, France"
+          }
         },
         {
           "key": "latitude",
           "type": "string",
-          "label": { "en": "Latitude (optional)", "fr": "Latitude (facultatif)" },
+          "label": {
+            "en": "Latitude (optional)",
+            "fr": "Latitude (facultatif)"
+          },
           "description": {
             "en": "WGS-84 decimal degrees, -90 to 90. Filled in together with the longitude, this point is used as it is and the town above is then only a label.",
             "fr": "Degrés décimaux WGS-84, de -90 à 90. Renseignée avec la longitude, ce point est utilisé tel quel et la commune ci-dessus ne sert plus que de libellé."
           },
           "required": false,
-          "placeholder": { "en": "48.8566", "fr": "48,8566" }
+          "placeholder": {
+            "en": "48.8566",
+            "fr": "48,8566"
+          }
         },
         {
           "key": "longitude",
           "type": "string",
-          "label": { "en": "Longitude (optional)", "fr": "Longitude (facultatif)" },
+          "label": {
+            "en": "Longitude (optional)",
+            "fr": "Longitude (facultatif)"
+          },
           "description": {
             "en": "WGS-84 decimal degrees, -180 to 180. Both coordinates go together: one alone is not a point.",
             "fr": "Degrés décimaux WGS-84, de -180 à 180. Les deux coordonnées vont ensemble : une seule ne fait pas un point."
           },
           "required": false,
-          "placeholder": { "en": "2.3522", "fr": "2,3522" }
+          "placeholder": {
+            "en": "2.3522",
+            "fr": "2,3522"
+          }
         }
       ]
     },
     {
       "key": "list_locations",
-      "label": { "en": "Show my locations", "fr": "Afficher mes lieux" },
+      "label": {
+        "en": "Show my locations",
+        "fr": "Afficher mes lieux"
+      },
       "description": {
         "en": "Lists every configured location: name, place and coordinates. Each entry opens with a \"•\" and its number — the numbers the deletion dropdown offers.",
         "fr": "Liste tous les lieux configurés : nom, lieu et coordonnées. Chaque entrée commence par « • » et son numéro — les numéros que propose la liste déroulante de la suppression."
@@ -160,7 +222,10 @@
     },
     {
       "key": "remove_location",
-      "label": { "en": "Remove a location", "fr": "Supprimer un lieu" },
+      "label": {
+        "en": "Remove a location",
+        "fr": "Supprimer un lieu"
+      },
       "description": {
         "en": "Stops watching the location whose number you pick here — the numbers are the ones \"Show my locations\" lists. Its Gladys device is not deleted (an integration cannot do that): delete it yourself if you no longer want it.",
         "fr": "Arrête de surveiller le lieu dont vous choisissez le numéro ici — ce sont les numéros qu'affiche « Afficher mes lieux ». Son appareil Gladys n'est pas supprimé (une intégration ne peut pas le faire) : supprimez-le vous-même si vous n'en voulez plus."
@@ -170,7 +235,10 @@
         {
           "key": "location",
           "type": "select",
-          "label": { "en": "Location to remove", "fr": "Lieu à supprimer" },
+          "label": {
+            "en": "Location to remove",
+            "fr": "Lieu à supprimer"
+          },
           "description": {
             "en": "The number of the location to remove, as \"Show my locations\" numbers them.",
             "fr": "Le numéro du lieu à supprimer, tel qu'« Afficher mes lieux » les numérote."
@@ -178,32 +246,155 @@
           "required": true,
           "default": "1",
           "options": [
-            { "value": "1", "label": { "en": "Location 1", "fr": "Lieu 1" } },
-            { "value": "2", "label": { "en": "Location 2", "fr": "Lieu 2" } },
-            { "value": "3", "label": { "en": "Location 3", "fr": "Lieu 3" } },
-            { "value": "4", "label": { "en": "Location 4", "fr": "Lieu 4" } },
-            { "value": "5", "label": { "en": "Location 5", "fr": "Lieu 5" } },
-            { "value": "6", "label": { "en": "Location 6", "fr": "Lieu 6" } },
-            { "value": "7", "label": { "en": "Location 7", "fr": "Lieu 7" } },
-            { "value": "8", "label": { "en": "Location 8", "fr": "Lieu 8" } },
-            { "value": "9", "label": { "en": "Location 9", "fr": "Lieu 9" } },
-            { "value": "10", "label": { "en": "Location 10", "fr": "Lieu 10" } },
-            { "value": "11", "label": { "en": "Location 11", "fr": "Lieu 11" } },
-            { "value": "12", "label": { "en": "Location 12", "fr": "Lieu 12" } },
-            { "value": "13", "label": { "en": "Location 13", "fr": "Lieu 13" } },
-            { "value": "14", "label": { "en": "Location 14", "fr": "Lieu 14" } },
-            { "value": "15", "label": { "en": "Location 15", "fr": "Lieu 15" } },
-            { "value": "16", "label": { "en": "Location 16", "fr": "Lieu 16" } },
-            { "value": "17", "label": { "en": "Location 17", "fr": "Lieu 17" } },
-            { "value": "18", "label": { "en": "Location 18", "fr": "Lieu 18" } },
-            { "value": "19", "label": { "en": "Location 19", "fr": "Lieu 19" } },
-            { "value": "20", "label": { "en": "Location 20", "fr": "Lieu 20" } }
+            {
+              "value": "1",
+              "label": {
+                "en": "Location 1",
+                "fr": "Lieu 1"
+              }
+            },
+            {
+              "value": "2",
+              "label": {
+                "en": "Location 2",
+                "fr": "Lieu 2"
+              }
+            },
+            {
+              "value": "3",
+              "label": {
+                "en": "Location 3",
+                "fr": "Lieu 3"
+              }
+            },
+            {
+              "value": "4",
+              "label": {
+                "en": "Location 4",
+                "fr": "Lieu 4"
+              }
+            },
+            {
+              "value": "5",
+              "label": {
+                "en": "Location 5",
+                "fr": "Lieu 5"
+              }
+            },
+            {
+              "value": "6",
+              "label": {
+                "en": "Location 6",
+                "fr": "Lieu 6"
+              }
+            },
+            {
+              "value": "7",
+              "label": {
+                "en": "Location 7",
+                "fr": "Lieu 7"
+              }
+            },
+            {
+              "value": "8",
+              "label": {
+                "en": "Location 8",
+                "fr": "Lieu 8"
+              }
+            },
+            {
+              "value": "9",
+              "label": {
+                "en": "Location 9",
+                "fr": "Lieu 9"
+              }
+            },
+            {
+              "value": "10",
+              "label": {
+                "en": "Location 10",
+                "fr": "Lieu 10"
+              }
+            },
+            {
+              "value": "11",
+              "label": {
+                "en": "Location 11",
+                "fr": "Lieu 11"
+              }
+            },
+            {
+              "value": "12",
+              "label": {
+                "en": "Location 12",
+                "fr": "Lieu 12"
+              }
+            },
+            {
+              "value": "13",
+              "label": {
+                "en": "Location 13",
+                "fr": "Lieu 13"
+              }
+            },
+            {
+              "value": "14",
+              "label": {
+                "en": "Location 14",
+                "fr": "Lieu 14"
+              }
+            },
+            {
+              "value": "15",
+              "label": {
+                "en": "Location 15",
+                "fr": "Lieu 15"
+              }
+            },
+            {
+              "value": "16",
+              "label": {
+                "en": "Location 16",
+                "fr": "Lieu 16"
+              }
+            },
+            {
+              "value": "17",
+              "label": {
+                "en": "Location 17",
+                "fr": "Lieu 17"
+              }
+            },
+            {
+              "value": "18",
+              "label": {
+                "en": "Location 18",
+                "fr": "Lieu 18"
+              }
+            },
+            {
+              "value": "19",
+              "label": {
+                "en": "Location 19",
+                "fr": "Lieu 19"
+              }
+            },
+            {
+              "value": "20",
+              "label": {
+                "en": "Location 20",
+                "fr": "Lieu 20"
+              }
+            }
           ]
         },
         {
           "key": "confirmation",
           "type": "boolean",
-          "label": { "en": "I confirm the deletion", "fr": "Je confirme la suppression" },
+          "label": {
+            "en": "I confirm the deletion",
+            "fr": "Je confirme la suppression"
+          },
           "description": {
             "en": "Run the action once unchecked to see which location would be removed.",
             "fr": "Lancez l'action une fois sans cocher pour voir quel lieu serait supprimé."
