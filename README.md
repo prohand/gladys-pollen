@@ -9,7 +9,8 @@ location, with a 0-to-5 risk level per pollen species.
 Built from the official
 [JavaScript integration template](https://github.com/GladysAssistant/integration-template-js).
 
-**No account, no API key.** The user types a town and gets a device.
+**No account, no API key.** The user adds their Gladys houses in one click, or
+types a town, and gets a device.
 
 - 🇫🇷 [User documentation (français)](./docs/fr.md)
 - 🇬🇧 [User documentation (English)](./docs/en.md)
@@ -39,13 +40,14 @@ the device code.
 Locations are **not** `config_schema` fields — a list the user builds at runtime
 cannot be one: the Configuration screen is generated from a static manifest, and
 every field it renders that is not a `section` is an `<input>`. They are managed
-by four buttons and stored by the integration itself through
+by five buttons and stored by the integration itself through
 `gladys.setConfig({ locations })`, the documented way to keep integration-owned
 state outside the schema.
 
 | Action                       | What it does                                                          |
 | ---------------------------- | --------------------------------------------------------------------- |
 | **Add a location**           | Geocodes a town (or takes a point), stores it, re-publishes Discovery |
+| **Add my Gladys houses**     | Turns the houses configured in Gladys into locations, in one click    |
 | **Show my locations**        | The numbered listing — those numbers are what the delete picker takes |
 | **Test the pollen provider** | Live call to the source, for _every_ location                         |
 | **Remove a location**        | Drops the location it names, so it leaves the Discovery tab           |
@@ -58,6 +60,24 @@ as for every integration.
 Most place names are shared: `Montauban` exists twice in France alone. Rather
 than guessing, `add_location` lists the candidates and asks for a comma and the
 region, the country or the postal code — `Montauban, Tarn-et-Garonne`.
+
+### The Gladys houses, read once
+
+`import_houses` reads the houses the user already placed on the map in Gladys
+(`GET /house`, opened by Gladys 4.85.0) and adds a location for each one that is
+not watched yet. That is a permission, not just an endpoint: the manifest
+declares `"location": true`, the install screen shows the request, and the core
+answers 403 to an integration that did not ask — which is also why
+`gladys_version` is `>=4.85.0`, and why `src/houses.js` tells that status apart
+from every other failure (only a re-install grants it, no retry ever will).
+
+The SDK does not wrap the endpoint yet (0.11.0), so the call is made by hand with
+the two environment variables the SDK itself reads.
+
+It is a read, not a sync: the houses are fetched at the click, and what comes out
+is an ordinary location. A house with no position on the map, or one outside the
+CAMS domain, is named in the answer rather than silently skipped, and the whole
+import is **one** `setConfig` and **one** re-publish.
 
 ### Two Gladys core constraints this integration is shaped by
 
@@ -113,7 +133,8 @@ be created.
 │  ├─ config.js                      # config defaults + normalization
 │  ├─ language.js                    # the language of the NAMES (the only untranslated text)
 │  ├─ locations.js                   # the location list: normalize / upsert / remove / print
-│  ├─ locationEditor.js              # the three location actions of the Configuration screen
+│  ├─ locationEditor.js              # the four location actions of the Configuration screen
+│  ├─ houses.js                      #   the user's Gladys houses (GET /house)
 │  ├─ geocoding.js                   # ← town -> coordinates (Open-Meteo geocoding)
 │  ├─ coordinates.js                 #   parsing a WGS-84 coordinate typed by a human
 │  ├─ richText.js                    #   the only emphasis an action message can carry

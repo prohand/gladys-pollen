@@ -111,6 +111,24 @@ no registry to extend, no manifest option list to keep in sync. Ambiguity is
 resolved by the user, with a comma — `Montauban, Tarn-et-Garonne` — never by
 picking the first answer.
 
+### The Gladys houses are read, not synced
+
+`src/houses.js` reads `GET /api/integration/v1/house` — the houses the user
+placed on the map in Gladys — and `import_houses` turns each one into an ordinary
+location. Three things it is easy to get wrong:
+
+- **`"location": true` in the manifest is an authorization contract**, shown on
+  the install screen and enforced server-side. Without it the core answers 403,
+  which no retry fixes — only re-installing does, so that status carries
+  `HOUSE_ACCESS_DENIED` and gets its own message. It is also why
+  `gladys_version` is `>=4.85.0`.
+- **The SDK does not wrap the endpoint** (0.11.0), hence the hand-made `fetch`
+  with `GLADYS_HOST_API_URL` / `GLADYS_INTEGRATION_TOKEN`.
+- **The import is one `setConfig` and one re-publish**, computed against a single
+  list. A house with no coordinates, one outside the CAMS domain, a duplicate or
+  one over `MAX_LOCATIONS` is named in the answer rather than dropped silently,
+  and nothing is written when nothing is added.
+
 ### One extension registry
 
 **`src/pollen/`** — providers expose `{ key, name, taxa, supports(location),

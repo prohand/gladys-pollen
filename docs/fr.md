@@ -2,7 +2,8 @@
 
 Cette intégration expose le **risque pollinique** des lieux de votre choix sous
 forme d'appareils Gladys : un appareil par lieu, avec un niveau de risque de
-0 à 5 pour chaque type de pollen.
+0 à 5 pour chaque type de pollen. Vous ajoutez vos **maisons Gladys en un clic**,
+ou un lieu en saisissant sa **commune**.
 
 Aucun compte à créer, aucune clé d'API à saisir.
 
@@ -26,6 +27,33 @@ mondiale : il n'y a donc aucun pays à choisir nulle part dans l'intégration.
 > chaque utilisateur devrait créer avant même que l'intégration fonctionne. La
 > source CAMS a été retenue parce qu'elle est officielle _et_ utilisable sans
 > aucune démarche.
+
+## Ajouter vos maisons Gladys, en un clic
+
+Vous avez déjà dit à Gladys où vous habitez : c'est la carte de **Réglages >
+Maisons**. Le bouton **« Ajouter mes maisons Gladys »** lit ces maisons et crée
+un lieu pour chacune qui n'est pas déjà surveillée — aucune commune à saisir.
+
+Quatre choses à savoir :
+
+- **L'accès est une autorisation.** L'endroit où vous vivez est une donnée
+  personnelle : Gladys ne la partage que si vous l'avez accepté sur l'écran
+  d'installation de l'intégration. Si le bouton répond que l'accès est refusé,
+  supprimez puis réinstallez l'intégration en acceptant la demande affichée.
+- **Une maison sans position sur la carte n'a pas de coordonnées.** Elle est
+  nommée dans la réponse, et il suffit de la placer dans Réglages > Maisons puis
+  de relancer l'action.
+- **Une maison hors du domaine européen CAMS** est nommée elle aussi, et laissée
+  de côté : aucune prévision pollinique ne la couvre (voir « Couverture
+  géographique » plus bas).
+- **Ce n'est pas une synchronisation.** Les maisons sont lues au moment du clic.
+  Le lieu obtenu est un lieu ordinaire, que vous renommez et supprimez comme les
+  autres, et une maison déplacée dans Gladys ensuite ne déplace pas son lieu.
+
+Relancer l'action est sans risque : une maison déjà surveillée est signalée, pas
+ajoutée une deuxième fois.
+
+Cette lecture des maisons demande **Gladys 4.85.0 ou plus récent**.
 
 ## Ajouter un lieu
 

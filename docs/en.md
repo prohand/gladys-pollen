@@ -2,7 +2,8 @@
 
 This integration exposes the **pollen risk** of the locations you choose as
 Gladys devices: one device per location, with a 0-to-5 risk level for each pollen
-type.
+type. You add your **Gladys houses in one click**, or a location by typing its
+**town**.
 
 No account to create, no API key to paste.
 
@@ -25,6 +26,30 @@ there is no country to pick anywhere in this integration.
 > France, but its API requires an account and an authentication token that every
 > user would have to create before the integration works at all. CAMS was chosen
 > because it is official _and_ usable with zero setup.
+
+## Adding your Gladys houses, in one click
+
+You have already told Gladys where you live: that is the map in **Settings >
+Houses**. The **"Add my Gladys houses"** button reads those houses and creates a
+location for each one that is not watched yet — no town to type.
+
+Four things worth knowing:
+
+- **The access is a permission.** Where you live is personal data: Gladys only
+  shares it if you accepted the request on the integration's install screen. If
+  the button answers that the access is refused, remove and re-install the
+  integration, accepting the request shown there.
+- **A house you never placed on the map has no coordinates.** It is named in the
+  answer; locate it in Settings > Houses and click the button again.
+- **A house outside the CAMS European domain** is named too, and left out: no
+  pollen forecast covers it (see "Geographic coverage" below).
+- **This is not a sync.** The houses are read at the moment you click. What comes
+  out is an ordinary location, which you rename and remove like any other, and a
+  house moved in Gladys afterwards does not move its location.
+
+Clicking again is safe: a house already watched is reported, not added twice.
+
+Reading the houses requires **Gladys 4.85.0 or newer**.
 
 ## Adding a location
 

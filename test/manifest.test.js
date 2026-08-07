@@ -286,6 +286,23 @@ test('an action timeout stays inside the range the core accepts', () => {
   }
 });
 
+test('the manifest asks for the house coordinates the import button reads', () => {
+  // `GET /house` is an authorization contract, not just an endpoint: without
+  // this line the core answers 403 and "Add my Gladys houses" can only apologize.
+  assert.equal(manifest.location, true, 'import_houses reads GET /house');
+  assert.ok(
+    (manifest.actions ?? []).some((declared) => declared.key === 'import_houses'),
+    'declaring the permission without the button asks the user for nothing in return',
+  );
+});
+
+test('the compatibility range covers the version that opened GET /house', () => {
+  // House coordinates landed in Gladys 4.85.0. An instance older than that
+  // rejects the manifest field, and the whole integration with it: the range is
+  // what keeps this version away from the instances it cannot run on.
+  assert.match(manifest.gladys_version, /^>=4\.(8[5-9]|9\d|\d{3,})\./);
+});
+
 test('the manifest declares the cloud transport only', () => {
   // Every source is an HTTP API on the Internet: there is no local channel to
   // prefer, so Gladys must not show the "prefer local" toggle.
