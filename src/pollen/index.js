@@ -55,7 +55,8 @@ export function allTaxa() {
  *   risks: Record<string, number|null>,
  *   overall: { level: number|null, taxon: string|null },
  *   measuredAt: string|null,
- * }>}
+ * }>} `measuredAt` is the ISO 8601 instant the reading is valid at, in the local
+ *   time of the location — null when the provider does not date its answer.
  */
 export async function readPollenRisk(location) {
   const provider = findProvider(location);

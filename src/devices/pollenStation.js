@@ -7,9 +7,14 @@
 // configuration it is handed.
 //
 // Features: one risk level (0-5) per pollen taxon, plus an overall risk, its
-// wording and the name of the dominant taxon. Risk levels rather than raw
-// concentrations, because that is what a user (and a Gladys scene) can act on —
-// see `src/pollen/risk.js` for the thresholds.
+// wording, the name of the dominant taxon and the date of the data. Risk levels
+// rather than raw concentrations, because that is what a user (and a Gladys
+// scene) can act on — see `src/pollen/risk.js` for the thresholds.
+//
+// The date of the data belongs HERE, on each station, and not on some device
+// global to the integration: it is the hour the forecast is valid at for THAT
+// point, read on the clock of that town, so two locations in two timezones do
+// not carry the same one.
 //
 // The identity of a device is `<type>:<location id>`, and the location id is
 // generated once when the user adds the location: renaming a location, or
@@ -22,6 +27,7 @@ import {
   DEVICE_FEATURE_CATEGORIES,
   DEVICE_FEATURE_TYPES,
 } from '@gladysassistant/integration-sdk';
+import { formatDateTime } from '../dateTime.js';
 import { DEFAULT_LANGUAGE, inLanguage } from '../language.js';
 import { allTaxa, findProvider, readPollenRisk } from '../pollen/index.js';
 import { RISK_LEVEL_LABELS, RISK_LEVEL_MAX } from '../pollen/risk.js';
@@ -47,6 +53,7 @@ export const FEATURE = {
   OVERALL_RISK: 'overall-risk',
   OVERALL_RISK_TEXT: 'overall-risk-text',
   DOMINANT_POLLEN: 'dominant-pollen',
+  LAST_UPDATE: 'last-update',
 };
 
 /** Display names of the taxa, used to build the feature names. */
@@ -67,6 +74,7 @@ const FEATURE_NAMES = {
     fr: 'Risque pollinique global (texte)',
   },
   [FEATURE.DOMINANT_POLLEN]: { en: 'Dominant pollen', fr: 'Pollen dominant' },
+  [FEATURE.LAST_UPDATE]: { en: 'Last data update', fr: 'Dernière mise à jour des données' },
 };
 
 /** How the name of a taxon becomes the name of its risk feature. */
@@ -190,6 +198,10 @@ export function buildDevice(gladys, location, language = DEFAULT_LANGUAGE) {
         ),
       ),
       textFeature(ids.feature(FEATURE.DOMINANT_POLLEN), featureName(FEATURE.DOMINANT_POLLEN)),
+      // "How old is what I am looking at?" — the hour the forecast is valid at,
+      // not the moment of the last request: the model publishes once a day, so
+      // a successful refresh usually re-reads the very same numbers.
+      textFeature(ids.feature(FEATURE.LAST_UPDATE), featureName(FEATURE.LAST_UPDATE)),
     ],
   };
 }
@@ -234,6 +246,13 @@ export function buildStates(ids, reading, language = DEFAULT_LANGUAGE) {
           : inLanguage(NO_DOMINANT_POLLEN, language),
       },
     );
+  }
+
+  // Dated only when something was actually published: a lone timestamp on a
+  // device holding no value would date a measurement that is not there.
+  const measuredAt = formatDateTime(reading.measuredAt, language);
+  if (measuredAt && states.length > 0) {
+    states.push({ device_feature_external_id: ids.feature(FEATURE.LAST_UPDATE), text: measuredAt });
   }
 
   return states;
@@ -371,13 +390,21 @@ export const pollenStation = {
         const reading = await readPollenRisk(location);
         const level = reading.overall.level ?? 0;
         const dominant = reading.overall.taxon;
+        // "It answers" and "it answers something recent" are two different
+        // questions, and this action is where both are asked.
+        const measuredAt = (language, prefix) => {
+          const at = formatDateTime(reading.measuredAt, language);
+          return at ? `, ${prefix} ${at}` : '';
+        };
         return {
           en:
             `risk ${level}/${RISK_LEVEL_MAX} (${RISK_LEVEL_LABELS[level].en})` +
-            `${dominant ? `, dominant ${taxonName(dominant, 'en')}` : ''} — ${reading.provider}`,
+            `${dominant ? `, dominant ${taxonName(dominant, 'en')}` : ''} — ${reading.provider}` +
+            measuredAt('en', 'updated'),
           fr:
             `risque ${level}/${RISK_LEVEL_MAX} (${RISK_LEVEL_LABELS[level].fr})` +
-            `${dominant ? `, dominant ${taxonName(dominant, 'fr')}` : ''} — ${reading.provider}`,
+            `${dominant ? `, dominant ${taxonName(dominant, 'fr')}` : ''} — ${reading.provider}` +
+            measuredAt('fr', 'à jour au'),
         };
       });
 

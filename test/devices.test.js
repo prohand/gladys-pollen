@@ -112,11 +112,11 @@ test('every feature carries a numeric min and max', () => {
   }
 });
 
-test('a device carries one risk feature per taxon, plus the overall trio', () => {
+test('a device carries one risk feature per taxon, plus the overall four', () => {
   const gladys = createFakeGladys();
   const config = configWith([paris]);
   const device = buildDevice(gladys, stored(paris, config));
-  assert.equal(device.features.length, allTaxa().length + 3);
+  assert.equal(device.features.length, allTaxa().length + 4);
 
   const ids = deviceExternalIds(gladys, paris);
   const externalIds = device.features.map((feature) => feature.external_id);
@@ -126,6 +126,10 @@ test('a device carries one risk feature per taxon, plus the overall trio', () =>
   assert.ok(externalIds.includes(ids.feature(FEATURE.OVERALL_RISK)));
   assert.ok(externalIds.includes(ids.feature(FEATURE.OVERALL_RISK_TEXT)));
   assert.ok(externalIds.includes(ids.feature(FEATURE.DOMINANT_POLLEN)));
+  // The date of the data sits on EACH station rather than on one device global
+  // to the integration: it is the local hour the forecast is valid at for that
+  // point, which two locations in two timezones do not share.
+  assert.ok(externalIds.includes(ids.feature(FEATURE.LAST_UPDATE)));
 });
 
 test('risk features are historized and bounded to 0-5', () => {
@@ -159,12 +163,14 @@ test('the features are named in French unless the user asks for English', () => 
     'Risque pollinique — Olivier',
     'Risque pollinique — Ambroisie',
     'Pollen dominant',
+    'Dernière mise à jour des données',
   ]);
 
   const english = namesOf(configWith([paris], { language: 'en' }));
   assert.equal(english[0], 'Overall pollen risk');
   assert.ok(english.includes('Birch pollen risk'));
   assert.ok(english.includes('Dominant pollen'));
+  assert.ok(english.includes('Last data update'));
 });
 
 test('the language of the names is the one of the configuration', () => {
@@ -234,6 +240,7 @@ test('a reading becomes one state per taxon plus the overall trio', () => {
   const states = buildStates(ids, {
     risks: { birch: 3, grass: 1 },
     overall: { level: 3, taxon: 'birch' },
+    measuredAt: '2026-08-06T13:00+02:00',
   });
 
   // The TEXT states are stored as they are published, so they follow the same
@@ -244,7 +251,40 @@ test('a reading becomes one state per taxon plus the overall trio', () => {
     { device_feature_external_id: ids.feature(FEATURE.OVERALL_RISK), state: 3 },
     { device_feature_external_id: ids.feature(FEATURE.OVERALL_RISK_TEXT), text: 'moyen' },
     { device_feature_external_id: ids.feature(FEATURE.DOMINANT_POLLEN), text: 'Bouleau' },
+    { device_feature_external_id: ids.feature(FEATURE.LAST_UPDATE), text: '06/08/2026 13:00' },
   ]);
+});
+
+test('the date of the data is written in the configured language', () => {
+  const gladys = createFakeGladys();
+  const ids = deviceExternalIds(gladys, paris);
+  const reading = {
+    risks: { birch: 3 },
+    overall: { level: 3, taxon: 'birch' },
+    measuredAt: '2026-08-06T13:00+02:00',
+  };
+  const lastUpdate = (states) =>
+    states.find((state) => state.device_feature_external_id === ids.feature(FEATURE.LAST_UPDATE))
+      ?.text;
+
+  assert.equal(lastUpdate(buildStates(ids, reading, 'en')), '2026-08-06 13:00');
+  assert.equal(lastUpdate(buildStates(ids, reading, 'fr')), '06/08/2026 13:00');
+});
+
+test('an undated reading publishes its risks and no date', () => {
+  // A provider that does not date its answer must not stop the risks being
+  // published — and must not have a date invented for it either.
+  const gladys = createFakeGladys();
+  const ids = deviceExternalIds(gladys, paris);
+  const states = buildStates(ids, {
+    risks: { birch: 3 },
+    overall: { level: 3, taxon: 'birch' },
+    measuredAt: null,
+  });
+  assert.ok(states.some((state) => state.device_feature_external_id === ids.feature('birch')));
+  assert.ok(
+    !states.some((state) => state.device_feature_external_id === ids.feature(FEATURE.LAST_UPDATE)),
+  );
 });
 
 test('the text states are written in the configured language', () => {
@@ -278,7 +318,10 @@ test('a quiet day reports no dominant pollen', () => {
     (state) => state.device_feature_external_id === ids.feature(FEATURE.DOMINANT_POLLEN),
   );
   assert.equal(dominant.text, 'Aucun');
-  assert.equal(buildStates(ids, quiet, 'en').at(-1).text, 'None');
+  const english = buildStates(ids, quiet, 'en').find(
+    (state) => state.device_feature_external_id === ids.feature(FEATURE.DOMINANT_POLLEN),
+  );
+  assert.equal(english.text, 'None');
 });
 
 test('a reading with no data at all publishes nothing', () => {
@@ -287,6 +330,9 @@ test('a reading with no data at all publishes nothing', () => {
   const states = buildStates(ids, {
     risks: { birch: null, grass: null },
     overall: { level: null, taxon: null },
+    // Dated, but about nothing: a lone timestamp would date a measurement that
+    // is not there.
+    measuredAt: '2026-08-06T13:00+02:00',
   });
   assert.deepEqual(states, []);
 });
