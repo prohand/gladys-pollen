@@ -6,11 +6,13 @@
     "en": "Pollen risk for the locations you choose, from the Copernicus CAMS European forecast.",
     "fr": "Risque pollinique pour les lieux de votre choix, via la prévision européenne CAMS de Copernicus."
   },
-  "version": "1.0.2",
-  "docker_image": "ghcr.io/prohand/gladys-pollen:1.0.2",
+  "version": "1.0.3",
+  "docker_image": "ghcr.io/prohand/gladys-pollen:1.0.3",
   "gladys_version": ">=4.85.0",
   "cover_image": "https://raw.githubusercontent.com/prohand/gladys-pollen/main/cover.png",
-  "transports": ["cloud"],
+  "transports": [
+    "cloud"
+  ],
   "location": true,
   "config_schema": [
     {
