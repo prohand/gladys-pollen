@@ -91,8 +91,10 @@ contact's, `getContacts()` / contract B.15 — this integration has no contacts)
 Hence `src/language.js`: `config.language`, a manifest `select`, **`fr` by
 default**. It is threaded through `buildDevice`/`buildStates`/`poll` as an
 argument rather than read from a module-level variable, so the mapping stays
-testable in both languages. The two TEXT states follow it too — a stored state is
-a string like a name, translated by nobody downstream. Anything else that speaks
+testable in both languages. The three TEXT states follow it too — a stored state
+is a string like a name, translated by nobody downstream — including the date
+written by `src/dateTime.js` (`06/08/2026 13:00` in French, `2026-08-06 13:00` in
+English). Anything else that speaks
 to the user stays `{ en, fr }`; `taxonName(taxon, 'en' | 'fr')` is what the
 bilingual action messages call.
 
@@ -187,6 +189,15 @@ empty. The core sources are worth cloning when in doubt
   to none" scene. `overallRisk()` likewise reports no dominant taxon at level 0.
 - **Risk thresholds are per species** (`src/pollen/risk.js`). 30 grains/m³ is
   quiet for birch and heavy for ragweed. Don't unify the bands.
+- **A timestamp never travels as a bare wall clock.** `timezone=auto` makes
+  Open-Meteo date its answer on the local clock of the point, with the offset in
+  a field of its own; `withUtcOffset()` glues them back together at the provider
+  boundary, so `measuredAt` is always a complete ISO instant. Displaying it goes
+  the other way: `formatDateTime()` reads the fields out of the string and drops
+  the offset — a forecast is read against the clock of the town it covers, and
+  going through `Date` would print the CONTAINER's timezone instead. That
+  per-location hour is why the date is a feature of every station rather than of
+  one device global to the integration.
 - **A location id is never reused and never derived from what the user can
   edit** — it becomes the device `external_id`, so a reused id would hand a
   deleted location's device history to the next one created. The ids written by

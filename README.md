@@ -96,16 +96,30 @@ A refused batch is now logged, and reported in the Supervision screen through
 
 ## Device features
 
-Eight features per location, all read-only and historized:
+Ten features per location, all read-only; the risks are historized, the text
+ones are labels and are not:
 
 - **Overall pollen risk** (0-5) — the worst of the six taxa;
+- **Overall pollen risk (text)** — the same level, spelled out;
 - **Dominant pollen** (text) — which taxon drives that risk;
+- **Last data update** (text) — the hour the forecast is valid at;
 - one risk (0-5) per taxon: alder, birch, grass, mugwort, olive, ragweed.
 
 Concentrations are graded with **per-species thresholds** (`src/pollen/risk.js`):
 30 grains/m³ is a quiet day for birch and a heavy one for ragweed. A taxon the
 model has no value for publishes nothing at all — a missing measurement is not a
 zero risk.
+
+The date is that of the DATA, not of the last request: CAMS publishes once a day
+and Open-Meteo interpolates it hourly, so a successful refresh usually re-reads
+the very same numbers, and what a user wants to know is how old those numbers
+are. It lives on each station rather than on one device global to the
+integration because it is not global: the API dates its answer on the local
+clock of the point it was asked about (`timezone=auto`), so two locations in two
+timezones do not carry the same one. The provider glues that hour back to the
+`utc_offset_seconds` it comes with (`src/dateTime.js`) — a wall clock alone is
+ambiguous, and `new Date()` would read it in the container's timezone, which is
+nobody's.
 
 ### Names are the one thing Gladys cannot translate
 
@@ -138,6 +152,7 @@ be created.
 │  ├─ geocoding.js                   # ← town -> coordinates (Open-Meteo geocoding)
 │  ├─ coordinates.js                 #   parsing a WGS-84 coordinate typed by a human
 │  ├─ richText.js                    #   the only emphasis an action message can carry
+│  ├─ dateTime.js                    #   the hour a reading is valid at, and how it is written
 │  ├─ pollen/                        # ← the pollen data sources
 │  │  ├─ index.js                    #   provider registry + grading
 │  │  ├─ openMeteo.js                #   Open-Meteo / CAMS Europe driver

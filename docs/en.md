@@ -102,19 +102,20 @@ second one.
 
 ## What the device measures
 
-Each device exposes nine measurements:
+Each device exposes ten measurements:
 
-| Measurement                | Description                                 |
-| -------------------------- | ------------------------------------------- |
-| Overall pollen risk        | The highest of the six risks below (0 to 5) |
-| Overall pollen risk (text) | The same level, spelled out                 |
-| Dominant pollen            | The name of the pollen driving that risk    |
-| Alder pollen risk          | Risk from 0 to 5                            |
-| Birch pollen risk          | Risk from 0 to 5                            |
-| Grass pollen risk          | Risk from 0 to 5                            |
-| Mugwort pollen risk        | Risk from 0 to 5                            |
-| Olive pollen risk          | Risk from 0 to 5                            |
-| Ragweed pollen risk        | Risk from 0 to 5                            |
+| Measurement                | Description                                     |
+| -------------------------- | ----------------------------------------------- |
+| Overall pollen risk        | The highest of the six risks below (0 to 5)     |
+| Overall pollen risk (text) | The same level, spelled out                     |
+| Dominant pollen            | The name of the pollen driving that risk        |
+| Last data update           | The date and hour the displayed forecast is for |
+| Alder pollen risk          | Risk from 0 to 5                                |
+| Birch pollen risk          | Risk from 0 to 5                                |
+| Grass pollen risk          | Risk from 0 to 5                                |
+| Mugwort pollen risk        | Risk from 0 to 5                                |
+| Olive pollen risk          | Risk from 0 to 5                                |
+| Ragweed pollen risk        | Risk from 0 to 5                                |
 
 > These are the names with the **Language of the device names** setting on
 > English. It defaults to **French** (`Risque pollinique — Bouleau`) — see
@@ -142,6 +143,26 @@ of your town.
 
 When the model has no value for a species at that position, **nothing is
 published** for that species — a missing measurement is not a zero risk.
+
+### How old are these numbers?
+
+The **Last data update** measurement answers that. It shows the date and hour
+the displayed forecast is for, as `2026-08-06 13:00`.
+
+It is the date of the **data**, not of the last request: CAMS publishes its
+forecast once a day and Open-Meteo interpolates it hour by hour, so a successful
+refresh usually re-reads exactly the same numbers. What you want to know is how
+old those numbers are, not when they were last fetched.
+
+The hour shown is the **location's own**: a forecast is read against the clock of
+the town it covers. For a location in your timezone that is simply your time; for
+one further away it is the local time over there. It is also why this measurement
+sits **on every device** rather than on a single one shared by the whole
+integration: two locations do not necessarily carry the same.
+
+If the date stays stuck in the past, the refresh is failing: the **Test the
+pollen provider** button shows the same date for every location, and says what
+is going wrong if anything is.
 
 > On a dashboard, the "device in a room" box labels a risk value with the names
 > Gladys knows, which stop at 3: levels 4 and 5 show up as "Unknown" there. The
@@ -193,8 +214,10 @@ a value.
 ## Troubleshooting
 
 - **"Test the pollen provider" button**: it queries the source live for _every_
-  location and prints one line per location, numbered like the listing. The
-  quickest way to tell a network problem from a configuration one.
+  location and prints one line per location, numbered like the listing. Each
+  line ends with the date of the data it read, so a source stuck in the past
+  shows up here too. The quickest way to tell a network problem from a
+  configuration one.
 - **The logs**: read the integration logs from the Gladys UI, or with
   `docker logs`. Set `LOG_LEVEL` to `debug` to see the URLs being queried and
   the exact device payload sent to Gladys.

@@ -18,6 +18,7 @@
 // -----------------------------------------------------------------------------
 
 import { createLogger } from '@gladysassistant/integration-sdk';
+import { withUtcOffset } from '../dateTime.js';
 
 const logger = createLogger({ name: 'open-meteo' });
 
@@ -81,7 +82,9 @@ export const openMeteoProvider = {
    * @param {{ latitude: number, longitude: number }} location
    * @returns {Promise<{ concentrations: Record<string, number|null>, measuredAt: string|null }>}
    *   concentrations in grains/m³, keyed by taxon; a taxon with no value is
-   *   null (the caller turns that into "no state published").
+   *   null (the caller turns that into "no state published"). `measuredAt` is
+   *   the hour those concentrations are valid at, as a complete ISO 8601
+   *   instant in the LOCAL time of the position (see src/dateTime.js).
    */
   async fetchPollen({ latitude, longitude }) {
     const cacheKey = `${latitude},${longitude}`;
@@ -118,7 +121,15 @@ export const openMeteoProvider = {
       concentrations[taxon] = raw === null || raw === undefined ? null : Number(raw);
     }
 
-    const value = { concentrations, measuredAt: current.time ?? null };
+    // The hour the model gives those values for. It is NOT the moment of this
+    // request: the CAMS forecast is published once a day and interpolated
+    // hourly, so this is what "the data is up to date at..." actually means.
+    // `timezone=auto` makes it the local clock of the position, and the offset
+    // that pins it down comes back in a field of its own.
+    const value = {
+      concentrations,
+      measuredAt: withUtcOffset(current.time, body.utc_offset_seconds),
+    };
     cache.set(cacheKey, { at: Date.now(), value });
     return value;
   },

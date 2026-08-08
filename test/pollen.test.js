@@ -61,6 +61,7 @@ test('readPollenRisk fails loudly outside any coverage', async () => {
 
 test('the provider maps the API payload to concentrations per taxon', async () => {
   stubFetch({
+    utc_offset_seconds: 7200,
     current: {
       time: '2026-08-06T13:00',
       [OPEN_METEO_VARIABLES.birch]: 12.5,
@@ -75,7 +76,25 @@ test('the provider maps the API payload to concentrations per taxon', async () =
   assert.equal(concentrations.alder, null);
   // A variable absent from the payload is "no data", not zero.
   assert.equal(concentrations.olive, null);
-  assert.equal(measuredAt, '2026-08-06T13:00');
+  // `timezone=auto` dates the values on the local clock of the position and
+  // gives the offset apart: the provider hands back the two glued together, so
+  // nothing downstream reads the hour in the container's timezone.
+  assert.equal(measuredAt, '2026-08-06T13:00+02:00');
+});
+
+test('an answer with no hour is not dated', async () => {
+  stubFetch({ current: { [OPEN_METEO_VARIABLES.birch]: 4 } });
+  const { measuredAt } = await openMeteoProvider.fetchPollen(paris);
+  assert.equal(measuredAt, null);
+});
+
+test('the reading carries the hour it is valid at', async () => {
+  stubFetch({
+    utc_offset_seconds: 3600,
+    current: { time: '2026-01-06T09:00', [OPEN_METEO_VARIABLES.birch]: 12.5 },
+  });
+  const reading = await readPollenRisk(paris);
+  assert.equal(reading.measuredAt, '2026-01-06T09:00+01:00');
 });
 
 test('the request asks for every taxon and no API key', async () => {

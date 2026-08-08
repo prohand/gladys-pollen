@@ -107,19 +107,20 @@ supprimer un deuxième.
 
 ## Ce que mesure l'appareil
 
-Chaque appareil expose neuf mesures :
+Chaque appareil expose dix mesures :
 
-| Mesure                           | Description                                      |
-| -------------------------------- | ------------------------------------------------ |
-| Risque pollinique global         | Le plus élevé des six risques ci-dessous (0 à 5) |
-| Risque pollinique global (texte) | Le même niveau, écrit en toutes lettres          |
-| Pollen dominant                  | Le nom du pollen responsable du risque global    |
-| Risque pollinique — Aulne        | Risque de 0 à 5                                  |
-| Risque pollinique — Bouleau      | Risque de 0 à 5                                  |
-| Risque pollinique — Graminées    | Risque de 0 à 5                                  |
-| Risque pollinique — Armoise      | Risque de 0 à 5                                  |
-| Risque pollinique — Olivier      | Risque de 0 à 5                                  |
-| Risque pollinique — Ambroisie    | Risque de 0 à 5                                  |
+| Mesure                           | Description                                                    |
+| -------------------------------- | -------------------------------------------------------------- |
+| Risque pollinique global         | Le plus élevé des six risques ci-dessous (0 à 5)               |
+| Risque pollinique global (texte) | Le même niveau, écrit en toutes lettres                        |
+| Pollen dominant                  | Le nom du pollen responsable du risque global                  |
+| Dernière mise à jour des données | La date et l'heure auxquelles la prévision affichée correspond |
+| Risque pollinique — Aulne        | Risque de 0 à 5                                                |
+| Risque pollinique — Bouleau      | Risque de 0 à 5                                                |
+| Risque pollinique — Graminées    | Risque de 0 à 5                                                |
+| Risque pollinique — Armoise      | Risque de 0 à 5                                                |
+| Risque pollinique — Olivier      | Risque de 0 à 5                                                |
+| Risque pollinique — Ambroisie    | Risque de 0 à 5                                                |
 
 L'échelle de risque est la suivante :
 
@@ -145,6 +146,29 @@ pollinique de votre commune sur un graphique.
 Lorsque le modèle n'a pas de valeur pour une espèce à cet endroit, **aucune
 valeur n'est publiée** pour cette espèce — une absence de mesure n'est pas un
 risque nul.
+
+### Depuis quand ces chiffres datent-ils ?
+
+La mesure **Dernière mise à jour des données** répond à cette question. Elle
+affiche la date et l'heure auxquelles correspond la prévision affichée, au
+format `06/08/2026 13:00`.
+
+C'est bien la date **des données**, pas celle de la dernière interrogation :
+CAMS publie sa prévision une fois par jour et Open-Meteo l'interpole heure par
+heure, donc un rafraîchissement réussi relit le plus souvent exactement les
+mêmes chiffres. Ce que l'on veut savoir, c'est l'âge de ces chiffres, pas
+l'heure à laquelle on est allé les rechercher.
+
+L'heure affichée est celle **du lieu** : la prévision d'un lieu se lit à
+l'horloge de la commune qu'elle couvre. Pour un lieu dans votre fuseau horaire,
+c'est donc simplement votre heure ; pour un lieu dans un autre fuseau, c'est
+l'heure locale là-bas. C'est aussi pourquoi cette mesure se trouve **sur chaque
+appareil** plutôt que sur un appareil unique commun à toute l'intégration : deux
+lieux n'ont pas forcément la même.
+
+Si la prévision reste bloquée sur une date ancienne, c'est que le
+rafraîchissement échoue : le bouton **Tester le fournisseur de pollens** affiche
+la même date pour chaque lieu, et dit ce qui coince le cas échéant.
 
 > Sur un tableau de bord, la tuile « appareil dans une pièce » traduit une valeur
 > de risque avec les libellés que Gladys connaît, qui s'arrêtent à 3 : les
@@ -199,8 +223,9 @@ de valeur.
 
 - **Bouton « Tester le fournisseur de pollens »** : il interroge la source en
   direct pour _tous_ vos lieux et affiche une ligne par lieu, numérotée comme la
-  liste. C'est le test le plus rapide pour savoir si le problème vient du réseau
-  ou de la configuration.
+  liste. Chaque ligne se termine par la date des données lues : une source
+  bloquée dans le passé se voit donc ici aussi. C'est le test le plus rapide
+  pour savoir si le problème vient du réseau ou de la configuration.
 - **Les journaux** : consultez les logs de l'intégration depuis l'interface
   Gladys, ou avec `docker logs`. Passez `LOG_LEVEL` à `debug` pour voir les URL
   interrogées et le contenu exact envoyé à Gladys.
