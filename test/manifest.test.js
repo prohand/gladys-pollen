@@ -296,11 +296,54 @@ test('the manifest asks for the house coordinates the import button reads', () =
   );
 });
 
-test('the compatibility range covers the version that opened GET /house', () => {
-  // House coordinates landed in Gladys 4.85.0. An instance older than that
-  // rejects the manifest field, and the whole integration with it: the range is
-  // what keeps this version away from the instances it cannot run on.
-  assert.match(manifest.gladys_version, /^>=4\.(8[5-9]|9\d|\d{3,})\./);
+test('the compatibility range covers every field the manifest declares', () => {
+  // House coordinates landed in Gladys 4.85.0 and `categories` in 4.86.0. An
+  // instance older than that rejects the field, and the whole integration with
+  // it: the range is what keeps this version away from the instances it cannot
+  // run on. 4.86.0 is the floor as long as `categories` is declared.
+  assert.match(manifest.gladys_version, /^>=4\.(8[6-9]|9\d|\d{3,})\./);
+});
+
+test('the catalog categories are 1 to 3 keys of the store vocabulary', () => {
+  // The browse categories the catalog shelves this integration under. The store
+  // filters unknown keys with a warning rather than rejecting, so a typo would
+  // silently leave the integration reachable through "All" and search only.
+  const STORE_CATEGORIES = [
+    'climate',
+    'lighting',
+    'energy',
+    'security',
+    'multimedia',
+    'appliances',
+    'environment',
+    'protocols',
+    'network',
+    'notifications',
+    'assistants',
+    'services',
+  ];
+  assert.ok(Array.isArray(manifest.categories), 'categories must be declared');
+  assert.ok(
+    manifest.categories.length >= 1 && manifest.categories.length <= 3,
+    `categories takes 1 to 3 keys, got ${manifest.categories.length}`,
+  );
+  assert.equal(
+    new Set(manifest.categories).size,
+    manifest.categories.length,
+    'the keys must be unique',
+  );
+  for (const category of manifest.categories) {
+    assert.ok(STORE_CATEGORIES.includes(category), `"${category}" is not a store category`);
+  }
+  // The coupling rule the store validator enforces: a core older than 4.86.0
+  // validates manifests against a strict field allowlist and rejects any
+  // unknown top-level field, so declaring `categories` below that range turns a
+  // catalog filter into a cryptic install failure.
+  const [, major, minor] = manifest.gladys_version.match(/^>=(\d+)\.(\d+)\./).map(Number);
+  assert.ok(
+    major > 4 || (major === 4 && minor >= 86),
+    `categories requires gladys_version >= 4.86.0, got "${manifest.gladys_version}"`,
+  );
 });
 
 test('the manifest declares the cloud transport only', () => {

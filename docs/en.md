@@ -49,7 +49,8 @@ Four things worth knowing:
 
 Clicking again is safe: a house already watched is reported, not added twice.
 
-Reading the houses requires **Gladys 4.85.0 or newer**.
+Reading the houses needs the house coordinates Gladys opened in 4.85.0 — this
+integration requires **Gladys 4.86.0 or newer** in any case.
 
 ## Adding a location
 
