@@ -53,7 +53,9 @@ Quatre choses à savoir :
 Relancer l'action est sans risque : une maison déjà surveillée est signalée, pas
 ajoutée une deuxième fois.
 
-Cette lecture des maisons demande **Gladys 4.85.0 ou plus récent**.
+Cette lecture des maisons s'appuie sur les coordonnées des maisons ouvertes par
+Gladys 4.85.0 ; l'intégration demande de toute façon **Gladys 4.86.0 ou plus
+récent**.
 
 ## Ajouter un lieu
 

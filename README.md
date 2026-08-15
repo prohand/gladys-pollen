@@ -67,11 +67,11 @@ region, the country or the postal code — `Montauban, Tarn-et-Garonne`.
 (`GET /house`, opened by Gladys 4.85.0) and adds a location for each one that is
 not watched yet. That is a permission, not just an endpoint: the manifest
 declares `"location": true`, the install screen shows the request, and the core
-answers 403 to an integration that did not ask — which is also why
-`gladys_version` is `>=4.85.0`, and why `src/houses.js` tells that status apart
-from every other failure (only a re-install grants it, no retry ever will).
+answers 403 to an integration that did not ask — and why `src/houses.js` tells
+that status apart from every other failure (only a re-install grants it, no retry
+ever will).
 
-The SDK does not wrap the endpoint yet (0.11.0), so the call is made by hand with
+The SDK does not wrap the endpoint yet (0.12.0), so the call is made by hand with
 the two environment variables the SDK itself reads.
 
 It is a read, not a sync: the houses are fetched at the click, and what comes out
@@ -203,6 +203,23 @@ The workflows come from the official template and are repo-generic:
 1. add the GitHub topic `gladys-assistant-integration` to the repository;
 2. run the **Release** workflow — it bumps the version, tags it, and builds the
    multi-arch image to `ghcr.io/prohand/gladys-pollen`.
+
+The store validation the hourly indexer runs can be replayed locally, manifest,
+docs, cover and image included:
+
+```bash
+npx github:GladysAssistant/integration-store .
+```
+
+The manifest declares the catalog shelf it sits on: `"categories":
+["environment"]`, the one the store's own fallback mapping already assigned to
+this integration, next to the weather and air-quality ones. The field takes 1 to
+3 keys of the store vocabulary (`climate`, `lighting`, `energy`, `security`,
+`multimedia`, `appliances`, `environment`, `protocols`, `network`,
+`notifications`, `assistants`, `services`) and requires a `gladys_version`
+starting at **4.86.0 or later** — an older core validates the manifest against a
+strict field allowlist and rejects any unknown top-level field, which the store
+validator and `test/manifest.test.js` both enforce.
 
 ## Licence
 

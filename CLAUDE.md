@@ -122,9 +122,9 @@ location. Three things it is easy to get wrong:
 - **`"location": true` in the manifest is an authorization contract**, shown on
   the install screen and enforced server-side. Without it the core answers 403,
   which no retry fixes — only re-installing does, so that status carries
-  `HOUSE_ACCESS_DENIED` and gets its own message. It is also why
-  `gladys_version` is `>=4.85.0`.
-- **The SDK does not wrap the endpoint** (0.11.0), hence the hand-made `fetch`
+  `HOUSE_ACCESS_DENIED` and gets its own message. The endpoint opened in Gladys
+  4.85.0, below the `>=4.86.0` the manifest requires anyway.
+- **The SDK does not wrap the endpoint** (0.12.0), hence the hand-made `fetch`
   with `GLADYS_HOST_API_URL` / `GLADYS_INTEGRATION_TOKEN`.
 - **The import is one `setConfig` and one re-publish**, computed against a single
   list. A house with no coordinates, one outside the CAMS domain, a duplicate or
@@ -148,6 +148,14 @@ stay valueless. When you change one side, the test tells you about the other.
 
 Config/action field types: `string` (not `text`), `number`, `boolean`, `select`,
 `multi_select`, `secret`, `oauth2`, `section`.
+
+`categories` is the catalog shelf, `["environment"]` here — 1 to 3 keys of the
+store vocabulary (`climate`, `lighting`, `energy`, `security`, `multimedia`,
+`appliances`, `environment`, `protocols`, `network`, `notifications`,
+`assistants`, `services`). Declaring it is what pins `gladys_version` to
+`>=4.86.0`: an older core rejects any unknown top-level manifest field, and both
+the store validator and a test enforce that coupling. The store's admission
+checks run locally with `npx github:GladysAssistant/integration-store .`.
 
 Do not hand-edit `version` or `docker_image` in the manifest — the release
 workflow rewrites both.
