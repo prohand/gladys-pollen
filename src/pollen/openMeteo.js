@@ -53,6 +53,16 @@ const CAMS_EUROPE_BBOX = { minLat: 30, maxLat: 72, minLon: -25, maxLon: 45 };
 const CACHE_TTL_MS = 10 * 60 * 1000;
 const cache = new Map();
 
+// The hourly forecast is a SECOND request, kept apart from the hourly `current`
+// one on purpose: the refresh cycle of every device only needs the current
+// hour, and it runs whether or not a dashboard widget is open. Only the widgets
+// ask for the curve, and they have their own cache entry for it.
+const forecastCache = new Map();
+
+// Today and tomorrow, hour by hour: the two days a pollen bulletin talks about,
+// and 48 points — well under the 300 the chart component accepts per series.
+const FORECAST_DAYS = 2;
+
 export const openMeteoProvider = {
   key: 'open-meteo-cams',
 
@@ -133,9 +143,70 @@ export const openMeteoProvider = {
     cache.set(cacheKey, { at: Date.now(), value });
     return value;
   },
+
+  /**
+   * Read the hour-by-hour concentrations of today and tomorrow.
+   *
+   * This is what a `chart` widget component is for: a forecast is data Gladys
+   * keeps no history of — it has not happened yet — so it travels as inline
+   * series rather than as the history of a device feature.
+   *
+   * Optional capability: a provider without it simply publishes no curve (see
+   * `readPollenForecast`), so a future national source can be registered
+   * without implementing this.
+   * @param {{ latitude: number, longitude: number }} location
+   * @returns {Promise<{ hours: Array<{ t: string, concentrations: Record<string, number|null> }> }>}
+   *   `t` is a complete ISO 8601 instant, as `fetchPollen` dates its answer.
+   */
+  async fetchForecast({ latitude, longitude }) {
+    const cacheKey = `${latitude},${longitude}`;
+    const cached = forecastCache.get(cacheKey);
+    if (cached && Date.now() - cached.at < CACHE_TTL_MS) {
+      logger.debug(`Forecast cache hit for ${cacheKey}`);
+      return cached.value;
+    }
+
+    const url =
+      `${BASE_URL}?latitude=${encodeURIComponent(latitude)}` +
+      `&longitude=${encodeURIComponent(longitude)}` +
+      `&hourly=${Object.values(OPEN_METEO_VARIABLES).join(',')}` +
+      `&forecast_days=${FORECAST_DAYS}` +
+      `&timezone=auto`;
+
+    logger.debug('Open-Meteo forecast request ->', url);
+
+    const response = await fetch(url, { signal: AbortSignal.timeout(10_000) });
+    if (!response.ok) {
+      throw new Error(`Open-Meteo HTTP ${response.status}`);
+    }
+
+    const body = await response.json();
+    if (body.error) {
+      throw new Error(`Open-Meteo error: ${body.reason ?? 'unknown reason'}`);
+    }
+
+    const hourly = body.hourly ?? {};
+    const times = Array.isArray(hourly.time) ? hourly.time : [];
+    const hours = times.map((time, index) => {
+      const concentrations = {};
+      for (const [taxon, variable] of Object.entries(OPEN_METEO_VARIABLES)) {
+        const raw = Array.isArray(hourly[variable]) ? hourly[variable][index] : null;
+        concentrations[taxon] = raw === null || raw === undefined ? null : Number(raw);
+      }
+      // Same rule as the current reading: the hours come back on the local
+      // clock of the point and the offset in a field of its own, so they are
+      // glued together here rather than anywhere downstream.
+      return { t: withUtcOffset(time, body.utc_offset_seconds), concentrations };
+    });
+
+    const value = { hours };
+    forecastCache.set(cacheKey, { at: Date.now(), value });
+    return value;
+  },
 };
 
 /** Drop the cached responses (used by the tests). */
 export function clearPollenCache() {
   cache.clear();
+  forecastCache.clear();
 }

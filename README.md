@@ -10,7 +10,11 @@ Built from the official
 [JavaScript integration template](https://github.com/GladysAssistant/integration-template-js).
 
 **No account, no API key.** The user adds their Gladys houses in one click, or
-types a town, and gets a device.
+types a town, and gets a device — plus two dashboard widgets, two scene triggers
+and two scene actions.
+
+Requires **Gladys ≥ 5.1**, the release that accepts an integration's `widgets`,
+`scene_triggers` and `scene_actions`.
 
 - 🇫🇷 [User documentation (français)](./docs/fr.md)
 - 🇬🇧 [User documentation (English)](./docs/en.md)
@@ -71,7 +75,7 @@ answers 403 to an integration that did not ask — and why `src/houses.js` tells
 that status apart from every other failure (only a re-install grants it, no retry
 ever will).
 
-The SDK does not wrap the endpoint yet (0.12.0), so the call is made by hand with
+The SDK does not wrap the endpoint (0.14.0), so the call is made by hand with
 the two environment variables the SDK itself reads.
 
 It is a read, not a sync: the houses are fetched at the click, and what comes out
@@ -93,6 +97,47 @@ Both were learned the hard way, and both silently emptied the Discovery tab:
 
 A refused batch is now logged, and reported in the Supervision screen through
 `setConnectionStatus`, instead of leaving an empty tab with no explanation.
+
+## Dashboard widgets, scene triggers, scene actions
+
+Gladys 5.1 opened three surfaces to an integration, and this one declares all
+three. They are wired in `index.js` by key, exactly like the manifest actions,
+and `test/manifest.test.js` ties each declaration to its handler: a declared key
+with no handler is a card that does nothing, and a handler with no declaration is
+code nobody can reach — both fail silently at runtime.
+
+| Surface | Key                        | What it is                                                                          |
+| ------- | -------------------------- | ----------------------------------------------------------------------------------- |
+| Widget  | `pollen_station`           | One place: gauge, species in the air, two-day forecast curve, refresh button        |
+| Widget  | `pollen_locations`         | One row per configured place, with its dominant pollen                              |
+| Trigger | `risk_level_changed`       | The overall level of a place MOVED                                                  |
+| Trigger | `taxon_risk_level_changed` | The level of one species MOVED                                                      |
+| Action  | `get_pollen_risk`          | Reads a place now, outputs the level, the dominant pollen and a ready-made sentence |
+| Action  | `refresh_pollen`           | Re-reads and republishes one place, or every one                                    |
+
+Three things worth knowing before touching them:
+
+- **A widget content is a declarative payload, not HTML.** The core renders it,
+  themes it, caps it (8 components, 1 focal, 6 tiles, 2 texts, 1 status, 4
+  buttons) and drops what overflows **in content order**. The SDK exports the
+  very same checks — `validateWidgetContent` — and `test/widgets.test.js` asserts
+  they return `[]` for every card this integration builds: nothing truncated,
+  nothing trimmed.
+- **An event is a transition, never a state.** Every level is already a device
+  feature; what the triggers add is the MOVE, fired once, with the words the
+  scene needs (`{{triggerEvent.data.summary}}`). Nothing fires on the first
+  reading after a start — "unknown → 4" is not a change — and a species with no
+  value fires nothing, because a missing measurement is not a fall to zero
+  (`src/scenes/riskEvents.js`).
+- **A level travels as a STRING in the event data.** A trigger filter is a
+  `multi_select`, a manifest can only declare string option values, and the core
+  compares them with the event value: a number would match nothing.
+
+The forecast curve is the one piece of data that is not a device feature: it has
+not happened yet, so the core keeps no history of it. It travels as the `chart`
+component's inline series, read from a second Open-Meteo request
+(`fetchForecast`) with a cache of its own — the refresh cycle only ever needs the
+current hour.
 
 ## Device features
 
@@ -153,13 +198,25 @@ be created.
 │  ├─ coordinates.js                 #   parsing a WGS-84 coordinate typed by a human
 │  ├─ richText.js                    #   the only emphasis an action message can carry
 │  ├─ dateTime.js                    #   the hour a reading is valid at, and how it is written
+│  ├─ riskText.js                    #   how a risk is SAID (events, outputs, widget rows)
 │  ├─ pollen/                        # ← the pollen data sources
 │  │  ├─ index.js                    #   provider registry + grading
-│  │  ├─ openMeteo.js                #   Open-Meteo / CAMS Europe driver
+│  │  ├─ openMeteo.js                #   Open-Meteo / CAMS Europe driver (current + forecast)
+│  │  ├─ taxa.js                     #   the names of the six species
 │  │  └─ risk.js                     #   grains/m³ -> 0-5 risk, per species
-│  └─ devices/
-│     ├─ index.js                    #   devices = a projection of the locations
-│     └─ pollenStation.js            #   the device type (features, poll, states)
+│  ├─ devices/
+│  │  ├─ index.js                    #   devices = a projection of the locations
+│  │  └─ pollenStation.js            #   the device type (features, poll, states)
+│  ├─ scenes/                        # ← the scene editor cards
+│  │  ├─ index.js                    #   registry: handlers + trigger keys
+│  │  ├─ riskEvents.js               #   transitions -> scene events (fires on a MOVE only)
+│  │  └─ sceneActions.js             #   read a place / refresh a place
+│  └─ widgets/                       # ← the dashboard cards
+│     ├─ index.js                    #   registry
+│     ├─ keys.js                     #   the keys, and the "re-pull me now" nudge
+│     ├─ content.js                  #   the vocabulary both cards share
+│     ├─ stationWidget.js            #   one place: gauge, species, forecast
+│     └─ locationsWidget.js          #   one row per place
 ├─ docs/{en,fr}.md                   # user documentation, re-hosted by Gladys
 ├─ test/                             # node --test, no network
 ├─ gladys-assistant-integration.json # manifest
@@ -180,7 +237,9 @@ a device that never holds a value.
 ## Adding a pollen source
 
 1. create `src/pollen/<yourProvider>.js` exposing `{ key, name, taxa,
-supports(location), fetchPollen(location) }`;
+supports(location), fetchPollen(location) }`, plus the optional
+   `fetchForecast(location)` the widgets draw their curve from — without it the
+   cards simply show no curve;
 2. append it to `PROVIDERS` (`src/pollen/index.js`), **before** the more generic
    ones — the first provider that supports the location wins, so a national
    source overrides the continental fallback for its own country.

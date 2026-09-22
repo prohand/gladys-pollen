@@ -8,14 +8,10 @@
   },
   "version": "1.0.4",
   "docker_image": "ghcr.io/prohand/gladys-pollen:1.0.4",
-  "gladys_version": ">=4.86.0",
+  "gladys_version": ">=5.1.0",
   "cover_image": "https://raw.githubusercontent.com/prohand/gladys-pollen/main/cover.png",
-  "categories": [
-    "environment"
-  ],
-  "transports": [
-    "cloud"
-  ],
+  "categories": ["environment"],
+  "transports": ["cloud"],
   "location": true,
   "config_schema": [
     {
@@ -417,6 +413,793 @@
           },
           "required": false,
           "default": false
+        }
+      ]
+    }
+  ],
+  "widgets": [
+    {
+      "key": "pollen_station",
+      "label": {
+        "en": "Pollen — one place",
+        "fr": "Pollens — un lieu"
+      },
+      "description": {
+        "en": "Risk of one place: overall level, species in the air and the two-day forecast.",
+        "fr": "Risque d'un lieu : niveau global, espèces dans l'air et prévision sur deux jours."
+      },
+      "icon": "wind",
+      "action_timeout_seconds": 30,
+      "settings": [
+        {
+          "key": "location",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Place",
+            "fr": "Lieu"
+          },
+          "description": {
+            "en": "The pollen device to display. Only the devices you already added from the Discovery tab are offered.",
+            "fr": "L'appareil pollens à afficher. Seuls les appareils déjà ajoutés depuis l'onglet Découverte sont proposés."
+          },
+          "required": true
+        },
+        {
+          "key": "taxa",
+          "type": "multi_select",
+          "label": {
+            "en": "Species followed",
+            "fr": "Pollens suivis"
+          },
+          "description": {
+            "en": "Tick the species you react to: the level shown, the list and the chart then only account for those. Nothing ticked means all of them.",
+            "fr": "Cochez les espèces auxquelles vous réagissez : le niveau affiché, la liste et le graphique ne tiennent alors compte que de celles-là. Rien de coché signifie toutes."
+          },
+          "required": false,
+          "options": [
+            {
+              "value": "alder",
+              "label": {
+                "en": "Alder",
+                "fr": "Aulne"
+              }
+            },
+            {
+              "value": "birch",
+              "label": {
+                "en": "Birch",
+                "fr": "Bouleau"
+              }
+            },
+            {
+              "value": "grass",
+              "label": {
+                "en": "Grass",
+                "fr": "Graminées"
+              }
+            },
+            {
+              "value": "mugwort",
+              "label": {
+                "en": "Mugwort",
+                "fr": "Armoise"
+              }
+            },
+            {
+              "value": "olive",
+              "label": {
+                "en": "Olive",
+                "fr": "Olivier"
+              }
+            },
+            {
+              "value": "ragweed",
+              "label": {
+                "en": "Ragweed",
+                "fr": "Ambroisie"
+              }
+            }
+          ]
+        },
+        {
+          "key": "forecast",
+          "type": "boolean",
+          "label": {
+            "en": "Show the two-day forecast",
+            "fr": "Afficher la prévision sur deux jours"
+          },
+          "description": {
+            "en": "The hour-by-hour risk for today and tomorrow, as a chart. Untick it for a compact card.",
+            "fr": "Le risque heure par heure pour aujourd'hui et demain, sous forme de graphique. Décochez pour une carte compacte."
+          },
+          "required": false,
+          "default": true
+        }
+      ]
+    },
+    {
+      "key": "pollen_locations",
+      "label": {
+        "en": "Pollen — all places",
+        "fr": "Pollens — tous les lieux"
+      },
+      "description": {
+        "en": "One line per configured place, with its overall risk and its dominant pollen.",
+        "fr": "Une ligne par lieu configuré, avec son risque global et son pollen dominant."
+      },
+      "icon": "list",
+      "action_timeout_seconds": 60
+    }
+  ],
+  "scene_triggers": [
+    {
+      "key": "risk_level_changed",
+      "label": {
+        "en": "Overall pollen risk changed",
+        "fr": "Le risque pollinique global a changé"
+      },
+      "description": {
+        "en": "Fired once when the overall risk of a place moves from one level to another — never on every refresh.",
+        "fr": "Se déclenche une fois quand le risque global d'un lieu passe d'un niveau à un autre — jamais à chaque rafraîchissement."
+      },
+      "fields": [
+        {
+          "key": "location",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Place",
+            "fr": "Lieu"
+          },
+          "description": {
+            "en": "Leave empty to react to any of your places.",
+            "fr": "Laissez vide pour réagir à n'importe lequel de vos lieux."
+          },
+          "required": false
+        },
+        {
+          "key": "level",
+          "type": "multi_select",
+          "label": {
+            "en": "New level",
+            "fr": "Nouveau niveau"
+          },
+          "description": {
+            "en": "Tick the levels to react to. Nothing ticked means any level.",
+            "fr": "Cochez les niveaux auxquels réagir. Rien de coché signifie n'importe quel niveau."
+          },
+          "required": false,
+          "options": [
+            {
+              "value": "0",
+              "label": {
+                "en": "0 — none",
+                "fr": "0 — nul"
+              }
+            },
+            {
+              "value": "1",
+              "label": {
+                "en": "1 — very low",
+                "fr": "1 — très faible"
+              }
+            },
+            {
+              "value": "2",
+              "label": {
+                "en": "2 — low",
+                "fr": "2 — faible"
+              }
+            },
+            {
+              "value": "3",
+              "label": {
+                "en": "3 — moderate",
+                "fr": "3 — moyen"
+              }
+            },
+            {
+              "value": "4",
+              "label": {
+                "en": "4 — high",
+                "fr": "4 — élevé"
+              }
+            },
+            {
+              "value": "5",
+              "label": {
+                "en": "5 — very high",
+                "fr": "5 — très élevé"
+              }
+            }
+          ]
+        },
+        {
+          "key": "direction",
+          "type": "select",
+          "label": {
+            "en": "Direction",
+            "fr": "Sens"
+          },
+          "description": {
+            "en": "Leave empty for both. \"Rising\" is the one to pick to close the windows.",
+            "fr": "Laissez vide pour les deux sens. « À la hausse » est celui à choisir pour fermer les fenêtres."
+          },
+          "required": false,
+          "options": [
+            {
+              "value": "rising",
+              "label": {
+                "en": "Rising",
+                "fr": "À la hausse"
+              }
+            },
+            {
+              "value": "falling",
+              "label": {
+                "en": "Falling",
+                "fr": "À la baisse"
+              }
+            }
+          ]
+        }
+      ],
+      "variables": [
+        {
+          "key": "location_name",
+          "type": "string",
+          "label": {
+            "en": "Place name",
+            "fr": "Nom du lieu"
+          }
+        },
+        {
+          "key": "level",
+          "type": "string",
+          "label": {
+            "en": "New level (0-5)",
+            "fr": "Nouveau niveau (0-5)"
+          }
+        },
+        {
+          "key": "level_label",
+          "type": "string",
+          "label": {
+            "en": "New level, in words",
+            "fr": "Nouveau niveau, en toutes lettres"
+          }
+        },
+        {
+          "key": "previous_level",
+          "type": "string",
+          "label": {
+            "en": "Previous level (0-5)",
+            "fr": "Niveau précédent (0-5)"
+          }
+        },
+        {
+          "key": "previous_level_label",
+          "type": "string",
+          "label": {
+            "en": "Previous level, in words",
+            "fr": "Niveau précédent, en toutes lettres"
+          }
+        },
+        {
+          "key": "direction",
+          "type": "string",
+          "label": {
+            "en": "Direction (rising / falling)",
+            "fr": "Sens (rising / falling)"
+          }
+        },
+        {
+          "key": "taxon",
+          "type": "string",
+          "label": {
+            "en": "Dominant pollen (key)",
+            "fr": "Pollen dominant (clé)"
+          }
+        },
+        {
+          "key": "taxon_name",
+          "type": "string",
+          "label": {
+            "en": "Dominant pollen",
+            "fr": "Pollen dominant"
+          }
+        },
+        {
+          "key": "measured_at",
+          "type": "string",
+          "label": {
+            "en": "Hour of the forecast",
+            "fr": "Heure de la prévision"
+          }
+        },
+        {
+          "key": "summary",
+          "type": "string",
+          "label": {
+            "en": "Ready-made sentence",
+            "fr": "Phrase toute faite"
+          },
+          "description": {
+            "en": "\"Pollen in Montauban: high risk (4/5), dominant Birch.\" — to drop straight into a notification.",
+            "fr": "« Pollens à Montauban : risque élevé (4/5), dominant Bouleau. » — à glisser tel quel dans une notification."
+          }
+        }
+      ]
+    },
+    {
+      "key": "taxon_risk_level_changed",
+      "label": {
+        "en": "Pollen risk of one species changed",
+        "fr": "Le risque d'une espèce de pollen a changé"
+      },
+      "description": {
+        "en": "Same thing, species by species: fired when the level of one pollen changes at a place.",
+        "fr": "La même chose, espèce par espèce : se déclenche quand le niveau d'un pollen change sur un lieu."
+      },
+      "fields": [
+        {
+          "key": "location",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Place",
+            "fr": "Lieu"
+          },
+          "description": {
+            "en": "Leave empty to react to any of your places.",
+            "fr": "Laissez vide pour réagir à n'importe lequel de vos lieux."
+          },
+          "required": false
+        },
+        {
+          "key": "taxon",
+          "type": "multi_select",
+          "label": {
+            "en": "Species",
+            "fr": "Espèces"
+          },
+          "description": {
+            "en": "Tick the pollens you react to. Nothing ticked means all of them.",
+            "fr": "Cochez les pollens auxquels vous réagissez. Rien de coché signifie tous."
+          },
+          "required": false,
+          "options": [
+            {
+              "value": "alder",
+              "label": {
+                "en": "Alder",
+                "fr": "Aulne"
+              }
+            },
+            {
+              "value": "birch",
+              "label": {
+                "en": "Birch",
+                "fr": "Bouleau"
+              }
+            },
+            {
+              "value": "grass",
+              "label": {
+                "en": "Grass",
+                "fr": "Graminées"
+              }
+            },
+            {
+              "value": "mugwort",
+              "label": {
+                "en": "Mugwort",
+                "fr": "Armoise"
+              }
+            },
+            {
+              "value": "olive",
+              "label": {
+                "en": "Olive",
+                "fr": "Olivier"
+              }
+            },
+            {
+              "value": "ragweed",
+              "label": {
+                "en": "Ragweed",
+                "fr": "Ambroisie"
+              }
+            }
+          ]
+        },
+        {
+          "key": "level",
+          "type": "multi_select",
+          "label": {
+            "en": "New level",
+            "fr": "Nouveau niveau"
+          },
+          "description": {
+            "en": "Tick the levels to react to. Nothing ticked means any level.",
+            "fr": "Cochez les niveaux auxquels réagir. Rien de coché signifie n'importe quel niveau."
+          },
+          "required": false,
+          "options": [
+            {
+              "value": "0",
+              "label": {
+                "en": "0 — none",
+                "fr": "0 — nul"
+              }
+            },
+            {
+              "value": "1",
+              "label": {
+                "en": "1 — very low",
+                "fr": "1 — très faible"
+              }
+            },
+            {
+              "value": "2",
+              "label": {
+                "en": "2 — low",
+                "fr": "2 — faible"
+              }
+            },
+            {
+              "value": "3",
+              "label": {
+                "en": "3 — moderate",
+                "fr": "3 — moyen"
+              }
+            },
+            {
+              "value": "4",
+              "label": {
+                "en": "4 — high",
+                "fr": "4 — élevé"
+              }
+            },
+            {
+              "value": "5",
+              "label": {
+                "en": "5 — very high",
+                "fr": "5 — très élevé"
+              }
+            }
+          ]
+        },
+        {
+          "key": "direction",
+          "type": "select",
+          "label": {
+            "en": "Direction",
+            "fr": "Sens"
+          },
+          "description": {
+            "en": "Leave empty for both.",
+            "fr": "Laissez vide pour les deux sens."
+          },
+          "required": false,
+          "options": [
+            {
+              "value": "rising",
+              "label": {
+                "en": "Rising",
+                "fr": "À la hausse"
+              }
+            },
+            {
+              "value": "falling",
+              "label": {
+                "en": "Falling",
+                "fr": "À la baisse"
+              }
+            }
+          ]
+        }
+      ],
+      "variables": [
+        {
+          "key": "location_name",
+          "type": "string",
+          "label": {
+            "en": "Place name",
+            "fr": "Nom du lieu"
+          }
+        },
+        {
+          "key": "taxon",
+          "type": "string",
+          "label": {
+            "en": "Species (key)",
+            "fr": "Espèce (clé)"
+          }
+        },
+        {
+          "key": "taxon_name",
+          "type": "string",
+          "label": {
+            "en": "Species",
+            "fr": "Espèce"
+          }
+        },
+        {
+          "key": "level",
+          "type": "string",
+          "label": {
+            "en": "New level (0-5)",
+            "fr": "Nouveau niveau (0-5)"
+          }
+        },
+        {
+          "key": "level_label",
+          "type": "string",
+          "label": {
+            "en": "New level, in words",
+            "fr": "Nouveau niveau, en toutes lettres"
+          }
+        },
+        {
+          "key": "previous_level",
+          "type": "string",
+          "label": {
+            "en": "Previous level (0-5)",
+            "fr": "Niveau précédent (0-5)"
+          }
+        },
+        {
+          "key": "previous_level_label",
+          "type": "string",
+          "label": {
+            "en": "Previous level, in words",
+            "fr": "Niveau précédent, en toutes lettres"
+          }
+        },
+        {
+          "key": "direction",
+          "type": "string",
+          "label": {
+            "en": "Direction (rising / falling)",
+            "fr": "Sens (rising / falling)"
+          }
+        },
+        {
+          "key": "concentration",
+          "type": "number",
+          "label": {
+            "en": "Concentration (grains/m³)",
+            "fr": "Concentration (grains/m³)"
+          }
+        },
+        {
+          "key": "measured_at",
+          "type": "string",
+          "label": {
+            "en": "Hour of the forecast",
+            "fr": "Heure de la prévision"
+          }
+        },
+        {
+          "key": "summary",
+          "type": "string",
+          "label": {
+            "en": "Ready-made sentence",
+            "fr": "Phrase toute faite"
+          }
+        }
+      ]
+    }
+  ],
+  "scene_actions": [
+    {
+      "key": "get_pollen_risk",
+      "label": {
+        "en": "Read the pollen risk",
+        "fr": "Lire le risque pollinique"
+      },
+      "description": {
+        "en": "Reads a place now and hands the level, the dominant pollen and a ready-made sentence to the next actions of the scene.",
+        "fr": "Lit un lieu maintenant et transmet le niveau, le pollen dominant et une phrase toute faite aux actions suivantes de la scène."
+      },
+      "timeout_seconds": 30,
+      "fields": [
+        {
+          "key": "location",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Place",
+            "fr": "Lieu"
+          },
+          "description": {
+            "en": "The pollen device to read.",
+            "fr": "L'appareil pollens à lire."
+          },
+          "required": true
+        },
+        {
+          "key": "taxon",
+          "type": "select",
+          "label": {
+            "en": "Pollen read",
+            "fr": "Pollen lu"
+          },
+          "description": {
+            "en": "\"Overall risk\" reports the worst species of the moment and names it. Pick a species to read that one only.",
+            "fr": "« Risque global » rapporte la pire espèce du moment et la nomme. Choisissez une espèce pour ne lire que celle-là."
+          },
+          "required": false,
+          "default": "overall",
+          "options": [
+            {
+              "value": "overall",
+              "label": {
+                "en": "Overall risk",
+                "fr": "Risque global"
+              }
+            },
+            {
+              "value": "alder",
+              "label": {
+                "en": "Alder",
+                "fr": "Aulne"
+              }
+            },
+            {
+              "value": "birch",
+              "label": {
+                "en": "Birch",
+                "fr": "Bouleau"
+              }
+            },
+            {
+              "value": "grass",
+              "label": {
+                "en": "Grass",
+                "fr": "Graminées"
+              }
+            },
+            {
+              "value": "mugwort",
+              "label": {
+                "en": "Mugwort",
+                "fr": "Armoise"
+              }
+            },
+            {
+              "value": "olive",
+              "label": {
+                "en": "Olive",
+                "fr": "Olivier"
+              }
+            },
+            {
+              "value": "ragweed",
+              "label": {
+                "en": "Ragweed",
+                "fr": "Ambroisie"
+              }
+            }
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "key": "level",
+          "type": "number",
+          "label": {
+            "en": "Risk level (0-5)",
+            "fr": "Niveau de risque (0-5)"
+          }
+        },
+        {
+          "key": "level_label",
+          "type": "string",
+          "label": {
+            "en": "Level, in words",
+            "fr": "Niveau, en toutes lettres"
+          }
+        },
+        {
+          "key": "taxon",
+          "type": "string",
+          "label": {
+            "en": "Pollen read (key)",
+            "fr": "Pollen lu (clé)"
+          }
+        },
+        {
+          "key": "taxon_name",
+          "type": "string",
+          "label": {
+            "en": "Pollen read",
+            "fr": "Pollen lu"
+          }
+        },
+        {
+          "key": "concentration",
+          "type": "number",
+          "label": {
+            "en": "Concentration (grains/m³)",
+            "fr": "Concentration (grains/m³)"
+          }
+        },
+        {
+          "key": "location_name",
+          "type": "string",
+          "label": {
+            "en": "Place name",
+            "fr": "Nom du lieu"
+          }
+        },
+        {
+          "key": "measured_at",
+          "type": "string",
+          "label": {
+            "en": "Hour of the forecast",
+            "fr": "Heure de la prévision"
+          }
+        },
+        {
+          "key": "summary",
+          "type": "string",
+          "label": {
+            "en": "Ready-made sentence",
+            "fr": "Phrase toute faite"
+          },
+          "description": {
+            "en": "\"Pollen in Montauban: high risk (4/5), dominant Birch.\" — to drop straight into a notification.",
+            "fr": "« Pollens à Montauban : risque élevé (4/5), dominant Bouleau. » — à glisser tel quel dans une notification."
+          }
+        }
+      ]
+    },
+    {
+      "key": "refresh_pollen",
+      "label": {
+        "en": "Refresh the pollen data",
+        "fr": "Rafraîchir les données polliniques"
+      },
+      "description": {
+        "en": "Reads the forecast again and republishes the states, without waiting for the next refresh. Leave the place empty to refresh them all.",
+        "fr": "Relit la prévision et republie les états, sans attendre le prochain rafraîchissement. Laissez le lieu vide pour tous les rafraîchir."
+      },
+      "timeout_seconds": 60,
+      "fields": [
+        {
+          "key": "location",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Place",
+            "fr": "Lieu"
+          },
+          "description": {
+            "en": "Empty means every configured place.",
+            "fr": "Vide signifie tous les lieux configurés."
+          },
+          "required": false
+        }
+      ],
+      "outputs": [
+        {
+          "key": "refreshed",
+          "type": "number",
+          "label": {
+            "en": "Places refreshed",
+            "fr": "Lieux rafraîchis"
+          }
+        },
+        {
+          "key": "failed",
+          "type": "number",
+          "label": {
+            "en": "Places in error",
+            "fr": "Lieux en échec"
+          }
         }
       ]
     }

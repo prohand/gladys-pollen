@@ -9,7 +9,8 @@
 //
 // To add one:
 //   1. create `src/pollen/<yourProvider>.js` exposing { key, name, taxa,
-//      supports(location), fetchPollen(location) };
+//      supports(location), fetchPollen(location) }, plus the OPTIONAL
+//      fetchForecast(location) the dashboard widgets draw their curve from;
 //   2. append it to PROVIDERS below, BEFORE the more generic ones (the first
 //      provider that supports the location wins, so a national source can
 //      override the continental fallback for its own country).
@@ -80,5 +81,45 @@ export async function readPollenRisk(location) {
     risks,
     overall: overallRisk(risks),
     measuredAt,
+  };
+}
+
+/**
+ * Read the hour-by-hour forecast of a location and grade it, like
+ * `readPollenRisk` does for the current hour.
+ *
+ * The curve is what the dashboard `chart` component draws. It is OPTIONAL on
+ * purpose: a provider that only knows the current hour answers an empty list
+ * of hours rather than failing, and the widget simply drops its chart — a
+ * missing forecast must never cost the card the risk it does know.
+ * @param {{ latitude: number, longitude: number }} location
+ * @returns {Promise<{ provider: string, hours: Array<{
+ *   t: string,
+ *   concentrations: Record<string, number|null>,
+ *   risks: Record<string, number|null>,
+ * }> }>}
+ */
+export async function readPollenForecast(location) {
+  const provider = findProvider(location);
+  if (!provider) {
+    throw new Error(
+      `No pollen provider covers ${location.latitude},${location.longitude} ` +
+        '(pollen forecasts are currently limited to the CAMS European domain)',
+    );
+  }
+  if (typeof provider.fetchForecast !== 'function') {
+    return { provider: provider.key, hours: [] };
+  }
+
+  const { hours } = await provider.fetchForecast(location);
+  return {
+    provider: provider.key,
+    hours: (hours ?? []).map((hour) => {
+      const risks = {};
+      for (const [taxon, concentration] of Object.entries(hour.concentrations ?? {})) {
+        risks[taxon] = concentrationToRiskLevel(taxon, concentration);
+      }
+      return { t: hour.t, concentrations: hour.concentrations ?? {}, risks };
+    }),
   };
 }
