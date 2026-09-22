@@ -19,35 +19,45 @@ test('missing data is null, never a zero risk', () => {
 test('the same concentration grades differently per taxon', () => {
   // 30 grains/m³ is a quiet day for birch but a heavy one for ragweed:
   // this asymmetry is the whole point of per-taxon thresholds.
-  assert.equal(concentrationToRiskLevel('birch', 30), RISK_LEVELS.MODERATE);
+  assert.equal(concentrationToRiskLevel('birch', 30), RISK_LEVELS.MEDIUM);
   assert.equal(concentrationToRiskLevel('ragweed', 30), RISK_LEVELS.HIGH);
 });
 
 test('every band of a taxon is reachable', () => {
-  const birch = [0.5, 5, 50, 200, 500].map((value) => concentrationToRiskLevel('birch', value));
-  assert.deepEqual(birch, [
-    RISK_LEVELS.VERY_LOW,
-    RISK_LEVELS.LOW,
-    RISK_LEVELS.MODERATE,
-    RISK_LEVELS.HIGH,
-    RISK_LEVELS.VERY_HIGH,
-  ]);
+  const birch = [0.5, 30, 500].map((value) => concentrationToRiskLevel('birch', value));
+  assert.deepEqual(birch, [RISK_LEVELS.LOW, RISK_LEVELS.MEDIUM, RISK_LEVELS.HIGH]);
+});
+
+test('the scale is the one the Gladys core can name', () => {
+  // A `risk`/`integer` the core cannot name reads "Inconnu" in the "device in
+  // a room" box: nothing here may ever grade above its last label.
+  const everything = [0, 0.5, 5, 30, 90, 500, 100000];
+  for (const taxon of ['birch', 'ragweed', 'cypress']) {
+    for (const concentration of everything) {
+      const level = concentrationToRiskLevel(taxon, concentration);
+      assert.ok(
+        Number.isInteger(level) && level >= RISK_LEVELS.NONE && level <= RISK_LEVELS.HIGH,
+        `${taxon} at ${concentration} graded ${level}, outside the core scale`,
+      );
+    }
+  }
+  assert.equal(RISK_LEVELS.HIGH, 3);
 });
 
 test('a bound belongs to the band above it', () => {
-  // Boundaries are exclusive upper bounds: 10 is the start of "moderate".
+  // Boundaries are exclusive upper bounds: 10 is the start of "medium".
   assert.equal(concentrationToRiskLevel('birch', 9.99), RISK_LEVELS.LOW);
-  assert.equal(concentrationToRiskLevel('birch', 10), RISK_LEVELS.MODERATE);
+  assert.equal(concentrationToRiskLevel('birch', 10), RISK_LEVELS.MEDIUM);
 });
 
 test('an unknown taxon falls back on the default bands', () => {
   assert.equal(concentrationToRiskLevel('cypress', 0), RISK_LEVELS.NONE);
-  assert.equal(concentrationToRiskLevel('cypress', 500), RISK_LEVELS.VERY_HIGH);
+  assert.equal(concentrationToRiskLevel('cypress', 500), RISK_LEVELS.HIGH);
 });
 
 test('the overall risk is the worst taxon', () => {
-  const overall = overallRisk({ birch: 1, grass: 4, ragweed: 2 });
-  assert.deepEqual(overall, { level: 4, taxon: 'grass' });
+  const overall = overallRisk({ birch: 1, grass: 3, ragweed: 2 });
+  assert.deepEqual(overall, { level: 3, taxon: 'grass' });
 });
 
 test('the overall risk ignores taxa without data', () => {

@@ -1,8 +1,8 @@
 # Pollens
 
 This integration exposes the **pollen risk** of the locations you choose as
-Gladys devices: one device per location, with a 0-to-5 risk level for each pollen
-type. You add your **Gladys houses in one click**, or a location by typing its
+Gladys devices: one device per location, with a 0-to-3 risk level — Gladys's own
+scale — for each pollen type. You add your **Gladys houses in one click**, or a location by typing its
 **town**.
 
 No account to create, no API key to paste.
@@ -113,37 +113,20 @@ Each device exposes ten measurements:
 
 | Measurement                | Description                                     |
 | -------------------------- | ----------------------------------------------- |
-| Overall pollen risk        | The highest of the six risks below (0 to 5)     |
-| Overall pollen risk (text) | The same level, spelled out                     |
+| Overall pollen risk        | The highest of the six risks below (0 to 3)     |
+| Overall pollen risk (text) | The same level spelled out: "2/3 (medium)"      |
 | Dominant pollen            | The name of the pollen driving that risk        |
 | Last data update           | The date and hour the displayed forecast is for |
-| Alder pollen risk          | Risk from 0 to 5                                |
-| Birch pollen risk          | Risk from 0 to 5                                |
-| Grass pollen risk          | Risk from 0 to 5                                |
-| Mugwort pollen risk        | Risk from 0 to 5                                |
-| Olive pollen risk          | Risk from 0 to 5                                |
-| Ragweed pollen risk        | Risk from 0 to 5                                |
+| Alder pollen risk          | Risk from 0 to 3                                |
+| Birch pollen risk          | Risk from 0 to 3                                |
+| Grass pollen risk          | Risk from 0 to 3                                |
+| Mugwort pollen risk        | Risk from 0 to 3                                |
+| Olive pollen risk          | Risk from 0 to 3                                |
+| Ragweed pollen risk        | Risk from 0 to 3                                |
 
 > These are the names with the **Language of the device names** setting on
 > English. It defaults to **French** (`Risque pollinique — Bouleau`) — see
 > [The language of the names](#the-language-of-the-names) below.
-
-The risk scale is:
-
-| Level | Meaning   |
-| ----- | --------- |
-| 0     | None      |
-| 1     | Very low  |
-| 2     | Low       |
-| 3     | Moderate  |
-| 4     | High      |
-| 5     | Very high |
-
-The level is derived from the concentration in pollen grains per cubic metre of
-air, using **per-species thresholds**: 30 grains/m³ is a quiet day for birch but
-a heavy one for ragweed, whose allergenic power is far stronger. The thresholds
-follow the bands published by the European Aeroallergen Network (EAN) and reused
-by the CAMS pollen products.
 
 The numeric measurements keep their history, so you can chart the pollen season
 of your town.
@@ -171,10 +154,61 @@ If the date stays stuck in the past, the refresh is failing: the **Test the
 pollen provider** button shows the same date for every location, and says what
 is going wrong if anything is.
 
-> On a dashboard, the "device in a room" box labels a risk value with the names
-> Gladys knows, which stop at 3: levels 4 and 5 show up as "Unknown" there. The
-> text measurement carries the exact wording, which is what to display next to
-> it.
+## The risk scale
+
+**It is Gladys's scale, not one of our own.** Gladys knows how to name four risk
+levels, and it is Gladys that writes the label next to the measurement in the
+"device in a room" box:
+
+| Level | What Gladys shows | Colour |
+| ----- | ----------------- | ------ |
+| 0     | No Risk           | Green  |
+| 1     | Low               | Yellow |
+| 2     | Medium            | Orange |
+| 3     | High              | Red    |
+
+The integration publishes exactly those four levels and nothing else. So the
+device box, the widgets, the scene triggers and the notifications all say the
+same thing about the same number. The text measurements and the widgets add the
+scale to the word — "2/3 (medium)" — so you can place a level without knowing
+the scale by heart.
+
+The CAMS data follows the bands of the European Aeroallergen Network (EAN),
+which has six of them. They are folded onto Gladys's four levels:
+
+| EAN band        | Published level | Gladys name |
+| --------------- | --------------- | ----------- |
+| none            | 0               | No Risk     |
+| very low, low   | 1               | Low         |
+| moderate        | 2               | Medium      |
+| high, very high | 3               | High        |
+
+Nothing important is lost in the fold: the two quiet bands both mean "there is
+barely any", and the two loud ones both mean "stay inside if you react to it".
+
+The level is derived from the concentration in pollen grains per cubic metre of
+air, using **per-species thresholds**: 30 grains/m³ is a quiet day for birch
+(level 2) but a heavy one for ragweed (level 3), whose allergenic power is far
+stronger.
+
+## Coming from a 0-5 version?
+
+The first versions published the six EAN bands as they are, from 0 to 5. That
+did not work: Gladys only knows how to name four levels, so a level 3 showed up
+as "High" where it meant "medium", and levels 4 and 5 showed up as "Unknown".
+The published scale is now Gladys's own.
+
+Two things to check after the update:
+
+- **The device.** It shows up in the **Discovery** tab with an **Update**
+  button: one click is enough. The history, the rooms and the scenes are kept.
+- **Your scenes.** A trigger or a condition aimed at level 4 or 5 no longer
+  matches anything: aim at level 3 ("high") instead. A level 3 that meant
+  "moderate" becomes a 2.
+
+The history already recorded keeps its old values: on a chart covering the
+switch, the points before it are on the 0-5 scale and the ones after on the 0-3
+scale. It still reads, but a comparison across that period is not a fair one.
 
 ## The language of the names
 
@@ -261,20 +295,20 @@ republished once a day, so a scene firing on every reading would fire
 twenty-four times for the same value.
 
 Each trigger can be filtered: the **place** (empty means any), the **levels**
-you care about (tick 4 and 5 to react to peaks only), the **direction** (rising
+you care about (tick 3 to react to peaks only), the **direction** (rising
 to close the windows, falling to open them again), and for the second one the
 **species**.
 
 The scene then gets what it needs to write its message:
 `{{triggerEvent.data.summary}}` holds the ready-made sentence "Pollen in Home:
-risk 4/5 (high), dominant Birch.", and `location_name`, `level`, `level_label`,
+risk 3/3 (high), dominant Birch.", and `location_name`, `level`, `level_label`,
 `previous_level`, `direction`, `taxon`, `taxon_name` and `measured_at` are
 available on their own.
 
 Two details:
 
 - **nothing fires at startup**: the previous level is unknown then, and
-  "unknown → 4" is not a change. The first real change fires normally;
+  "unknown → 3" is not a change. The first real change fires normally;
 - **a species with no value fires nothing**: a missing measurement is not a fall
   back to zero, and the last known level is kept.
 
@@ -290,7 +324,7 @@ Still in the scene editor, under **Integrations**:
 "Read the pollen risk" is what turns "every morning at 7 am" into "every morning
 at 7 am, tell me the risk": pick the place, leave **Overall risk** (or pick a
 species), then send a message containing the `summary` output. The `level` (0 to
-5), `level_label`, `taxon`, `taxon_name`, `concentration`, `location_name` and
+3), `level_label`, `taxon`, `taxon_name`, `concentration`, `location_name` and
 `measured_at` outputs are there if you would rather write your own sentence.
 
 > When the source answers nothing, the action does not fail: it returns an empty

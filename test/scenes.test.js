@@ -146,8 +146,8 @@ test('two locations remember their own levels', () => {
 
 test('the overall event carries the filters and the words of the scene', async () => {
   const gladys = createFakeGladys();
-  await fire(gladys, { birch: 2 });
-  await fire(gladys, { birch: 4, grass: 1 }, { concentrations: { birch: 95 } });
+  await fire(gladys, { birch: 1 });
+  await fire(gladys, { birch: 3, grass: 1 }, { concentrations: { birch: 95 } });
 
   const { data } = gladys.sceneEvents.find(
     (event) => event.key === SCENE_TRIGGERS.RISK_LEVEL_CHANGED,
@@ -155,20 +155,20 @@ test('the overall event carries the filters and the words of the scene', async (
   assert.equal(data.location, DEVICE_ID, 'the filter compares device external_ids');
   assert.equal(data.location_name, 'Maison');
   // A multi_select can only declare STRING options: a number would match none.
-  assert.equal(data.level, '4');
+  assert.equal(data.level, '3');
   assert.equal(typeof data.level, 'string');
-  assert.equal(data.previous_level, '2');
+  assert.equal(data.previous_level, '1');
   assert.equal(data.level_label, 'élevé');
   assert.equal(data.direction, 'rising');
   assert.equal(data.taxon, 'birch');
   assert.equal(data.taxon_name, 'Bouleau');
   assert.equal(data.measured_at, '12/04/2026 13:00');
-  assert.equal(data.summary, 'Pollens à Maison : risque 4/5 (élevé), dominant Bouleau.');
+  assert.equal(data.summary, 'Pollens à Maison : risque 3/3 (élevé), dominant Bouleau.');
 });
 
 test('the taxon event names the species and its concentration', async () => {
   const gladys = createFakeGladys();
-  await fire(gladys, { grass: 4 });
+  await fire(gladys, { grass: 3 });
   await fire(gladys, { grass: 1 }, { concentrations: { grass: 0.5 } });
 
   const { data } = gladys.sceneEvents.find(
@@ -178,7 +178,7 @@ test('the taxon event names the species and its concentration', async () => {
   assert.equal(data.taxon_name, 'Graminées');
   assert.equal(data.direction, 'falling');
   assert.equal(data.concentration, 0.5);
-  assert.equal(data.summary, 'Graminées à Maison : risque 1/5 (très faible).');
+  assert.equal(data.summary, 'Graminées à Maison : risque 1/3 (faible).');
 });
 
 test('a falling risk back to nothing still names no dominant pollen', async () => {
@@ -191,7 +191,7 @@ test('a falling risk back to nothing still names no dominant pollen', async () =
   );
   assert.equal(data.level, '0');
   assert.equal(data.taxon, '', 'level 0 has no dominant species to name');
-  assert.equal(data.summary, 'Pollens à Maison : risque 0/5 (nul).');
+  assert.equal(data.summary, 'Pollens à Maison : risque 0/3 (pas de risque).');
 });
 
 test('the event data stays flat and small enough for the core', async () => {
@@ -230,14 +230,14 @@ test('get_pollen_risk answers the declared outputs, in the configured language',
     config,
   });
 
-  assert.equal(outputs.level, 4);
+  assert.equal(outputs.level, 3);
   assert.equal(outputs.level_label, 'élevé');
   assert.equal(outputs.taxon, 'birch');
   assert.equal(outputs.taxon_name, 'Bouleau');
   assert.equal(outputs.concentration, 80);
   assert.equal(outputs.location_name, 'Maison');
   assert.equal(outputs.measured_at, '12/04/2026 13:00');
-  assert.equal(outputs.summary, 'Pollens à Maison : risque 4/5 (élevé), dominant Bouleau.');
+  assert.equal(outputs.summary, 'Pollens à Maison : risque 3/3 (élevé), dominant Bouleau.');
 });
 
 test('get_pollen_risk reads ONE species when asked for one', async () => {
@@ -250,9 +250,9 @@ test('get_pollen_risk reads ONE species when asked for one', async () => {
   });
 
   assert.equal(outputs.taxon, 'grass');
-  assert.equal(outputs.level, 2, 'the grass level, not the birch one');
+  assert.equal(outputs.level, 1, 'the grass level, not the birch one');
   assert.equal(outputs.concentration, 2);
-  assert.equal(outputs.summary, 'Graminées à Maison : risque 2/5 (faible).');
+  assert.equal(outputs.summary, 'Graminées à Maison : risque 1/3 (faible).');
 });
 
 test('get_pollen_risk reports "no data" as an output, never as a failure', async () => {

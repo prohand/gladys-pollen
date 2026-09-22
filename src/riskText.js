@@ -1,10 +1,12 @@
 // -----------------------------------------------------------------------------
 // How a pollen risk is SAID, in one place.
 //
-// Three surfaces now put the same risk into words: the data of a scene event,
-// the outputs of a scene action, and the rows of a dashboard widget. They all
-// come here, so "risque 4/5 (élevé)" is written the same way everywhere and a
-// wording fix lands in all of them at once.
+// Four surfaces now put the same risk into words: the overall-risk TEXT feature
+// of a station, the data of a scene event, the outputs of a scene action, and
+// the rows of a dashboard widget. They all come here, so "risque 3/3 (élevé)"
+// is written the same way everywhere and a wording fix lands in all of them at
+// once. The words themselves are the core's own (see RISK_LEVEL_LABELS), so a
+// card and the badge of the "device in a room" box never disagree.
 //
 // Each helper takes a language rather than returning `{ en, fr }`, because
 // everything it feeds is a PLAIN STRING the core stores or substitutes as it
@@ -17,13 +19,13 @@ import { DEFAULT_LANGUAGE, inLanguage } from './language.js';
 import { RISK_LEVEL_LABELS, RISK_LEVEL_MAX } from './pollen/risk.js';
 import { taxonName } from './pollen/taxa.js';
 
-/** Wording of a 0-5 level: `4` -> "élevé". An unknown level answers "?". */
+/** Wording of a level: `3` -> "élevé". An unknown level answers "?". */
 export function levelLabel(level, language = DEFAULT_LANGUAGE) {
   const labels = RISK_LEVEL_LABELS[level];
   return labels ? inLanguage(labels, language) : '?';
 }
 
-/** `4` -> "4/5 (élevé)", the scale and the word the whole integration uses. */
+/** `3` -> "3/3 (élevé)", the scale and the word the whole integration uses. */
 export function levelText(level, language = DEFAULT_LANGUAGE) {
   return `${level}/${RISK_LEVEL_MAX} (${levelLabel(level, language)})`;
 }
@@ -52,7 +54,7 @@ const TAXON_SENTENCE = {
  * where naming a species would be inventing one.
  * @param {{ locationName: string, level: number, taxon?: string|null }} reading
  * @param {string} [language] one of LANGUAGES
- * @returns {string} e.g. `Pollens à Montauban : risque 4/5 (élevé), dominant Bouleau.`
+ * @returns {string} e.g. `Pollens à Montauban : risque 3/3 (élevé), dominant Bouleau.`
  */
 export function overallSummary({ locationName, level, taxon = null }, language = DEFAULT_LANGUAGE) {
   return inLanguage(OVERALL_SENTENCE, language)(
@@ -67,7 +69,7 @@ export function overallSummary({ locationName, level, taxon = null }, language =
  * scene action reading a single pollen.
  * @param {{ locationName: string, taxon: string, level: number }} reading
  * @param {string} [language] one of LANGUAGES
- * @returns {string} e.g. `Bouleau à Montauban : risque 4/5 (élevé).`
+ * @returns {string} e.g. `Bouleau à Montauban : risque 3/3 (élevé).`
  */
 export function taxonSummary({ locationName, taxon, level }, language = DEFAULT_LANGUAGE) {
   return inLanguage(TAXON_SENTENCE, language)(

@@ -136,7 +136,7 @@ test('a device carries one risk feature per taxon, plus the overall four', () =>
   assert.ok(externalIds.includes(ids.feature(FEATURE.LAST_UPDATE)));
 });
 
-test('risk features are historized and bounded to 0-5', () => {
+test('risk features are historized and bounded to the core scale', () => {
   const gladys = createFakeGladys();
   const config = configWith([paris]);
   const device = buildDevice(gladys, stored(paris, config));
@@ -145,7 +145,9 @@ test('risk features are historized and bounded to 0-5', () => {
   for (const feature of riskFeatures) {
     assert.equal(feature.keep_history, true);
     assert.equal(feature.min, 0);
-    assert.equal(feature.max, 5);
+    // The core's own risk scale: a value above it reads "Inconnu" in the
+    // "device in a room" box, whatever this integration meant by it.
+    assert.equal(feature.max, 3);
   }
 });
 
@@ -242,18 +244,18 @@ test('a reading becomes one state per taxon plus the overall trio', () => {
   const gladys = createFakeGladys();
   const ids = deviceExternalIds(gladys, paris);
   const states = buildStates(ids, {
-    risks: { birch: 3, grass: 1 },
-    overall: { level: 3, taxon: 'birch' },
+    risks: { birch: 2, grass: 1 },
+    overall: { level: 2, taxon: 'birch' },
     measuredAt: '2026-08-06T13:00+02:00',
   });
 
   // The TEXT states are stored as they are published, so they follow the same
   // language as the feature names — French unless the user says otherwise.
   assert.deepEqual(states, [
-    { device_feature_external_id: ids.feature('birch'), state: 3 },
+    { device_feature_external_id: ids.feature('birch'), state: 2 },
     { device_feature_external_id: ids.feature('grass'), state: 1 },
-    { device_feature_external_id: ids.feature(FEATURE.OVERALL_RISK), state: 3 },
-    { device_feature_external_id: ids.feature(FEATURE.OVERALL_RISK_TEXT), text: 'moyen' },
+    { device_feature_external_id: ids.feature(FEATURE.OVERALL_RISK), state: 2 },
+    { device_feature_external_id: ids.feature(FEATURE.OVERALL_RISK_TEXT), text: '2/3 (moyen)' },
     { device_feature_external_id: ids.feature(FEATURE.DOMINANT_POLLEN), text: 'Bouleau' },
     { device_feature_external_id: ids.feature(FEATURE.LAST_UPDATE), text: '06/08/2026 13:00' },
   ]);
@@ -299,8 +301,13 @@ test('the text states are written in the configured language', () => {
     states.find((state) => state.device_feature_external_id === ids.feature(feature)).text;
 
   const english = buildStates(ids, reading, 'en');
-  assert.equal(text(english, FEATURE.OVERALL_RISK_TEXT), 'moderate');
+  // The words are the core's own, so the sentence and the badge of the "device
+  // in a room" box never disagree about what a level 3 is called.
+  assert.equal(text(english, FEATURE.OVERALL_RISK_TEXT), '3/3 (high)');
   assert.equal(text(english, FEATURE.DOMINANT_POLLEN), 'Birch');
+
+  const french = buildStates(ids, reading, 'fr');
+  assert.equal(text(french, FEATURE.OVERALL_RISK_TEXT), '3/3 (élevé)');
 });
 
 test('a taxon without data publishes nothing rather than a zero', () => {
@@ -312,6 +319,24 @@ test('a taxon without data publishes nothing rather than a zero', () => {
   });
   const featureIds = states.map((state) => state.device_feature_external_id);
   assert.ok(!featureIds.includes(ids.feature('olive')));
+});
+
+test('no state is ever published above the scale the core can name', () => {
+  // A `risk`/`integer` the core cannot name reads "Inconnu" in the "device in
+  // a room" box: the published level must stay inside the feature bounds.
+  const gladys = createFakeGladys();
+  const ids = deviceExternalIds(gladys, paris);
+  const states = buildStates(ids, {
+    risks: { ragweed: 3, mugwort: 2, birch: 0 },
+    overall: { level: 3, taxon: 'ragweed' },
+  });
+  for (const { state } of states.filter((one) => one.state !== undefined)) {
+    assert.ok(state >= 0 && state <= 3, `published state ${state} is off the core scale`);
+  }
+  const text = states.find(
+    (one) => one.device_feature_external_id === ids.feature(FEATURE.OVERALL_RISK_TEXT),
+  );
+  assert.equal(text.text, '3/3 (élevé)');
 });
 
 test('a quiet day reports no dominant pollen', () => {

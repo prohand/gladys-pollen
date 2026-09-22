@@ -6,10 +6,11 @@
 // `config.locations`, so every function here works on the locations of the
 // configuration it is handed.
 //
-// Features: one risk level (0-5) per pollen taxon, plus an overall risk, its
-// wording, the name of the dominant taxon and the date of the data. Risk levels
-// rather than raw concentrations, because that is what a user (and a Gladys
-// scene) can act on — see `src/pollen/risk.js` for the thresholds.
+// Features: one risk level per pollen taxon, plus an overall risk, its wording,
+// the name of the dominant taxon and the date of the data. Risk levels rather
+// than raw concentrations, because that is what a user (and a Gladys scene) can
+// act on — see `src/pollen/risk.js` for the thresholds AND for why the scale is
+// the core's own 0-3 rather than the six EAN bands.
 //
 // The date of the data belongs HERE, on each station, and not on some device
 // global to the integration: it is the hour the forecast is valid at for THAT
@@ -32,6 +33,7 @@ import { DEFAULT_LANGUAGE, inLanguage } from '../language.js';
 import { allTaxa, findProvider, readPollenRisk } from '../pollen/index.js';
 import { RISK_LEVEL_LABELS, RISK_LEVEL_MAX } from '../pollen/risk.js';
 import { taxonName } from '../pollen/taxa.js';
+import { levelText } from '../riskText.js';
 import { publishRiskEvents } from '../scenes/riskEvents.js';
 import { nudgeWidgets } from '../widgets/keys.js';
 import {
@@ -119,7 +121,7 @@ export function findLocationByDeviceId(gladys, config, externalId) {
   );
 }
 
-/** Shape shared by every risk feature: a read-only 0-5 index. */
+/** Shape shared by every risk feature: a read-only index on the core scale. */
 function riskFeature(externalId, name) {
   return {
     name,
@@ -136,7 +138,14 @@ function riskFeature(externalId, name) {
   };
 }
 
-/** Shape shared by every text feature. */
+/**
+ * Shape shared by every text feature.
+ *
+ * The overall risk has one on top of its number: a notification, a dashboard
+ * text box or a voice answer wants a sentence, not an index. The per-taxon
+ * risks do NOT need one — the core names them itself, correctly, since they are
+ * published on its own scale (see `src/pollen/risk.js`).
+ */
 function textFeature(externalId, name) {
   return {
     name,
@@ -186,13 +195,10 @@ export function buildDevice(gladys, location, language = DEFAULT_LANGUAGE) {
       { name: 'LONGITUDE', value: String(location.longitude) },
     ],
     features: [
-      // The one to use in a scene: the worst taxon of the moment.
-      //
-      // NOTE: a `risk`/`integer` value is rendered through the core's OWN label
-      // set in the "device in a room" dashboard box, which only names 0 to 3;
-      // levels 4 and 5 show as "Inconnu" there. The text feature below carries
-      // the exact wording, and the numeric one stays on the 0-5 scale every
-      // pollen bulletin uses.
+      // The one to use in a scene: the worst taxon of the moment. It is
+      // published on the core's own risk scale, so the "device in a room" box
+      // names it by itself — "Élevé" for a 3 — and the text feature beside it
+      // is the same level in a sentence, not a correction of it.
       riskFeature(ids.feature(FEATURE.OVERALL_RISK), featureName(FEATURE.OVERALL_RISK)),
       textFeature(ids.feature(FEATURE.OVERALL_RISK_TEXT), featureName(FEATURE.OVERALL_RISK_TEXT)),
       ...allTaxa().map((taxon) =>
@@ -215,7 +221,7 @@ export function buildDevice(gladys, location, language = DEFAULT_LANGUAGE) {
  * Split out of `poll()` so the mapping "reading -> states" is testable without
  * a Gladys connection.
  *
- * The two TEXT states are written in the same language as the features that
+ * The three TEXT states are written in the same language as the features that
  * carry them: a stored state is a string like a feature name, translated by
  * nobody downstream.
  * @param {string} [language] one of LANGUAGES (see src/language.js)
@@ -240,8 +246,11 @@ export function buildStates(ids, reading, language = DEFAULT_LANGUAGE) {
         state: reading.overall.level,
       },
       {
+        // The scale AND the word — "3/3 (élevé)" — written by the same helper
+        // as the widget rows and the scene messages, so every surface of this
+        // integration says a level in the very same terms.
         device_feature_external_id: ids.feature(FEATURE.OVERALL_RISK_TEXT),
-        text: inLanguage(RISK_LEVEL_LABELS[reading.overall.level], language),
+        text: levelText(reading.overall.level, language),
       },
       {
         device_feature_external_id: ids.feature(FEATURE.DOMINANT_POLLEN),
@@ -441,11 +450,11 @@ export const pollenStation = {
         };
         return {
           en:
-            `risk ${level}/${RISK_LEVEL_MAX} (${RISK_LEVEL_LABELS[level].en})` +
+            `risk ${levelText(level, 'en')}` +
             `${dominant ? `, dominant ${taxonName(dominant, 'en')}` : ''} — ${reading.provider}` +
             measuredAt('en', 'updated'),
           fr:
-            `risque ${level}/${RISK_LEVEL_MAX} (${RISK_LEVEL_LABELS[level].fr})` +
+            `risque ${levelText(level, 'fr')}` +
             `${dominant ? `, dominant ${taxonName(dominant, 'fr')}` : ''} — ${reading.provider}` +
             measuredAt('fr', 'à jour au'),
         };
