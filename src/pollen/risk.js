@@ -27,6 +27,12 @@
 //
 // Nothing is invented by the fold: the two quiet bands were already "barely
 // there", and the two loud ones both mean "stay inside if you react to it".
+//
+// The fold still loses something a user can feel — "élevé" and "très élevé"
+// both read 3 — so the BAND itself survives next to the folded level, for the
+// TEXT features of a station and for them only (see `concentrationToEanLevel`
+// and `src/riskText.js`). A string is not graded by the core: it can say
+// "5/5 (très élevé)" where the number next to it has to say 3.
 // -----------------------------------------------------------------------------
 
 /** The 0-3 risk scale of the Gladys core, exposed by every pollen feature. */
@@ -52,35 +58,87 @@ export const RISK_LEVEL_LABELS = {
   3: { en: 'high', fr: 'élevé' },
 };
 
-// Upper bounds (grains/m³, exclusive) of levels 1 and 2; anything at or above
-// the last bound is level 3. A concentration of exactly 0 stays at level 0.
+/**
+ * The six EAN bands, 0 to 5 — the measurement as the network actually
+ * publishes it, before the fold onto the four levels Gladys can name.
+ *
+ * It is NOT a second published scale: no `risk`/`integer` feature ever carries
+ * it, because the core would read a 4 or a 5 as "Inconnu". It exists for the
+ * TEXT features of a station, which are plain strings nobody downstream
+ * interprets: there, "4/5 (élevé)" and "5/5 (très élevé)" say what the fold has
+ * to throw away, next to the 0-3 index the badge, the widgets and the scenes
+ * keep working on.
+ */
+export const EAN_LEVELS = {
+  NONE: 0,
+  VERY_LOW: 1,
+  LOW: 2,
+  MODERATE: 3,
+  HIGH: 4,
+  VERY_HIGH: 5,
+};
+
+/** Maximum value of the EAN scale — the "/5" of the text features. */
+export const EAN_LEVEL_MAX = EAN_LEVELS.VERY_HIGH;
+
+/** Human labels of the six EAN bands, for the TEXT features. */
+export const EAN_LEVEL_LABELS = {
+  0: { en: 'none', fr: 'nul' },
+  1: { en: 'very low', fr: 'très faible' },
+  2: { en: 'low', fr: 'faible' },
+  3: { en: 'moderate', fr: 'moyen' },
+  4: { en: 'high', fr: 'élevé' },
+  5: { en: 'very high', fr: 'très élevé' },
+};
+
+/**
+ * THE fold, in one place: which core level each EAN band lands on.
+ *
+ * Indexed by EAN level, so `FOLD_TO_CORE[4] === RISK_LEVELS.HIGH`. Everything
+ * published as a number goes through it; the text features are the only thing
+ * that reads the EAN level itself.
+ */
+const FOLD_TO_CORE = [
+  RISK_LEVELS.NONE, // none        -> pas de risque
+  RISK_LEVELS.LOW, // very low    -> faible
+  RISK_LEVELS.LOW, // low         -> faible
+  RISK_LEVELS.MEDIUM, // moderate    -> moyen
+  RISK_LEVELS.HIGH, // high        -> élevé
+  RISK_LEVELS.HIGH, // very high   -> élevé
+];
+
+// Upper bounds (grains/m³, exclusive) of EAN bands 1 to 4; anything at or above
+// the last bound is band 5. A concentration of exactly 0 stays at band 0.
 //
-// These are the EAN bands with the two folds above already applied: the first
-// bound is where "low" ends (the "very low" one disappeared into it), and the
-// last is where "high" starts (nothing above it is distinguished any more).
+// These are the bands as the EAN publishes them, which is why there are five of
+// them and not two: the fold above is what turns them into the core scale, and
+// the text features need the band itself.
 //
 // Trees release far more pollen than herbs, so the tree bands are an order of
 // magnitude wider than the ragweed/mugwort ones for the same perceived risk.
 const THRESHOLDS = {
-  alder: [10, 70],
-  birch: [10, 70],
-  olive: [10, 50],
-  grass: [5, 20],
-  mugwort: [5, 25],
-  ragweed: [5, 20],
+  alder: [1, 10, 70, 300],
+  birch: [1, 10, 70, 300],
+  olive: [1, 10, 50, 200],
+  grass: [1, 5, 20, 200],
+  mugwort: [1, 5, 25, 50],
+  ragweed: [1, 5, 20, 50],
 };
 
 /** Fallback bands for a taxon added by a future provider without thresholds. */
-const DEFAULT_THRESHOLDS = [10, 50];
+const DEFAULT_THRESHOLDS = [1, 10, 50, 150];
 
 /**
- * Convert a concentration into the 0-3 risk level of a given taxon.
+ * Convert a concentration into the 0-5 EAN band of a given taxon.
+ *
+ * The raw measurement, for the TEXT features only. Everything numeric goes
+ * through `concentrationToRiskLevel` below.
  * @param {string} taxon pollen taxon key, e.g. 'birch'
  * @param {number|null|undefined} concentration grains/m³, or null when the
  *   provider has no value for this taxon at this position
- * @returns {number|null} the risk level, or null when there is no data
+ * @returns {number|null} the EAN band, or null when there is no data
  */
-export function concentrationToRiskLevel(taxon, concentration) {
+export function concentrationToEanLevel(taxon, concentration) {
   if (
     concentration === null ||
     concentration === undefined ||
@@ -90,15 +148,41 @@ export function concentrationToRiskLevel(taxon, concentration) {
   }
   const value = Number(concentration);
   if (value <= 0) {
-    return RISK_LEVELS.NONE;
+    return EAN_LEVELS.NONE;
   }
   const bounds = THRESHOLDS[taxon] ?? DEFAULT_THRESHOLDS;
-  for (let level = 0; level < bounds.length; level += 1) {
-    if (value < bounds[level]) {
-      return level + 1;
+  for (let band = 0; band < bounds.length; band += 1) {
+    if (value < bounds[band]) {
+      return band + 1;
     }
   }
-  return RISK_LEVELS.HIGH;
+  return EAN_LEVELS.VERY_HIGH;
+}
+
+/**
+ * Fold an EAN band onto the core scale. Missing data stays missing.
+ * @param {number|null|undefined} eanLevel
+ * @returns {number|null}
+ */
+export function foldEanLevel(eanLevel) {
+  if (eanLevel === null || eanLevel === undefined) {
+    return null;
+  }
+  return FOLD_TO_CORE[eanLevel] ?? RISK_LEVELS.HIGH;
+}
+
+/**
+ * Convert a concentration into the 0-3 risk level of a given taxon.
+ *
+ * The EAN band, folded onto the scale the Gladys core can name. This is what
+ * every `risk`/`integer` feature, widget and scene works on.
+ * @param {string} taxon pollen taxon key, e.g. 'birch'
+ * @param {number|null|undefined} concentration grains/m³, or null when the
+ *   provider has no value for this taxon at this position
+ * @returns {number|null} the risk level, or null when there is no data
+ */
+export function concentrationToRiskLevel(taxon, concentration) {
+  return foldEanLevel(concentrationToEanLevel(taxon, concentration));
 }
 
 /**

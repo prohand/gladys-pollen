@@ -173,9 +173,11 @@ Unlike a device name, a widget content is built for ONE reader and the core says
 which language they read — `widgetLanguage()` uses it, falling back to
 `config.language` for a language this integration does not speak.
 
-`src/riskText.js` is where a risk is put into WORDS, shared by the overall-risk
-TEXT feature, the events, the action outputs and the widget rows so
-"risque 3/3 (élevé)" reads identically everywhere. The words are the core's own
+`src/riskText.js` is where a risk is put into WORDS, shared by the events, the
+action outputs and the widget rows so "risque 3/3 (élevé)" reads identically
+everywhere. Its `eanLevelText` is the exception: the station's TEXT features
+say the MEASURED band, "4/5 (élevé)", because a stored string is the only thing
+here the core does not re-label. The words are the core's own
 (`RISK_LEVEL_LABELS`), so a card never contradicts the badge next to it — and
 `levelColor()` maps each level to the colour the core paints for that same
 value (the widget palette has no `orange`, so 1 and 2 share `warning`).
@@ -269,10 +271,20 @@ empty. The core sources are worth cloning when in doubt
 - **Risk thresholds are per species** (`src/pollen/risk.js`). 30 grains/m³ is
   quiet for birch and heavy for ragweed. Don't unify the bands.
 - **The scale is the core's, and the fold onto it lives in one place.** The EAN
-  publishes six bands, the core names four, so `THRESHOLDS` carries the folded
-  bounds (two per taxon) rather than the six and a mapping somewhere else.
-  Widening the scale means teaching the CORE new labels first, not publishing a
-  level it cannot name.
+  publishes six bands and the core names four, so `THRESHOLDS` carries the EAN
+  bounds (four per taxon) and `FOLD_TO_CORE` is the single mapping onto the
+  published 0-3 level — `concentrationToRiskLevel` is literally
+  `foldEanLevel(concentrationToEanLevel(...))`. Widening the PUBLISHED scale
+  means teaching the CORE new labels first, not publishing a level it cannot
+  name.
+- **The band survives only as TEXT.** A `risk`/`integer` is re-labelled by the
+  core; a TEXT state is displayed as it was stored. So a station's `-text`
+  features (and nothing else — not the widgets, not the scene events, not the
+  action outputs) carry the 0-5 band, which is what tells an "élevé" day from a
+  "très élevé" one. `readPollenRisk` answers both scales: `risks` / `overall
+.level` on 0-3, `eanRisks` / `overall.eanLevel` on 0-5. The dominant taxon is
+  picked on the bands — the fold is monotonic, so the published level is
+  unchanged and a tie between two 3s is broken by the higher measurement.
 - **A timestamp never travels as a bare wall clock.** `timezone=auto` makes
   Open-Meteo date its answer on the local clock of the point, with the offset in
   a field of its own; `withUtcOffset()` glues them back together at the provider

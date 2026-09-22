@@ -3,7 +3,14 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { concentrationToRiskLevel, overallRisk, RISK_LEVELS } from '../src/pollen/risk.js';
+import {
+  concentrationToEanLevel,
+  concentrationToRiskLevel,
+  EAN_LEVELS,
+  foldEanLevel,
+  overallRisk,
+  RISK_LEVELS,
+} from '../src/pollen/risk.js';
 
 test('a zero concentration is level 0, not level 1', () => {
   assert.equal(concentrationToRiskLevel('birch', 0), RISK_LEVELS.NONE);
@@ -72,4 +79,53 @@ test('no data at all leaves the overall risk unknown', () => {
 test('an all-zero day has no dominant pollen', () => {
   // Level 0 everywhere: reporting "dominant: birch" would be misleading.
   assert.deepEqual(overallRisk({ birch: 0, grass: 0 }), { level: 0, taxon: null });
+});
+
+// --- The measured EAN bands, which only the TEXT features display -----------
+
+test('the six EAN bands are all reachable', () => {
+  // The band is what a pollen bulletin says. The published level folds it, so
+  // this is the only place "élevé" and "très élevé" are still two things.
+  const birch = [0, 0.5, 5, 30, 150, 500].map((value) => concentrationToEanLevel('birch', value));
+  assert.deepEqual(birch, [
+    EAN_LEVELS.NONE,
+    EAN_LEVELS.VERY_LOW,
+    EAN_LEVELS.LOW,
+    EAN_LEVELS.MODERATE,
+    EAN_LEVELS.HIGH,
+    EAN_LEVELS.VERY_HIGH,
+  ]);
+});
+
+test('a missing measurement has no band either', () => {
+  assert.equal(concentrationToEanLevel('birch', null), null);
+  assert.equal(concentrationToEanLevel('birch', undefined), null);
+  assert.equal(concentrationToEanLevel('birch', 'not a number'), null);
+  assert.equal(foldEanLevel(null), null);
+  assert.equal(foldEanLevel(undefined), null);
+});
+
+test('the fold is the one documented, and it never grades above the core scale', () => {
+  assert.deepEqual([0, 1, 2, 3, 4, 5].map(foldEanLevel), [
+    RISK_LEVELS.NONE,
+    RISK_LEVELS.LOW,
+    RISK_LEVELS.LOW,
+    RISK_LEVELS.MEDIUM,
+    RISK_LEVELS.HIGH,
+    RISK_LEVELS.HIGH,
+  ]);
+});
+
+test('the published level is the folded band, on every taxon', () => {
+  // One scale computed from the other: a threshold moved on one side cannot
+  // leave the two disagreeing.
+  for (const taxon of ['birch', 'grass', 'ragweed', 'cypress']) {
+    for (const concentration of [0, 0.5, 5, 30, 90, 500, 100000]) {
+      assert.equal(
+        concentrationToRiskLevel(taxon, concentration),
+        foldEanLevel(concentrationToEanLevel(taxon, concentration)),
+        `${taxon} at ${concentration} disagrees with its band`,
+      );
+    }
+  }
 });

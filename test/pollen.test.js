@@ -153,7 +153,29 @@ test('readPollenRisk grades the concentrations it reads', async () => {
   assert.equal(reading.risks.birch, 3);
   assert.equal(reading.risks.ragweed, 0);
   assert.equal(reading.risks.grass, null);
-  assert.deepEqual(reading.overall, { level: 3, taxon: 'birch' });
+  // The measured band travels next to the published level: 150 grains/m³ of
+  // birch is "high" (band 4), not "very high" (band 5), and the folded 3
+  // cannot tell them apart.
+  assert.equal(reading.eanRisks.birch, 4);
+  assert.equal(reading.eanRisks.ragweed, 0);
+  assert.equal(reading.eanRisks.grass, null);
+  assert.deepEqual(reading.overall, { level: 3, eanLevel: 4, taxon: 'birch' });
+});
+
+test('the dominant taxon is the one highest on the measured scale', async () => {
+  // Both are level 3 once folded; only the bands tell them apart, and the
+  // dominant pollen must be the one actually higher in the air.
+  stubFetch({
+    current: {
+      [OPEN_METEO_VARIABLES.birch]: 100, // band 4, folded 3
+      [OPEN_METEO_VARIABLES.ragweed]: 60, // band 5, folded 3
+    },
+  });
+
+  const reading = await readPollenRisk(paris);
+  assert.equal(reading.risks.birch, 3);
+  assert.equal(reading.risks.ragweed, 3);
+  assert.deepEqual(reading.overall, { level: 3, eanLevel: 5, taxon: 'ragweed' });
 });
 
 test('every registered provider exposes the same contract', () => {

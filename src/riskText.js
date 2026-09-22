@@ -8,6 +8,11 @@
 // once. The words themselves are the core's own (see RISK_LEVEL_LABELS), so a
 // card and the badge of the "device in a room" box never disagree.
 //
+// The one exception is `eanLevelText`: the TEXT features of a station say the
+// MEASURED band, 0 to 5, because a string is the only thing here the core does
+// not re-label. See `src/pollen/risk.js` for the fold and why the numbers stay
+// on the core's 0-3 scale.
+//
 // Each helper takes a language rather than returning `{ en, fr }`, because
 // everything it feeds is a PLAIN STRING the core stores or substitutes as it
 // is: a scene event variable, an action output, a widget row. The language is
@@ -16,7 +21,12 @@
 // -----------------------------------------------------------------------------
 
 import { DEFAULT_LANGUAGE, inLanguage } from './language.js';
-import { RISK_LEVEL_LABELS, RISK_LEVEL_MAX } from './pollen/risk.js';
+import {
+  EAN_LEVEL_LABELS,
+  EAN_LEVEL_MAX,
+  RISK_LEVEL_LABELS,
+  RISK_LEVEL_MAX,
+} from './pollen/risk.js';
 import { taxonName } from './pollen/taxa.js';
 
 /** Wording of a level: `3` -> "élevé". An unknown level answers "?". */
@@ -28,6 +38,26 @@ export function levelLabel(level, language = DEFAULT_LANGUAGE) {
 /** `3` -> "3/3 (élevé)", the scale and the word the whole integration uses. */
 export function levelText(level, language = DEFAULT_LANGUAGE) {
   return `${level}/${RISK_LEVEL_MAX} (${levelLabel(level, language)})`;
+}
+
+/** Wording of an EAN band: `5` -> "très élevé". An unknown band answers "?". */
+export function eanLevelLabel(eanLevel, language = DEFAULT_LANGUAGE) {
+  const labels = EAN_LEVEL_LABELS[eanLevel];
+  return labels ? inLanguage(labels, language) : '?';
+}
+
+/**
+ * The same sentence on the measured scale: `5` -> "5/5 (très élevé)".
+ *
+ * ONLY the TEXT features of a station use it. They are the one surface that
+ * can carry the band the fold throws away: a stored string is displayed as it
+ * is, where a `risk`/`integer` would be re-labelled by the core and read
+ * "Inconnu" above 3. Everything that goes with a number — the widget rows next
+ * to a gauge, the scene events and the action outputs whose level is the 0-3
+ * one — keeps `levelText`, so a card never shows a "/5" beside a "/3".
+ */
+export function eanLevelText(eanLevel, language = DEFAULT_LANGUAGE) {
+  return `${eanLevel}/${EAN_LEVEL_MAX} (${eanLevelLabel(eanLevel, language)})`;
 }
 
 const OVERALL_SENTENCE = {
