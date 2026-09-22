@@ -142,14 +142,17 @@ current hour.
 
 ## Device features
 
-Ten features per location, all read-only; the risks are historized, the text
+Sixteen features per location, all read-only; the risks are historized, the text
 ones are labels and are not:
 
 - **Overall pollen risk** (0-3) — the worst of the six taxa;
 - **Overall pollen risk (text)** — the same level, spelled out ("2/3 (medium)");
 - **Dominant pollen** (text) — which taxon drives that risk;
 - **Last data update** (text) — the hour the forecast is valid at;
-- one risk (0-3) per taxon: alder, birch, grass, mugwort, olive, ragweed.
+- one risk (0-3) per taxon: alder, birch, grass, mugwort, olive, ragweed;
+- one **(text)** wording per taxon, the same level in words — what a scene, a
+  dashboard text box or an assistant reads to say "3/3 (high)" instead of "3".
+  A taxon with no value publishes neither.
 
 The scale is the core's own — `no-risk` / `low-risk` / `medium-risk` /
 `high-risk` — so the badge of the "device in a room" box, the widget rows and

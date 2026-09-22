@@ -109,7 +109,9 @@ second one.
 
 ## What the device measures
 
-Each device exposes ten measurements:
+Each device exposes sixteen measurements: an overall risk, its wording, the
+dominant pollen, the date of the data, then for each of the six pollens a risk
+index and the same risk spelled out.
 
 | Measurement                | Description                                     |
 | -------------------------- | ----------------------------------------------- |
@@ -118,11 +120,22 @@ Each device exposes ten measurements:
 | Dominant pollen            | The name of the pollen driving that risk        |
 | Last data update           | The date and hour the displayed forecast is for |
 | Alder pollen risk          | Risk from 0 to 3                                |
+| Alder pollen risk (text)   | The same risk spelled out: "2/3 (medium)"       |
 | Birch pollen risk          | Risk from 0 to 3                                |
+| Birch pollen risk (text)   | The same risk spelled out: "2/3 (medium)"       |
 | Grass pollen risk          | Risk from 0 to 3                                |
+| Grass pollen risk (text)   | The same risk spelled out: "2/3 (medium)"       |
 | Mugwort pollen risk        | Risk from 0 to 3                                |
+| Mugwort pollen risk (text) | The same risk spelled out: "2/3 (medium)"       |
 | Olive pollen risk          | Risk from 0 to 3                                |
+| Olive pollen risk (text)   | The same risk spelled out: "2/3 (medium)"       |
 | Ragweed pollen risk        | Risk from 0 to 3                                |
+| Ragweed pollen risk (text) | The same risk spelled out: "2/3 (medium)"       |
+
+The "(text)" measurements are what a notification, a dashboard text box or a
+voice assistant reads: a scene reading the index gets a `3`, and `3` is what it
+puts in its message. A pollen the model has no value for publishes nothing at
+all, neither index nor wording.
 
 > These are the names with the **Language of the device names** setting on
 > English. It defaults to **French** (`Risque pollinique — Bouleau`) — see
@@ -236,10 +249,15 @@ the dashboard**, **Add a box**, then pick them from the list.
 
 ### Pollen — one place
 
-The card of one place: the overall level on a gauge, the pollens actually in the
-air, the curve for today and tomorrow, and a **Refresh** button. A species at
-zero takes no row: a card showing nothing means there is nothing in the air, and
-it says so.
+The card of one place: the overall level on a gauge, a **Dominant pollen** tile
+naming the species that level comes from, the risk spelled out — "3/3 (high)" —
+then the pollens actually in the air, the curve for today and tomorrow, and a
+**Refresh** button. A species at zero takes no row: a card showing nothing means
+there is nothing in the air, and it says so — with no pollen in the air there is
+no dominant one, and the tile is gone.
+
+When the card is narrowed to a few species, the dominant pollen and the spelled
+out risk are about those species, like the gauge.
 
 Three settings, per card:
 

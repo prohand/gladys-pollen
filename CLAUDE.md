@@ -91,7 +91,7 @@ contact's, `getContacts()` / contract B.15 — this integration has no contacts)
 Hence `src/language.js`: `config.language`, a manifest `select`, **`fr` by
 default**. It is threaded through `buildDevice`/`buildStates`/`poll` as an
 argument rather than read from a module-level variable, so the mapping stays
-testable in both languages. The three TEXT states follow it too — a stored state
+testable in both languages. The TEXT states follow it too — a stored state
 is a string like a name, translated by nobody downstream — including the date
 written by `src/dateTime.js` (`06/08/2026 13:00` in French, `2026-08-06 13:00` in
 English). Anything else that speaks

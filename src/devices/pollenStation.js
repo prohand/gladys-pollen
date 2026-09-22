@@ -6,11 +6,14 @@
 // `config.locations`, so every function here works on the locations of the
 // configuration it is handed.
 //
-// Features: one risk level per pollen taxon, plus an overall risk, its wording,
-// the name of the dominant taxon and the date of the data. Risk levels rather
-// than raw concentrations, because that is what a user (and a Gladys scene) can
-// act on — see `src/pollen/risk.js` for the thresholds AND for why the scale is
-// the core's own 0-3 rather than the six EAN bands.
+// Features: one risk level per pollen taxon AND its wording, plus an overall
+// risk, its own wording, the name of the dominant taxon and the date of the
+// data. Risk levels rather than raw concentrations, because that is what a user
+// (and a Gladys scene) can act on — see `src/pollen/risk.js` for the thresholds
+// AND for why the scale is the core's own 0-3 rather than the six EAN bands.
+// Every level is published TWICE, as an index and as a sentence: the core names
+// an index for itself in the "device in a room" box and nowhere else, so a
+// scene, a text box or an assistant reading the number gets a bare `3`.
 //
 // The date of the data belongs HERE, on each station, and not on some device
 // global to the integration: it is the hour the forecast is valid at for THAT
@@ -65,6 +68,17 @@ export const FEATURE = {
   LAST_UPDATE: 'last-update',
 };
 
+/**
+ * External id of the TEXT feature doubling a taxon's risk index.
+ *
+ * `-text` suffixed like `overall-risk-text`, and never collides with the keys
+ * above: no taxon is named `overall-risk` or `dominant-pollen`. It is an id, so
+ * it is fixed forever — the history of a feature is matched by it.
+ */
+export function taxonTextFeatureId(taxon) {
+  return `${taxon}-text`;
+}
+
 /** Names of the features that are not about one taxon. */
 const FEATURE_NAMES = {
   [FEATURE.OVERALL_RISK]: { en: 'Overall pollen risk', fr: 'Risque pollinique global' },
@@ -80,6 +94,12 @@ const FEATURE_NAMES = {
 const TAXON_FEATURE_NAME = {
   en: (name) => `${name} pollen risk`,
   fr: (name) => `Risque pollinique — ${name}`,
+};
+
+/** Same, for the wording that doubles it. */
+const TAXON_TEXT_FEATURE_NAME = {
+  en: (name) => `${name} pollen risk (text)`,
+  fr: (name) => `Risque pollinique — ${name} (texte)`,
 };
 
 /** What the "dominant pollen" feature says when nothing is in the air. */
@@ -141,10 +161,17 @@ function riskFeature(externalId, name) {
 /**
  * Shape shared by every text feature.
  *
- * The overall risk has one on top of its number: a notification, a dashboard
- * text box or a voice answer wants a sentence, not an index. The per-taxon
- * risks do NOT need one — the core names them itself, correctly, since they are
- * published on its own scale (see `src/pollen/risk.js`).
+ * Every risk has one on top of its number, the overall one and each taxon:
+ * a notification, a dashboard text box or a voice answer wants a sentence, not
+ * an index. The core does name an index correctly in the "device in a room"
+ * box — it is published on its own scale (see `src/pollen/risk.js`) — but that
+ * box is the ONE place that does it: a scene reading `Risque pollinique —
+ * Bouleau` gets a `3`, and `3` is what it puts in the notification it sends.
+ * The text feature is what a scene, a dashboard text box or an assistant reads
+ * to say "3/3 (élevé)" without carrying the label table itself.
+ *
+ * It is a LABEL, not a measure: `keep_history` stays false — the index next to
+ * it is what draws the season on a chart.
  */
 function textFeature(externalId, name) {
   return {
@@ -201,12 +228,18 @@ export function buildDevice(gladys, location, language = DEFAULT_LANGUAGE) {
       // is the same level in a sentence, not a correction of it.
       riskFeature(ids.feature(FEATURE.OVERALL_RISK), featureName(FEATURE.OVERALL_RISK)),
       textFeature(ids.feature(FEATURE.OVERALL_RISK_TEXT), featureName(FEATURE.OVERALL_RISK_TEXT)),
-      ...allTaxa().map((taxon) =>
-        riskFeature(
-          ids.feature(taxon),
-          inLanguage(TAXON_FEATURE_NAME, language)(taxonName(taxon, language)),
-        ),
-      ),
+      // Each taxon: the index the core badges and scenes compare, then the
+      // same level in words, next to it.
+      ...allTaxa().flatMap((taxon) => {
+        const name = taxonName(taxon, language);
+        return [
+          riskFeature(ids.feature(taxon), inLanguage(TAXON_FEATURE_NAME, language)(name)),
+          textFeature(
+            ids.feature(taxonTextFeatureId(taxon)),
+            inLanguage(TAXON_TEXT_FEATURE_NAME, language)(name),
+          ),
+        ];
+      }),
       textFeature(ids.feature(FEATURE.DOMINANT_POLLEN), featureName(FEATURE.DOMINANT_POLLEN)),
       // "How old is what I am looking at?" — the hour the forecast is valid at,
       // not the moment of the last request: the model publishes once a day, so
@@ -233,9 +266,19 @@ export function buildStates(ids, reading, language = DEFAULT_LANGUAGE) {
   for (const [taxon, level] of Object.entries(reading.risks)) {
     // A taxon the provider has no value for publishes nothing at all: an absent
     // measurement is not a zero risk, and writing 0 would pollute the history
-    // and could fire a "risk is back to none" scene.
+    // and could fire a "risk is back to none" scene. Its wording stays absent
+    // for the same reason — "0/3 (pas de risque)" would say something the
+    // model did not.
     if (level !== null && level !== undefined) {
-      states.push({ device_feature_external_id: ids.feature(taxon), state: level });
+      states.push(
+        { device_feature_external_id: ids.feature(taxon), state: level },
+        {
+          // The same helper as the overall wording, the widget rows and the
+          // scene messages: one level, one sentence, everywhere.
+          device_feature_external_id: ids.feature(taxonTextFeatureId(taxon)),
+          text: levelText(level, language),
+        },
+      );
     }
   }
 
