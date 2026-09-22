@@ -17,6 +17,7 @@ import {
   poll,
   pollenStation,
   taxonName,
+  taxonTextFeatureId,
   watchedLocations,
 } from '../src/devices/pollenStation.js';
 import { allTaxa } from '../src/pollen/index.js';
@@ -116,16 +117,22 @@ test('every feature carries a numeric min and max', () => {
   }
 });
 
-test('a device carries one risk feature per taxon, plus the overall four', () => {
+test('a device carries one risk feature per taxon, its wording, plus the overall four', () => {
   const gladys = createFakeGladys();
   const config = configWith([paris]);
   const device = buildDevice(gladys, stored(paris, config));
-  assert.equal(device.features.length, allTaxa().length + 4);
+  assert.equal(device.features.length, allTaxa().length * 2 + 4);
 
   const ids = deviceExternalIds(gladys, paris);
   const externalIds = device.features.map((feature) => feature.external_id);
   for (const taxon of allTaxa()) {
     assert.ok(externalIds.includes(ids.feature(taxon)), `missing feature for ${taxon}`);
+    // The index the core badges, and the same level in words next to it: a
+    // scene reads a `3`, a notification wants "3/3 (élevé)".
+    assert.ok(
+      externalIds.includes(ids.feature(taxonTextFeatureId(taxon))),
+      `missing text feature for ${taxon}`,
+    );
   }
   assert.ok(externalIds.includes(ids.feature(FEATURE.OVERALL_RISK)));
   assert.ok(externalIds.includes(ids.feature(FEATURE.OVERALL_RISK_TEXT)));
@@ -163,11 +170,17 @@ test('the features are named in French unless the user asks for English', () => 
     'Risque pollinique global',
     'Risque pollinique global (texte)',
     'Risque pollinique — Aulne',
+    'Risque pollinique — Aulne (texte)',
     'Risque pollinique — Bouleau',
+    'Risque pollinique — Bouleau (texte)',
     'Risque pollinique — Graminées',
+    'Risque pollinique — Graminées (texte)',
     'Risque pollinique — Armoise',
+    'Risque pollinique — Armoise (texte)',
     'Risque pollinique — Olivier',
+    'Risque pollinique — Olivier (texte)',
     'Risque pollinique — Ambroisie',
+    'Risque pollinique — Ambroisie (texte)',
     'Pollen dominant',
     'Dernière mise à jour des données',
   ]);
@@ -175,6 +188,7 @@ test('the features are named in French unless the user asks for English', () => 
   const english = namesOf(configWith([paris], { language: 'en' }));
   assert.equal(english[0], 'Overall pollen risk');
   assert.ok(english.includes('Birch pollen risk'));
+  assert.ok(english.includes('Birch pollen risk (text)'));
   assert.ok(english.includes('Dominant pollen'));
   assert.ok(english.includes('Last data update'));
 });
@@ -253,7 +267,9 @@ test('a reading becomes one state per taxon plus the overall trio', () => {
   // language as the feature names — French unless the user says otherwise.
   assert.deepEqual(states, [
     { device_feature_external_id: ids.feature('birch'), state: 2 },
+    { device_feature_external_id: ids.feature(taxonTextFeatureId('birch')), text: '2/3 (moyen)' },
     { device_feature_external_id: ids.feature('grass'), state: 1 },
+    { device_feature_external_id: ids.feature(taxonTextFeatureId('grass')), text: '1/3 (faible)' },
     { device_feature_external_id: ids.feature(FEATURE.OVERALL_RISK), state: 2 },
     { device_feature_external_id: ids.feature(FEATURE.OVERALL_RISK_TEXT), text: '2/3 (moyen)' },
     { device_feature_external_id: ids.feature(FEATURE.DOMINANT_POLLEN), text: 'Bouleau' },

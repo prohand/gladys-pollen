@@ -130,7 +130,7 @@ test('a place the integration no longer watches gets the same answer', async () 
   assert.equal(content.components[0].type, 'text');
 });
 
-test('the station card holds the heading, the gauge, the species, the curve', async () => {
+test('the station card holds the heading, the gauge, the dominant, the species, the curve', async () => {
   const gladys = createFakeGladys();
   stubFetch();
 
@@ -143,10 +143,83 @@ test('the station card holds the heading, the gauge, the species, the curve', as
 
   assert.deepEqual(
     content.components.map((component) => component.type),
-    ['text', 'gauge', 'status', 'chart', 'text', 'button'],
+    ['text', 'gauge', 'value', 'status', 'chart', 'text', 'button'],
   );
   assert.equal(content.components[0].text, 'Maison');
-  assert.match(content.components[4].text, /^CAMS · 12\/04\/2026 13:00$/);
+  assert.match(content.components[5].text, /^CAMS · 12\/04\/2026 13:00$/);
+});
+
+test('the tile names the pollen the level comes from', async () => {
+  const gladys = createFakeGladys();
+  stubFetch({ current: currentPayload({ birch: 80, grass: 2, olive: 0 }) });
+
+  const content = await station.getContent(gladys, config, {
+    settings: { location: PARIS_DEVICE },
+    language: 'fr',
+  });
+  const [tile] = componentsOf(content, 'value');
+  assert.equal(tile.label, 'Pollen dominant');
+  assert.equal(tile.value, 'Bouleau');
+  // The colour of the level it sets, like every other mention of that level.
+  assert.equal(tile.color, 'danger');
+  // Computed, not read from the `dominant-pollen` feature: the reader's
+  // language, not the installation's.
+  assert.equal(tile.device_feature, undefined);
+});
+
+test('the dominant follows the species the instance is narrowed to', async () => {
+  const gladys = createFakeGladys();
+  stubFetch({ current: currentPayload({ birch: 80, grass: 2, olive: 0 }) });
+
+  const content = assertRenderable(
+    await station.getContent(gladys, config, {
+      settings: { location: PARIS_DEVICE, taxa: ['grass', 'olive'] },
+      language: 'fr',
+    }),
+  );
+  assert.equal(componentsOf(content, 'value')[0].value, 'Graminées');
+});
+
+test('nothing in the air names no dominant pollen', async () => {
+  const gladys = createFakeGladys();
+  stubFetch({ current: currentPayload({ birch: 0, grass: 0, olive: 0 }) });
+
+  const content = await station.getContent(gladys, config, {
+    settings: { location: PARIS_DEVICE },
+    language: 'fr',
+  });
+  // At level 0 no species deserves to be called dominant: the tile is absent
+  // rather than saying "—".
+  assert.deepEqual(componentsOf(content, 'value'), []);
+});
+
+test('the first row spells the risk out, in the wording used everywhere else', async () => {
+  const gladys = createFakeGladys();
+  stubFetch({ current: currentPayload({ birch: 80, grass: 2, olive: 0 }) });
+
+  const content = await station.getContent(gladys, config, {
+    settings: { location: PARIS_DEVICE },
+    language: 'fr',
+  });
+  const [status] = componentsOf(content, 'status');
+  assert.equal(status.items[0].label, 'Risque global');
+  assert.equal(status.items[0].value, '3/3 (élevé)');
+  assert.equal(status.items[0].color, 'danger');
+});
+
+test('a filtered instance spells out ITS risk, not the overall one', async () => {
+  const gladys = createFakeGladys();
+  stubFetch({ current: currentPayload({ birch: 80, grass: 2, olive: 0 }) });
+
+  const content = assertRenderable(
+    await station.getContent(gladys, config, {
+      settings: { location: PARIS_DEVICE, taxa: ['grass'] },
+      language: 'fr',
+    }),
+  );
+  const [status] = componentsOf(content, 'status');
+  assert.equal(status.items[0].label, 'Votre risque');
+  assert.equal(status.items[0].value, '1/3 (faible)');
 });
 
 test('an unfiltered gauge is bound to the device feature, a filtered one is not', async () => {
@@ -181,14 +254,14 @@ test('the species rows show what IS in the air, worst first', async () => {
   });
   const [status] = componentsOf(content, 'status');
   assert.deepEqual(
-    status.items.map((item) => item.label),
+    status.items.slice(1).map((item) => item.label),
     ['Bouleau', 'Graminées'],
     'olive is at zero: a row saying nothing is a row too many',
   );
-  assert.equal(status.items[0].value, '3/3 (élevé)');
+  assert.equal(status.items[1].value, '3/3 (élevé)');
   // The colour of the badge the core paints for the same value in the "device
   // in a room" box: one level, one colour, wherever it is read.
-  assert.equal(status.items[0].color, 'danger');
+  assert.equal(status.items[1].color, 'danger');
 });
 
 test('nothing in the air is an answer, not an empty card', async () => {
@@ -202,8 +275,11 @@ test('nothing in the air is an answer, not an empty card', async () => {
     }),
   );
   const [status] = componentsOf(content, 'status');
+  // "Risque global 0/3" and "aucun pollen dans l'air" are the same sentence:
+  // only the explicit one is kept.
   assert.equal(status.items.length, 1);
   assert.match(status.items[0].label, /Aucun pollen/);
+  assert.equal(status.items[0].value, '0/3 (pas de risque)');
 });
 
 test('the curve is one series per followed species, and steps', async () => {
@@ -291,8 +367,11 @@ test('a card is written in the language of whoever reads it', async () => {
     language: 'en',
   });
   const [status] = componentsOf(english, 'status');
-  assert.equal(status.items[0].label, 'Birch');
-  assert.equal(status.items[0].value, '3/3 (high)');
+  assert.equal(status.items[0].label, 'Overall risk');
+  assert.equal(status.items[1].label, 'Birch');
+  assert.equal(status.items[1].value, '3/3 (high)');
+  assert.equal(componentsOf(english, 'value')[0].label, 'Dominant pollen');
+  assert.equal(componentsOf(english, 'value')[0].value, 'Birch');
 });
 
 test('a language this integration does not speak falls back to the configured one', async () => {
@@ -304,7 +383,8 @@ test('a language this integration does not speak falls back to the configured on
     language: 'de',
   });
   const [status] = componentsOf(german, 'status');
-  assert.equal(status.items[0].label, 'Birch', 'an English install stays English');
+  assert.equal(status.items[1].label, 'Birch', 'an English install stays English');
+  assert.equal(componentsOf(german, 'value')[0].value, 'Birch');
 });
 
 // --- The settings ----------------------------------------------------------------

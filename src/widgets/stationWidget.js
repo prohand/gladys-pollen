@@ -56,6 +56,7 @@ const NOTHING_IN_THE_AIR = {
 };
 const OVERALL_LABEL = { en: 'Overall risk', fr: 'Risque global' };
 const FILTERED_LABEL = { en: 'Your risk', fr: 'Votre risque' };
+const DOMINANT_LABEL = { en: 'Dominant pollen', fr: 'Pollen dominant' };
 const CHART_TITLE = { en: 'Today and tomorrow', fr: 'Aujourd’hui et demain' };
 
 /**
@@ -101,9 +102,55 @@ function riskGauge(ids, level, taxa, language) {
     : { ...common, value: level, min: 0, max: RISK_LEVEL_MAX };
 }
 
-/** One row per species IN THE AIR, worst first. */
-function speciesStatus(risks, taxa, language) {
-  const items = taxa
+/**
+ * The tile naming the species that SETS the level.
+ *
+ * A gauge says "3", the rows below say which pollens are in the air, but
+ * neither answers the question a reader actually asks first — "3 because of
+ * WHAT?". The dominant taxon is what `overallRisk()` already picked to build
+ * that number, and the list card shows it on every row: the station card said
+ * it nowhere.
+ *
+ * The word is computed here rather than read from the `dominant-pollen`
+ * feature: a stored state carries `config.language`, a card is written in the
+ * language of the ONE reader pulling it.
+ *
+ * Never built below level 1 — `overallRisk()` reports no dominant taxon there,
+ * and naming one would be inventing it.
+ */
+function dominantTile(taxon, level, language) {
+  return {
+    type: 'value',
+    label: inLanguage(DOMINANT_LABEL, language),
+    // A `value` tile takes 12 characters; every taxon this integration knows
+    // fits, the clip covers a species a future provider adds.
+    value: clip(taxonName(taxon, language), 12),
+    icon: 'wind',
+    color: levelColor(level),
+  };
+}
+
+/**
+ * The risk IN WORDS, then one row per species in the air, worst first.
+ *
+ * The gauge above draws a `3` on an arc, which is a shape, not a sentence: the
+ * first row spells the very same reading out — "3/3 (élevé)" — with the wording
+ * `src/riskText.js` gives the feature, the scene events and the list card, so
+ * the number and the word never disagree. It also guarantees the `status` the
+ * one item the core requires of it.
+ *
+ * Below level 1 that row IS the answer: "risque global 0/3" and "aucun pollen
+ * dans l'air" say the same thing twice, so only the explicit one is kept.
+ */
+function speciesStatus(risks, level, taxa, language) {
+  const everyTaxon = taxa.length === allTaxa().length;
+  const overallRow = {
+    label: clip(inLanguage(everyTaxon ? OVERALL_LABEL : FILTERED_LABEL, language), 40),
+    value: clip(levelText(level, language), 40),
+    color: levelColor(level),
+  };
+
+  const species = taxa
     .filter((taxon) => (risks[taxon] ?? 0) > RISK_LEVELS.NONE)
     .sort((a, b) => risks[b] - risks[a])
     .map((taxon) => ({
@@ -112,21 +159,15 @@ function speciesStatus(risks, taxa, language) {
       color: levelColor(risks[taxon]),
     }));
 
-  // A `status` needs at least one item, and "nothing at all" is an answer the
-  // reader wants: an empty card would look like a failed request.
-  return {
-    type: 'status',
-    items:
-      items.length > 0
-        ? items
-        : [
-            {
-              label: inLanguage(NOTHING_IN_THE_AIR, language),
-              value: levelText(RISK_LEVELS.NONE, language),
-              color: levelColor(RISK_LEVELS.NONE),
-            },
-          ],
-  };
+  // "Nothing at all" is an answer the reader wants, and it is the only one
+  // there is: an empty card would look like a failed request.
+  if (species.length === 0) {
+    return {
+      type: 'status',
+      items: [{ ...overallRow, label: inLanguage(NOTHING_IN_THE_AIR, language) }],
+    };
+  }
+  return { type: 'status', items: [overallRow, ...species] };
 }
 
 /**
@@ -200,7 +241,7 @@ export const stationWidget = {
     }
 
     const risks = filterRisks(reading.risks, taxa);
-    const { level } = overallRisk(risks);
+    const { level, taxon: dominant } = overallRisk(risks);
     if (level === null) {
       return emptyState(NO_DATA);
     }
@@ -211,8 +252,11 @@ export const stationWidget = {
       // order — and because several instances of this widget look alike.
       { type: 'text', variant: 'heading', text: clip(location.name, 40) },
       riskGauge(ids, level, taxa, lang),
-      speciesStatus(risks, taxa, lang),
     ];
+    if (dominant) {
+      components.push(dominantTile(dominant, level, lang));
+    }
+    components.push(speciesStatus(risks, level, taxa, lang));
 
     if (settings?.forecast !== false && settings?.forecast !== 'false') {
       const chart = await stationWidget.buildForecast(location, taxa, lang);

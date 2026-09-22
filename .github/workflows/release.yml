@@ -71,6 +71,11 @@ jobs:
             gladys-assistant-integration.json > "$tmp"
           mv "$tmp" gladys-assistant-integration.json
 
+          # jq re-indents what it rewrites, and the `format:check` gate of the
+          # CI then fails on the release commit itself: hand the file back to
+          # Prettier so the released manifest is the one the repo checks.
+          npx --yes prettier --write gladys-assistant-integration.json
+
           echo "version=${new_version}" >> "$GITHUB_OUTPUT"
 
       # Note: if the branch you release from is protected against direct pushes,

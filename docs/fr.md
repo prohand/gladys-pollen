@@ -115,20 +115,33 @@ supprimer un deuxième.
 
 ## Ce que mesure l'appareil
 
-Chaque appareil expose dix mesures :
+Chaque appareil expose seize mesures : un risque global, son texte, le pollen
+dominant, la date de la donnée, puis pour chacun des six pollens un risque
+chiffré et le même risque écrit en toutes lettres.
 
-| Mesure                           | Description                                                    |
-| -------------------------------- | -------------------------------------------------------------- |
-| Risque pollinique global         | Le plus élevé des six risques ci-dessous (0 à 3)               |
-| Risque pollinique global (texte) | Le même niveau écrit en toutes lettres : « 2/3 (moyen) »       |
-| Pollen dominant                  | Le nom du pollen responsable du risque global                  |
-| Dernière mise à jour des données | La date et l'heure auxquelles la prévision affichée correspond |
-| Risque pollinique — Aulne        | Risque de 0 à 3                                                |
-| Risque pollinique — Bouleau      | Risque de 0 à 3                                                |
-| Risque pollinique — Graminées    | Risque de 0 à 3                                                |
-| Risque pollinique — Armoise      | Risque de 0 à 3                                                |
-| Risque pollinique — Olivier      | Risque de 0 à 3                                                |
-| Risque pollinique — Ambroisie    | Risque de 0 à 3                                                |
+| Mesure                                | Description                                                    |
+| ------------------------------------- | -------------------------------------------------------------- |
+| Risque pollinique global              | Le plus élevé des six risques ci-dessous (0 à 3)               |
+| Risque pollinique global (texte)      | Le même niveau écrit en toutes lettres : « 2/3 (moyen) »       |
+| Pollen dominant                       | Le nom du pollen responsable du risque global                  |
+| Dernière mise à jour des données      | La date et l'heure auxquelles la prévision affichée correspond |
+| Risque pollinique — Aulne             | Risque de 0 à 3                                                |
+| Risque pollinique — Aulne (texte)     | Le même risque écrit : « 2/3 (moyen) »                         |
+| Risque pollinique — Bouleau           | Risque de 0 à 3                                                |
+| Risque pollinique — Bouleau (texte)   | Le même risque écrit : « 2/3 (moyen) »                         |
+| Risque pollinique — Graminées         | Risque de 0 à 3                                                |
+| Risque pollinique — Graminées (texte) | Le même risque écrit : « 2/3 (moyen) »                         |
+| Risque pollinique — Armoise           | Risque de 0 à 3                                                |
+| Risque pollinique — Armoise (texte)   | Le même risque écrit : « 2/3 (moyen) »                         |
+| Risque pollinique — Olivier           | Risque de 0 à 3                                                |
+| Risque pollinique — Olivier (texte)   | Le même risque écrit : « 2/3 (moyen) »                         |
+| Risque pollinique — Ambroisie         | Risque de 0 à 3                                                |
+| Risque pollinique — Ambroisie (texte) | Le même risque écrit : « 2/3 (moyen) »                         |
+
+Les mesures « (texte) » servent aux notifications, aux boîtes texte d'un
+tableau de bord et aux assistants vocaux : une scène qui lit le risque chiffré
+reçoit un « 3 », et c'est « 3 » qu'elle met dans son message. Un pollen que le
+modèle ne mesure pas ne publie rien du tout, ni chiffre ni texte.
 
 Les mesures numériques sont historisées : vous pouvez tracer la saison
 pollinique de votre commune sur un graphique.
@@ -247,10 +260,16 @@ choisissez-les dans la liste.
 
 ### Pollens — un lieu
 
-La carte d'un lieu : le niveau global sur un cadran, la liste des pollens
-réellement présents, la courbe d'aujourd'hui et de demain, et un bouton
-**Rafraîchir**. Les espèces à zéro ne prennent pas de ligne : une carte qui ne
-montre rien veut dire qu'il n'y a rien dans l'air, et elle le dit.
+La carte d'un lieu : le niveau global sur un cadran, la tuile **Pollen
+dominant** qui nomme l'espèce à l'origine de ce niveau, le risque écrit en
+toutes lettres — « 3/3 (élevé) » — puis la liste des pollens réellement
+présents, la courbe d'aujourd'hui et de demain, et un bouton **Rafraîchir**.
+Les espèces à zéro ne prennent pas de ligne : une carte qui ne montre rien veut
+dire qu'il n'y a rien dans l'air, et elle le dit — sans pollen dans l'air, il
+n'y a pas de dominant et la tuile disparaît.
+
+Quand la carte est limitée à quelques espèces, le dominant et le risque écrit
+portent sur ces espèces-là, comme le cadran.
 
 Trois réglages, propres à chaque carte :
 
