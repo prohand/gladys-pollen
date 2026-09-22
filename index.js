@@ -11,7 +11,10 @@
 //   3. publishes one discovered device per configured location, and refreshes
 //      that list every time the user adds or removes one;
 //   4. gives the location manager the two things it cannot do itself: write the
-//      configuration, and re-publish the devices when the list changes.
+//      configuration, and re-publish the devices when the list changes;
+//   5. registers the three surfaces Gladys 5.1 opened to an integration — the
+//      dashboard WIDGETS (src/widgets/), the scene ACTIONS and the scene
+//      TRIGGERS (src/scenes/) — by the keys the manifest declares.
 //
 // Environment variables provided by the Gladys supervisor to the container:
 //   - GLADYS_HOST_API_URL         (host API URL)
@@ -31,6 +34,8 @@ import {
 import { createLocationEditor } from './src/locationEditor.js';
 import { LOCATIONS_KEY, serializeLocations } from './src/locations.js';
 import { findProvider } from './src/pollen/index.js';
+import { SCENE_ACTION_HANDLERS } from './src/scenes/index.js';
+import { WIDGETS } from './src/widgets/index.js';
 
 const gladys = new GladysIntegration();
 
@@ -197,6 +202,26 @@ for (const blueprint of DEVICE_BLUEPRINTS) {
 }
 for (const [actionKey, handler] of Object.entries(locationEditor.actions)) {
   gladys.onAction(actionKey, (fields) => handler(fields));
+}
+
+// --- Scene actions: cards of the scene editor's "Integrations" category ------
+// Same wiring as the manifest actions, one registration per declared key. What
+// a handler resolves becomes the `outputs` the following actions of the scene
+// can read; throwing fails that action alone.
+for (const [actionKey, handler] of Object.entries(SCENE_ACTION_HANDLERS)) {
+  gladys.onSceneAction(actionKey, (fields) => handler(gladys, { fields, config }));
+}
+
+// --- Dashboard widgets -------------------------------------------------------
+// The core PULLS the content (on mount, then on ttl expiry) and relays the
+// taps on the buttons a content declared. Both handlers are registered per
+// widget key, and both are handed the CURRENT configuration — a widget built
+// on a stale location list would show a place the user removed.
+for (const widget of WIDGETS) {
+  gladys.onWidgetGet(widget.key, (options) => widget.getContent(gladys, config, options));
+  gladys.onWidgetAction(widget.key, (actionKey, params, options) =>
+    widget.onAction(gladys, config, actionKey, params, options),
+  );
 }
 
 // --- Configuration updated by the user ---------------------------------------

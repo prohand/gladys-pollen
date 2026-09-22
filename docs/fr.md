@@ -7,6 +7,12 @@ ou un lieu en saisissant sa **commune**.
 
 Aucun compte à créer, aucune clé d'API à saisir.
 
+Le risque s'affiche aussi sur votre **tableau de bord** (deux widgets) et se
+pilote depuis vos **scènes** (deux déclencheurs, deux actions).
+
+> Cette version nécessite **Gladys 5.1** ou plus récent : les widgets de tableau
+> de bord et les cartes de scène d'une intégration n'existent pas avant.
+
 ## D'où viennent les données ?
 
 Les concentrations de pollens proviennent de la **prévision européenne de
@@ -197,15 +203,112 @@ créer**. Un appareil déjà ajouté à Gladys garde les noms qu'il a reçus à 
 création — supprimez-le et rajoutez-le depuis l'onglet Découverte pour le
 renommer (son historique, lui, est attaché à l'appareil supprimé).
 
+## Sur votre tableau de bord
+
+Deux widgets sont livrés avec l'intégration. Vous les ajoutez depuis un tableau
+de bord Gladys : **Modifier le tableau de bord**, **Ajouter une boîte**, puis
+choisissez-les dans la liste.
+
+### Pollens — un lieu
+
+La carte d'un lieu : le niveau global sur un cadran, la liste des pollens
+réellement présents, la courbe d'aujourd'hui et de demain, et un bouton
+**Rafraîchir**. Les espèces à zéro ne prennent pas de ligne : une carte qui ne
+montre rien veut dire qu'il n'y a rien dans l'air, et elle le dit.
+
+Trois réglages, propres à chaque carte :
+
+| Réglage                                  | À quoi il sert                                                                                                                                     |
+| ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Lieu**                                 | L'appareil à afficher. Seuls les appareils déjà ajoutés depuis l'onglet Découverte sont proposés.                                                  |
+| **Pollens suivis**                       | Cochez les espèces auxquelles vous réagissez : le cadran, la liste et la courbe ne tiennent alors compte que de celles-là. Rien de coché = toutes. |
+| **Afficher la prévision sur deux jours** | La courbe heure par heure. Décochez-la pour une carte compacte.                                                                                    |
+
+La courbe montre **aujourd'hui et demain**, heure par heure, avec un repère à
+l'heure actuelle. C'est une prévision : Gladys n'en garde aucun historique, elle
+est relue à chaque affichage. Avec quatre espèces suivies ou moins, chacune a sa
+courbe ; au-delà, une seule courbe montre la pire des espèces suivies.
+
+Quand vous suivez toutes les espèces, le cadran est branché directement sur la
+mesure de l'appareil et suit les valeurs publiées en temps réel. Avec une
+sélection d'espèces, aucune mesure ne correspond — le cadran affiche alors le
+chiffre calculé par la carte.
+
+### Pollens — tous les lieux
+
+Une ligne par lieu configuré, avec son niveau et son pollen dominant, et un
+bouton **Rafraîchir** qui relit tout. Aucun réglage : la carte affiche la liste
+que gère l'onglet Configuration. Elle s'arrête à dix lignes, et le dit.
+
+Ces deux cartes sont écrites dans **la langue de la personne qui les regarde** :
+contrairement au nom des appareils, Gladys indique ici dans quelle langue vous
+lisez.
+
 ## Utiliser le risque dans une scène
 
+Trois façons, de la plus simple à la plus fine.
+
+### 1. Les mesures, comme n'importe quel capteur
+
 Le risque global est une mesure de catégorie « risque » : il s'utilise comme
-n'importe quel capteur numérique dans une scène. Quelques idées :
+n'importe quel capteur numérique. Quelques idées :
 
 - fermer les volets ou couper la VMC quand le risque global dépasse 3 ;
 - envoyer une notification le matin si le risque « Graminées » est ≥ 4 ;
 - allumer le purificateur d'air quand le pollen dominant est celui auquel vous
   êtes allergique.
+
+### 2. Les déclencheurs
+
+Dans l'éditeur de scènes, catégorie **Intégrations** :
+
+| Déclencheur                                   | Quand il part                                           |
+| --------------------------------------------- | ------------------------------------------------------- |
+| **Le risque pollinique global a changé**      | Le niveau global d'un lieu passe d'un niveau à un autre |
+| **Le risque d'une espèce de pollen a changé** | Le niveau d'un pollen précis change sur un lieu         |
+
+Les deux ne partent qu'**au changement**, jamais à chaque rafraîchissement : la
+prévision CAMS est republiée une fois par jour, donc une scène déclenchée à
+chaque lecture partirait vingt-quatre fois pour la même valeur.
+
+Chaque déclencheur se filtre : le **lieu** (vide = n'importe lequel), les
+**niveaux** qui vous intéressent (cochez 4 et 5 pour ne réagir qu'aux pics), le
+**sens** (à la hausse pour fermer les fenêtres, à la baisse pour les rouvrir), et
+pour le second les **espèces**.
+
+La scène reçoit ensuite de quoi écrire son message :
+`{{triggerEvent.data.summary}}` contient la phrase toute faite
+« Pollens à Maison : risque 4/5 (élevé), dominant Bouleau. », et
+`location_name`, `level`, `level_label`, `previous_level`, `direction`, `taxon`,
+`taxon_name`, `measured_at` sont disponibles séparément.
+
+Deux précisions :
+
+- **rien ne part au démarrage** du conteneur : le niveau précédent est alors
+  inconnu, et « inconnu → 4 » n'est pas un changement. Le premier vrai
+  changement, lui, part normalement ;
+- **une espèce sans valeur ne déclenche rien** : une absence de mesure n'est pas
+  un retour à zéro, et le dernier niveau connu est conservé.
+
+### 3. Les actions
+
+Toujours dans l'éditeur de scènes, catégorie **Intégrations** :
+
+| Action                                 | Ce qu'elle fait                                                                                                 |
+| -------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| **Lire le risque pollinique**          | Lit un lieu maintenant et transmet le niveau, le pollen dominant et la phrase toute faite aux actions suivantes |
+| **Rafraîchir les données polliniques** | Relit la prévision et republie les mesures ; laissez le lieu vide pour tous les lieux                           |
+
+« Lire le risque pollinique » est ce qui transforme « tous les matins à 7 h » en
+« tous les matins à 7 h, dis-moi le risque » : choisissez le lieu, laissez
+**Risque global** (ou choisissez une espèce), puis envoyez un message contenant
+la sortie `summary`. Les sorties `level` (0 à 5), `level_label`, `taxon`,
+`taxon_name`, `concentration`, `location_name` et `measured_at` sont là si vous
+préférez composer votre propre phrase.
+
+> Si la source ne répond rien, l'action n'échoue pas : elle renvoie `level` vide
+> et un `summary` qui dit « données indisponibles ». C'est à la scène de décider
+> quoi en faire.
 
 ## Rafraîchissement
 

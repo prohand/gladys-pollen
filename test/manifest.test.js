@@ -14,6 +14,10 @@ import { DEVICE_BLUEPRINTS } from '../src/devices/index.js';
 import { DEFAULT_LANGUAGE, LANGUAGES } from '../src/language.js';
 import { createLocationEditor } from '../src/locationEditor.js';
 import { MAX_LOCATIONS } from '../src/locations.js';
+import { allTaxa } from '../src/pollen/index.js';
+import { RISK_LEVEL_LABELS, RISK_LEVEL_MAX } from '../src/pollen/risk.js';
+import { OVERALL_TAXON, SCENE_ACTION_HANDLERS, SCENE_TRIGGERS } from '../src/scenes/index.js';
+import { WIDGETS } from '../src/widgets/index.js';
 
 const manifest = JSON.parse(
   await readFile(new URL('../gladys-assistant-integration.json', import.meta.url), 'utf8'),
@@ -45,16 +49,53 @@ const ALLOWED_FIELD_TYPES = [
   'section',
 ];
 
-/** Every field of the manifest, config fields and action fields alike. */
+/**
+ * Every field of the manifest: the configuration form, the action mini-forms,
+ * the widget settings and the scene cards. They are all rendered by the same
+ * `config_schema` engine, so the rules below apply to all of them.
+ */
 function allFields() {
   return [
     ...manifest.config_schema,
     ...(manifest.actions ?? []).flatMap((action) => action.fields ?? []),
+    ...(manifest.widgets ?? []).flatMap((widget) => widget.settings ?? []),
+    ...sceneDeclarations().flatMap((declaration) => declaration.fields ?? []),
   ];
+}
+
+/** The scene cards of the manifest, triggers and actions alike. */
+function sceneDeclarations() {
+  return [...(manifest.scene_triggers ?? []), ...(manifest.scene_actions ?? [])];
+}
+
+/** Their `variables` (triggers) and `outputs` (actions): the same shape. */
+function sceneScalars(declaration) {
+  return declaration.variables ?? declaration.outputs ?? [];
 }
 
 function action(key) {
   return (manifest.actions ?? []).find((a) => a.key === key);
+}
+
+function widget(key) {
+  return (manifest.widgets ?? []).find((w) => w.key === key);
+}
+
+function sceneTrigger(key) {
+  return (manifest.scene_triggers ?? []).find((t) => t.key === key);
+}
+
+function sceneAction(key) {
+  return (manifest.scene_actions ?? []).find((a) => a.key === key);
+}
+
+/** The `options` values of a field, in order. */
+function optionValues(field) {
+  return (field.options ?? []).map((option) => option.value);
+}
+
+function fieldOf(declaration, key) {
+  return (declaration.fields ?? []).find((f) => f.key === key);
 }
 
 test('every manifest action has a registered handler, and vice versa', () => {
@@ -253,6 +294,23 @@ test('every human text is a multi-language object', () => {
       checkField(field, `action "${declared.key}".fields[${index}]`);
     }
   }
+  for (const declared of manifest.widgets ?? []) {
+    check(declared.label, `widget "${declared.key}".label`);
+    check(declared.description, `widget "${declared.key}".description`);
+    for (const [index, field] of (declared.settings ?? []).entries()) {
+      checkField(field, `widget "${declared.key}".settings[${index}]`);
+    }
+  }
+  for (const declared of sceneDeclarations()) {
+    check(declared.label, `scene "${declared.key}".label`);
+    check(declared.description, `scene "${declared.key}".description`);
+    for (const [index, field] of (declared.fields ?? []).entries()) {
+      checkField(field, `scene "${declared.key}".fields[${index}]`);
+    }
+    for (const scalar of sceneScalars(declared)) {
+      check(scalar.label, `scene "${declared.key}".${scalar.key}.label`);
+    }
+  }
 });
 
 test('a section description stays under the 1000-character limit', () => {
@@ -297,11 +355,23 @@ test('the manifest asks for the house coordinates the import button reads', () =
 });
 
 test('the compatibility range covers every field the manifest declares', () => {
-  // House coordinates landed in Gladys 4.85.0 and `categories` in 4.86.0. An
-  // instance older than that rejects the field, and the whole integration with
-  // it: the range is what keeps this version away from the instances it cannot
-  // run on. 4.86.0 is the floor as long as `categories` is declared.
-  assert.match(manifest.gladys_version, /^>=4\.(8[6-9]|9\d|\d{3,})\./);
+  // Each capability field has a floor, and the range must clear the HIGHEST
+  // one: house coordinates landed in Gladys 4.85.0, `categories` in 4.86.0,
+  // and the widgets / scene declarations in 5.1.0. An instance older than that
+  // validates manifests against a strict field allowlist and rejects the whole
+  // integration over the unknown field — which turns a catalog filter into a
+  // cryptic install failure. 5.1.0 is the floor as long as `widgets`,
+  // `scene_triggers` or `scene_actions` is declared.
+  assert.match(manifest.gladys_version, /^>=(5\.[1-9]\d*|[6-9]\.\d+|\d{2,}\.\d+)\./);
+  const [, major, minor] = manifest.gladys_version.match(/^>=(\d+)\.(\d+)\./).map(Number);
+  for (const field of ['widgets', 'scene_triggers', 'scene_actions']) {
+    if (manifest[field] !== undefined) {
+      assert.ok(
+        major > 5 || (major === 5 && minor >= 1),
+        `${field} requires gladys_version >= 5.1.0, got "${manifest.gladys_version}"`,
+      );
+    }
+  }
 });
 
 test('the catalog categories are 1 to 3 keys of the store vocabulary', () => {
@@ -350,4 +420,199 @@ test('the manifest declares the cloud transport only', () => {
   // Every source is an HTTP API on the Internet: there is no local channel to
   // prefer, so Gladys must not show the "prefer local" toggle.
   assert.deepEqual(manifest.transports, ['cloud']);
+});
+
+// -----------------------------------------------------------------------------
+// The three surfaces Gladys 5.1 opened: dashboard widgets, scene triggers and
+// scene actions. Their failure mode is the same as the manifest actions': a
+// declared key with no handler is a card that does nothing, and a handler with
+// no declaration is code nobody can reach. Both are silent, so both are tested.
+// -----------------------------------------------------------------------------
+
+test('every declared widget has a handler, and vice versa', () => {
+  const handled = WIDGETS.map((w) => w.key);
+  for (const declared of manifest.widgets ?? []) {
+    assert.ok(
+      handled.includes(declared.key),
+      `widget "${declared.key}" is declared but nothing builds its content`,
+    );
+  }
+  for (const key of handled) {
+    assert.ok(
+      widget(key),
+      `widget "${key}" has a builder but no declaration: no dashboard can add it`,
+    );
+  }
+});
+
+test('the manifest stays inside the widget caps the core enforces', () => {
+  // Five widgets per integration, and a label the picker tile can hold.
+  assert.ok((manifest.widgets ?? []).length <= 5);
+  for (const declared of manifest.widgets ?? []) {
+    assert.match(declared.key, /^[a-z0-9_]{2,32}$/);
+    for (const [language, text] of Object.entries(declared.label)) {
+      assert.ok(
+        text.length >= 3 && text.length <= 30,
+        `widget "${declared.key}".label.${language} must be 3-30 characters, got ${text.length}`,
+      );
+    }
+    for (const text of Object.values(declared.description ?? {})) {
+      assert.ok(text.length <= 100, `widget "${declared.key}": description is one line`);
+    }
+    assert.ok((declared.settings ?? []).length <= 10);
+    if (declared.action_timeout_seconds !== undefined) {
+      assert.ok(
+        declared.action_timeout_seconds >= 5 && declared.action_timeout_seconds <= 120,
+        `widget "${declared.key}": action_timeout_seconds must be 5-120`,
+      );
+    }
+  }
+});
+
+test('a widget setting never asks for a secret', () => {
+  // A dashboard JSON is readable by every user of that dashboard, non-admins
+  // included: the store refuses `secret`, `oauth2` and `account_link` there.
+  const allowed = ['string', 'number', 'boolean', 'select', 'multi_select', 'section'];
+  for (const declared of manifest.widgets ?? []) {
+    for (const field of declared.settings ?? []) {
+      assert.ok(
+        allowed.includes(field.type),
+        `widget "${declared.key}": a ${field.type} setting is refused`,
+      );
+    }
+  }
+});
+
+test('the station widget binds to one of OUR devices, not to a typed name', () => {
+  // `source: "devices"` is the only way a widget instance can point at a
+  // device: the options are the created devices of this integration, and the
+  // stored value is the external_id the code maps back to a location.
+  const picker = (widget('pollen_station').settings ?? []).find((f) => f.key === 'location');
+  assert.equal(picker.type, 'select');
+  assert.equal(picker.source, 'devices');
+  assert.equal(picker.required, true);
+  assert.equal(picker.options, undefined, '`source` and `options` are mutually exclusive');
+});
+
+test('the species a widget can follow are the species the code knows', () => {
+  const picker = (widget('pollen_station').settings ?? []).find((f) => f.key === 'taxa');
+  assert.equal(picker.type, 'multi_select');
+  assert.deepEqual(optionValues(picker), allTaxa());
+  assert.equal(picker.default, undefined, 'nothing ticked is the "every species" wildcard');
+});
+
+test('every declared scene action has a handler, and vice versa', () => {
+  const handled = Object.keys(SCENE_ACTION_HANDLERS);
+  for (const declared of manifest.scene_actions ?? []) {
+    assert.ok(
+      handled.includes(declared.key),
+      `scene action "${declared.key}" is declared but nothing runs it`,
+    );
+  }
+  for (const key of handled) {
+    assert.ok(sceneAction(key), `scene action handler "${key}" is in no scene editor`);
+  }
+});
+
+test('every trigger the code fires is declared, and vice versa', () => {
+  const fired = Object.values(SCENE_TRIGGERS);
+  for (const key of fired) {
+    // The core answers 404 on an undeclared key: the event would be fired into
+    // the void, with nothing in the scene editor to catch it.
+    assert.ok(sceneTrigger(key), `the code fires "${key}", the manifest declares no such trigger`);
+  }
+  for (const declared of manifest.scene_triggers ?? []) {
+    assert.ok(
+      fired.includes(declared.key),
+      `trigger "${declared.key}" is a card nothing ever fires`,
+    );
+  }
+});
+
+test('a scene card stays inside the caps the core enforces', () => {
+  assert.ok((manifest.scene_triggers ?? []).length <= 20);
+  assert.ok((manifest.scene_actions ?? []).length <= 20);
+  for (const declared of sceneDeclarations()) {
+    assert.match(declared.key, /^[a-z0-9_]+$/);
+    assert.ok(declared.key.length <= 40);
+    assert.ok((declared.fields ?? []).length <= 10);
+    assert.ok(sceneScalars(declared).length <= 20);
+    if (declared.timeout_seconds !== undefined) {
+      assert.ok(declared.timeout_seconds >= 5 && declared.timeout_seconds <= 120);
+    }
+  }
+});
+
+test('a trigger filter is never a boolean, and never has a default', () => {
+  for (const declared of manifest.scene_triggers ?? []) {
+    for (const field of declared.fields ?? []) {
+      // A toggle has no empty state, so it could never express "any"; and a
+      // default would take the wildcard away from a filter left untouched.
+      assert.notEqual(field.type, 'boolean', `trigger "${declared.key}.${field.key}"`);
+      assert.equal(
+        field.default,
+        undefined,
+        `trigger "${declared.key}.${field.key}": an empty filter must stay a wildcard`,
+      );
+      assert.notEqual(field.required, true, `trigger "${declared.key}.${field.key}"`);
+    }
+  }
+});
+
+test('a scene variable or output is a scalar, under a unique key', () => {
+  for (const declared of sceneDeclarations()) {
+    const keys = sceneScalars(declared).map((scalar) => scalar.key);
+    assert.equal(new Set(keys).size, keys.length, `scene "${declared.key}": duplicate key`);
+    for (const scalar of sceneScalars(declared)) {
+      assert.ok(
+        ['string', 'number', 'boolean'].includes(scalar.type),
+        `scene "${declared.key}.${scalar.key}": an image or a file is not a scene value`,
+      );
+      assert.match(scalar.key, /^[a-z0-9_]+$/);
+    }
+  }
+});
+
+test('the level filters offer exactly the 0-5 scale the code publishes', () => {
+  const scale = Array.from({ length: RISK_LEVEL_MAX + 1 }, (unused, level) => String(level));
+  for (const declared of manifest.scene_triggers ?? []) {
+    const field = fieldOf(declared, 'level');
+    assert.ok(field, `trigger "${declared.key}" filters on a level`);
+    assert.equal(field.type, 'multi_select');
+    // The event data carries the level as a STRING for this very reason: a
+    // multi_select stores option values, and an option value is a string.
+    assert.deepEqual(optionValues(field), scale);
+    for (const [index, option] of field.options.entries()) {
+      for (const language of Object.keys(RISK_LEVEL_LABELS[index])) {
+        assert.match(
+          option.label[language],
+          new RegExp(RISK_LEVEL_LABELS[index][language]),
+          `trigger "${declared.key}": level ${index} is not named as the code names it`,
+        );
+      }
+    }
+  }
+});
+
+test('the species filters and the read action know the same species', () => {
+  assert.deepEqual(optionValues(fieldOf(sceneTrigger('taxon_risk_level_changed'), 'taxon')), [
+    ...allTaxa(),
+  ]);
+  // The read action offers one more choice: "the worst of them", which is what
+  // the overall risk means.
+  assert.deepEqual(optionValues(fieldOf(sceneAction('get_pollen_risk'), 'taxon')), [
+    OVERALL_TAXON,
+    ...allTaxa(),
+  ]);
+  assert.equal(fieldOf(sceneAction('get_pollen_risk'), 'taxon').default, OVERALL_TAXON);
+});
+
+test('the scene action that reads a place requires one, the one that refreshes does not', () => {
+  // Reading needs a place to read; refreshing without one means "all of them",
+  // which is the documented wildcard of that field.
+  assert.equal(fieldOf(sceneAction('get_pollen_risk'), 'location').required, true);
+  assert.notEqual(fieldOf(sceneAction('refresh_pollen'), 'location').required, true);
+  for (const key of ['get_pollen_risk', 'refresh_pollen']) {
+    assert.equal(fieldOf(sceneAction(key), 'location').source, 'devices');
+  }
 });

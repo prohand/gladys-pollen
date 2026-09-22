@@ -124,19 +124,71 @@ location. Three things it is easy to get wrong:
   which no retry fixes — only re-installing does, so that status carries
   `HOUSE_ACCESS_DENIED` and gets its own message. The endpoint opened in Gladys
   4.85.0, below the `>=4.86.0` the manifest requires anyway.
-- **The SDK does not wrap the endpoint** (0.12.0), hence the hand-made `fetch`
+- **The SDK does not wrap the endpoint** (0.14.0), hence the hand-made `fetch`
   with `GLADYS_HOST_API_URL` / `GLADYS_INTEGRATION_TOKEN`.
 - **The import is one `setConfig` and one re-publish**, computed against a single
   list. A house with no coordinates, one outside the CAMS domain, a duplicate or
   one over `MAX_LOCATIONS` is named in the answer rather than dropped silently,
   and nothing is written when nothing is added.
 
+### Three surfaces opened by Gladys 5.1
+
+`widgets`, `scene_triggers` and `scene_actions` are manifest CAPABILITY fields.
+Declaring any of them pins `gladys_version` to `>=5.1.0` — an older core
+validates manifests against a strict field allowlist and rejects the whole
+integration over the unknown field — and both the store validator and
+`test/manifest.test.js` enforce that coupling, exactly as `categories` pins
+4.86.0.
+
+They are registered in `index.js` by key, like the manifest `actions`, and the
+same test ties every declaration to its handler in both directions.
+
+- **`src/widgets/`** — a card is a DECLARATIVE payload, never HTML: the core
+  renders, themes and caps it (8 components, 1 focal, 6 tiles, 2 texts, 1
+  status, 4 buttons) and drops what overflows **in content order**, so what
+  matters goes first. The SDK exports the core's own checks
+  (`validateWidgetContent`), and `test/widgets.test.js` asserts `[]` for every
+  card built here — anything else means the core would alter it.
+  `src/widgets/keys.js` exists only to break a cycle: the refresh cycle nudges
+  the widgets, the widgets read the devices, so the keys and `nudgeWidgets` live
+  in a module that imports nothing of ours.
+- **`src/scenes/riskEvents.js`** — an event is a TRANSITION, never a state. Every
+  level is already a device feature; what a trigger adds is the move, fired
+  once, with the wording a scene needs. Nothing fires on the first reading after
+  a start ("unknown → 4" is not a change), a taxon with no value fires nothing (a
+  missing measurement is not a fall to zero), and a refused event never takes the
+  refresh cycle down. The levels travel as STRINGS: a filter is a
+  `multi_select`, a manifest can only declare string option values, and the core
+  compares them with the event value.
+- **`src/scenes/sceneActions.js`** — a scene action is NEVER a condition:
+  throwing fails that action alone and the scene carries on, so "no data" is an
+  output (`level: null`) the scene author can branch on. Only a broken call — an
+  unknown device — throws.
+
+A `source: "devices"` field (widget setting, trigger filter, action field) stores
+a device `external_id`; `findLocationByDeviceId()` is the single place that maps
+it back to a location.
+
+Unlike a device name, a widget content is built for ONE reader and the core says
+which language they read — `widgetLanguage()` uses it, falling back to
+`config.language` for a language this integration does not speak.
+
+`src/riskText.js` is where a risk is put into WORDS, shared by the events, the
+action outputs and the widget rows so "risque 4/5 (élevé)" reads identically
+everywhere.
+
 ### One extension registry
 
 **`src/pollen/`** — providers expose `{ key, name, taxa, supports(location),
-fetchPollen(location) }`, first match wins, so callers never name an
-implementation. Order matters: a national source registered before
-`openMeteoProvider` overrides it for its own area.
+fetchPollen(location) }` plus the OPTIONAL `fetchForecast(location)`, first
+match wins, so callers never name an implementation. Order matters: a national
+source registered before `openMeteoProvider` overrides it for its own area.
+
+`fetchForecast` is what the widget curve is drawn from, and it is a SECOND
+request with a cache of its own: the refresh cycle of every device only needs
+the current hour, and it runs whether or not a dashboard is open. A provider
+without it makes `readPollenForecast` answer no hours, and the card drops its
+chart rather than failing.
 
 ### The manifest is a contract checked by tests
 
@@ -148,6 +200,12 @@ stay valueless. When you change one side, the test tells you about the other.
 
 Config/action field types: `string` (not `text`), `number`, `boolean`, `select`,
 `multi_select`, `secret`, `oauth2`, `section`.
+
+The same test file covers the 5.1 fields: widget keys, 3-30 character labels,
+settings restricted to the non-sensitive types, trigger filters that are never
+`boolean` and never carry a `default` (an empty filter is the wildcard), scalar
+`variables`/`outputs`, and the option lists — levels and taxa — kept in sync with
+`RISK_LEVEL_LABELS` and `allTaxa()`.
 
 `categories` is the catalog shelf, `["environment"]` here — 1 to 3 keys of the
 store vocabulary (`climate`, `lighting`, `energy`, `security`, `multimedia`,
@@ -216,6 +274,12 @@ empty. The core sources are worth cloning when in doubt
   location is added, and `watchedLocations()` filters any stored one.
 - **A refresh cycle never throws.** A rejection inside a timer callback would
   take the container down; one location failing must not silence the others.
+  That now covers the scene events it fires (a 404 on an undeclared key, a 429
+  past the rate limit) and the widget nudge it sends.
+- **A scene event fires on a MOVE, once.** The CAMS forecast is republished once
+  a day and re-read hourly: firing on every reading would fire twenty-four
+  identical events a day. See `src/scenes/riskEvents.js` for the three cases
+  that must stay silent (first reading, unchanged level, no value).
 
 ## Testing
 
@@ -223,6 +287,10 @@ Tests never touch the network: `globalThis.fetch` is stubbed per-file and
 restored in `afterEach`. `src/pollen/openMeteo.js` keeps a module-level TTL
 cache, so tests that count requests must call `clearPollenCache()` in
 `beforeEach` — otherwise state leaks between tests.
+
+`src/scenes/riskEvents.js` keeps the last known levels in a module-level Map, so
+a test that fires a transition must call `resetRiskMemory()` in `beforeEach` —
+the same leak as the provider cache.
 
 `test/helpers/fakeGladys.js` is the in-memory SDK stand-in; extend it when you
 use a new SDK method rather than mocking the SDK itself. The location editor

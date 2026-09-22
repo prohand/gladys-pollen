@@ -7,6 +7,12 @@ type. You add your **Gladys houses in one click**, or a location by typing its
 
 No account to create, no API key to paste.
 
+The risk also shows on your **dashboard** (two widgets) and drives your
+**scenes** (two triggers, two actions).
+
+> This version requires **Gladys 5.1** or newer: an integration's dashboard
+> widgets and scene cards do not exist before it.
+
 ## Where the data comes from
 
 Pollen concentrations come from the **CAMS European air quality forecast**
@@ -189,14 +195,107 @@ to be created**. A device already added to Gladys keeps the names it was created
 with — delete it and add it again from the Discovery tab to rename it (its
 history goes with the deleted device).
 
+## On your dashboard
+
+Two widgets ship with the integration. Add them from a Gladys dashboard: **Edit
+the dashboard**, **Add a box**, then pick them from the list.
+
+### Pollen — one place
+
+The card of one place: the overall level on a gauge, the pollens actually in the
+air, the curve for today and tomorrow, and a **Refresh** button. A species at
+zero takes no row: a card showing nothing means there is nothing in the air, and
+it says so.
+
+Three settings, per card:
+
+| Setting                       | What it does                                                                                                                    |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| **Place**                     | The device to display. Only the devices you already added from the Discovery tab are offered.                                   |
+| **Species followed**          | Tick the species you react to: the gauge, the list and the curve then only account for those. Nothing ticked means all of them. |
+| **Show the two-day forecast** | The hour-by-hour curve. Untick it for a compact card.                                                                           |
+
+The curve shows **today and tomorrow**, hour by hour, with a marker at the
+current time. It is a forecast: Gladys keeps no history of it, so it is read
+again on every display. With four followed species or fewer, each gets its own
+curve; beyond that, a single curve shows the worst of them.
+
+When you follow every species, the gauge is bound to the device measurement
+itself and follows the published values in real time. With a selection of
+species no measurement matches it — the gauge then shows the number the card
+computed.
+
+### Pollen — all places
+
+One row per configured place, with its level and its dominant pollen, and a
+**Refresh** button that reads them all again. No settings: the card shows the
+list the Configuration tab manages. It stops at ten rows, and says so.
+
+Both cards are written in **the language of whoever is looking at them**: unlike
+a device name, Gladys tells us here which language you read.
+
 ## Using the risk in a scene
 
+Three ways, from the simplest to the finest.
+
+### 1. The measurements, like any sensor
+
 The overall risk is a "risk" category measurement: it behaves like any numeric
-sensor in a scene. A few ideas:
+sensor. A few ideas:
 
 - close the shutters or stop the ventilation when the overall risk goes above 3;
 - send a notification in the morning if the "Grass" risk is ≥ 4;
 - turn the air purifier on when the dominant pollen is the one you react to.
+
+### 2. The triggers
+
+In the scene editor, under the **Integrations** category:
+
+| Trigger                                | When it fires                                                |
+| -------------------------------------- | ------------------------------------------------------------ |
+| **Overall pollen risk changed**        | The overall level of a place moves from one level to another |
+| **Pollen risk of one species changed** | The level of one pollen changes at a place                   |
+
+Both fire **on a change only**, never on every refresh: the CAMS forecast is
+republished once a day, so a scene firing on every reading would fire
+twenty-four times for the same value.
+
+Each trigger can be filtered: the **place** (empty means any), the **levels**
+you care about (tick 4 and 5 to react to peaks only), the **direction** (rising
+to close the windows, falling to open them again), and for the second one the
+**species**.
+
+The scene then gets what it needs to write its message:
+`{{triggerEvent.data.summary}}` holds the ready-made sentence "Pollen in Home:
+risk 4/5 (high), dominant Birch.", and `location_name`, `level`, `level_label`,
+`previous_level`, `direction`, `taxon`, `taxon_name` and `measured_at` are
+available on their own.
+
+Two details:
+
+- **nothing fires at startup**: the previous level is unknown then, and
+  "unknown → 4" is not a change. The first real change fires normally;
+- **a species with no value fires nothing**: a missing measurement is not a fall
+  back to zero, and the last known level is kept.
+
+### 3. The actions
+
+Still in the scene editor, under **Integrations**:
+
+| Action                      | What it does                                                                                               |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| **Read the pollen risk**    | Reads a place now and hands the level, the dominant pollen and the ready-made sentence to the next actions |
+| **Refresh the pollen data** | Reads the forecast again and republishes the measurements; leave the place empty for every place           |
+
+"Read the pollen risk" is what turns "every morning at 7 am" into "every morning
+at 7 am, tell me the risk": pick the place, leave **Overall risk** (or pick a
+species), then send a message containing the `summary` output. The `level` (0 to
+5), `level_label`, `taxon`, `taxon_name`, `concentration`, `location_name` and
+`measured_at` outputs are there if you would rather write your own sentence.
+
+> When the source answers nothing, the action does not fail: it returns an empty
+> `level` and a `summary` saying the data is unavailable. It is up to the scene
+> to decide what to do with that.
 
 ## Refresh interval
 

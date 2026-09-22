@@ -3,7 +3,13 @@
 
 import { test, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { allTaxa, findProvider, PROVIDERS, readPollenRisk } from '../src/pollen/index.js';
+import {
+  allTaxa,
+  findProvider,
+  PROVIDERS,
+  readPollenForecast,
+  readPollenRisk,
+} from '../src/pollen/index.js';
 import {
   clearPollenCache,
   openMeteoProvider,
@@ -156,5 +162,74 @@ test('every registered provider exposes the same contract', () => {
     assert.ok(Array.isArray(provider.taxa) && provider.taxa.length > 0);
     assert.equal(typeof provider.supports, 'function');
     assert.equal(typeof provider.fetchPollen, 'function');
+  }
+});
+
+// --- The hourly forecast, which the dashboard widgets draw -------------------
+
+/** Two days of hourly birch values, as Open-Meteo lays them out. */
+function hourlyPayload() {
+  return {
+    utc_offset_seconds: 7200,
+    hourly: {
+      time: ['2026-04-12T00:00', '2026-04-12T01:00', '2026-04-12T02:00'],
+      [OPEN_METEO_VARIABLES.birch]: [0, 150, null],
+      [OPEN_METEO_VARIABLES.grass]: [1, 1, 1],
+    },
+  };
+}
+
+test('the forecast asks for the hourly variables, not the current ones', async () => {
+  const calls = stubFetch(hourlyPayload());
+  await openMeteoProvider.fetchForecast(paris);
+  assert.match(String(calls[0]), /hourly=/);
+  assert.match(String(calls[0]), /forecast_days=2/);
+  assert.ok(!String(calls[0]).includes('current='));
+});
+
+test('a forecast hour is a complete instant, never a bare wall clock', async () => {
+  stubFetch(hourlyPayload());
+  const { hours } = await openMeteoProvider.fetchForecast(paris);
+  // The offset travels in a field of its own: glued back on at the provider
+  // boundary, so nothing downstream reads the hour in the container's timezone.
+  assert.equal(hours[0].t, '2026-04-12T00:00+02:00');
+  assert.equal(hours[1].concentrations.birch, 150);
+  assert.equal(hours[2].concentrations.birch, null);
+});
+
+test('readPollenForecast grades every hour it reads', async () => {
+  stubFetch(hourlyPayload());
+  const { hours } = await readPollenForecast(paris);
+  assert.equal(hours.length, 3);
+  assert.equal(hours[0].risks.birch, 0);
+  assert.equal(hours[1].risks.birch, 4);
+  // A missing value is null, never a zero: a curve dropping to the floor would
+  // read as "nothing in the air" where the model simply said nothing.
+  assert.equal(hours[2].risks.birch, null);
+});
+
+test('the forecast has its own cache, and the current hour keeps its own', async () => {
+  const calls = stubFetch(hourlyPayload());
+  await openMeteoProvider.fetchForecast(paris);
+  await openMeteoProvider.fetchForecast(paris);
+  assert.equal(calls.length, 1, 'the curve is read once');
+  await openMeteoProvider.fetchPollen(paris);
+  assert.equal(calls.length, 2, 'the current hour is a request of its own');
+});
+
+test('a provider with no forecast costs the widget its curve, not its card', async () => {
+  // Optional capability: a future national source can be registered without
+  // implementing it, and `readPollenForecast` answers no hours rather than
+  // failing.
+  const { fetchForecast, ...noForecast } = openMeteoProvider;
+  assert.equal(typeof fetchForecast, 'function');
+  PROVIDERS.unshift(noForecast);
+  try {
+    assert.deepEqual(await readPollenForecast(paris), {
+      provider: 'open-meteo-cams',
+      hours: [],
+    });
+  } finally {
+    PROVIDERS.shift();
   }
 });

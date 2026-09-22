@@ -31,6 +31,9 @@ import { formatDateTime } from '../dateTime.js';
 import { DEFAULT_LANGUAGE, inLanguage } from '../language.js';
 import { allTaxa, findProvider, readPollenRisk } from '../pollen/index.js';
 import { RISK_LEVEL_LABELS, RISK_LEVEL_MAX } from '../pollen/risk.js';
+import { taxonName } from '../pollen/taxa.js';
+import { publishRiskEvents } from '../scenes/riskEvents.js';
+import { nudgeWidgets } from '../widgets/keys.js';
 import {
   describeLocation,
   LOCATION_LINE_SEPARATOR,
@@ -40,6 +43,10 @@ import {
 } from '../locations.js';
 
 export const DEVICE_TYPE = 'pollen-station';
+
+// Re-exported: the taxon vocabulary moved to src/pollen/taxa.js when the
+// widgets and the scene events started needing it too.
+export { taxonName };
 
 const logger = createLogger({ name: DEVICE_TYPE });
 
@@ -54,16 +61,6 @@ export const FEATURE = {
   OVERALL_RISK_TEXT: 'overall-risk-text',
   DOMINANT_POLLEN: 'dominant-pollen',
   LAST_UPDATE: 'last-update',
-};
-
-/** Display names of the taxa, used to build the feature names. */
-const TAXON_NAMES = {
-  alder: { en: 'Alder', fr: 'Aulne' },
-  birch: { en: 'Birch', fr: 'Bouleau' },
-  grass: { en: 'Grass', fr: 'Graminées' },
-  mugwort: { en: 'Mugwort', fr: 'Armoise' },
-  olive: { en: 'Olive', fr: 'Olivier' },
-  ragweed: { en: 'Ragweed', fr: 'Ambroisie' },
 };
 
 /** Names of the features that are not about one taxon. */
@@ -86,17 +83,6 @@ const TAXON_FEATURE_NAME = {
 /** What the "dominant pollen" feature says when nothing is in the air. */
 const NO_DOMINANT_POLLEN = { en: 'None', fr: 'Aucun' };
 
-/**
- * Display name of a taxon. Also the value of the "dominant pollen" state, so a
- * dashboard reads the same word as the feature it comes from.
- * @param {string} taxon pollen taxon key, e.g. 'birch'
- * @param {string} [language] one of LANGUAGES; the taxon key is the last resort
- *   for a species a future provider adds without a translation
- */
-export function taxonName(taxon, language = DEFAULT_LANGUAGE) {
-  return TAXON_NAMES[taxon] ? inLanguage(TAXON_NAMES[taxon], language) : taxon;
-}
-
 /** External ids of the device of a location. */
 export function deviceExternalIds(gladys, location) {
   return gladys.externalIds(DEVICE_TYPE, location.id);
@@ -113,6 +99,24 @@ export function deviceExternalIds(gladys, location) {
  */
 export function watchedLocations(config) {
   return usableLocations(config.locations).filter((location) => Boolean(findProvider(location)));
+}
+
+/**
+ * The watched location a device external_id belongs to.
+ *
+ * The one translation between "what the user picked in Gladys" and "what this
+ * integration works on": a `source: "devices"` select — in a widget setting, a
+ * scene trigger filter, a scene action field — stores a device external_id, and
+ * everything here takes a location.
+ * @param {import('@gladysassistant/integration-sdk').GladysIntegration} gladys
+ * @param {{ locations: import('../locations.js').Location[] }} config
+ * @param {string} externalId
+ * @returns {import('../locations.js').Location|undefined}
+ */
+export function findLocationByDeviceId(gladys, config, externalId) {
+  return watchedLocations(config).find(
+    (candidate) => deviceExternalIds(gladys, candidate).device === externalId,
+  );
 }
 
 /** Shape shared by every risk feature: a read-only 0-5 index. */
@@ -290,7 +294,46 @@ export async function poll(gladys, location, language = DEFAULT_LANGUAGE) {
 
   // One request for every feature of the device (batch, up to 100).
   await gladys.publishStates(states);
+
+  // States first, events after: a scene started by the event reads the
+  // features, and it must find the value the event talks about. Nothing is
+  // fired unless a level actually MOVED — see src/scenes/riskEvents.js.
+  await publishRiskEvents(gladys, {
+    location,
+    deviceExternalId: ids.device,
+    reading,
+    language,
+  });
   return reading;
+}
+
+/**
+ * Read a list of locations and publish what they answer, counting the failures
+ * instead of propagating them.
+ *
+ * Shared by everything that refreshes ON DEMAND — the scene action, the widget
+ * buttons — because they all owe their caller a count rather than a stack
+ * trace, and one place failing must never cost the others their refresh. The
+ * scheduled cycle has its own reporting (see `refresh`).
+ * @param {import('@gladysassistant/integration-sdk').GladysIntegration} gladys
+ * @param {import('../locations.js').Location[]} locations
+ * @param {string} [language] language of the published TEXT states
+ * @returns {Promise<{ refreshed: number, failed: number }>}
+ */
+export async function refreshLocations(gladys, locations, language = DEFAULT_LANGUAGE) {
+  const outcomes = await Promise.all(
+    locations.map(async (location) => {
+      try {
+        await poll(gladys, location, language);
+        return true;
+      } catch (err) {
+        logger.error(`On-demand refresh failed for ${describeLocation(location)}`, err);
+        return false;
+      }
+    }),
+  );
+  const refreshed = outcomes.filter(Boolean).length;
+  return { refreshed, failed: outcomes.length - refreshed };
 }
 
 /** Why a location could not be read, WITHOUT naming it (the line already does). */
@@ -431,9 +474,7 @@ export const pollenStation = {
    * @param {string} externalId external_id of the device to refresh
    */
   async onPoll(gladys, config, externalId) {
-    const location = watchedLocations(config).find(
-      (candidate) => deviceExternalIds(gladys, candidate).device === externalId,
-    );
+    const location = findLocationByDeviceId(gladys, config, externalId);
     if (!location) {
       throw new Error(`No location watches the device ${externalId}`);
     }
@@ -480,6 +521,11 @@ export const pollenStation = {
         }
       }),
     );
+
+    // The device-bound tiles of the widgets follow the published states on
+    // their own; their status rows and their forecast curve do not, so one
+    // nudge per cycle tells the open dashboards to re-pull them.
+    nudgeWidgets(gladys);
 
     const failures = outcomes.filter(Boolean);
     if (failures.length === 0) {
