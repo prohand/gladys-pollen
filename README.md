@@ -146,19 +146,25 @@ Sixteen features per location, all read-only; the risks are historized, the text
 ones are labels and are not:
 
 - **Overall pollen risk** (0-3) — the worst of the six taxa;
-- **Overall pollen risk (text)** — the same level, spelled out ("2/3 (medium)");
+- **Overall pollen risk (text)** — the measured band, spelled out ("4/5 (high)");
 - **Dominant pollen** (text) — which taxon drives that risk;
 - **Last data update** (text) — the hour the forecast is valid at;
 - one risk (0-3) per taxon: alder, birch, grass, mugwort, olive, ragweed;
-- one **(text)** wording per taxon, the same level in words — what a scene, a
-  dashboard text box or an assistant reads to say "3/3 (high)" instead of "3".
+- one **(text)** wording per taxon, the same reading in words — what a scene, a
+  dashboard text box or an assistant reads to say "4/5 (high)" instead of "3".
   A taxon with no value publishes neither.
 
-The scale is the core's own — `no-risk` / `low-risk` / `medium-risk` /
+The INDEX scale is the core's own — `no-risk` / `low-risk` / `medium-risk` /
 `high-risk` — so the badge of the "device in a room" box, the widget rows and
 the scene events never disagree about what a level means. The six EAN bands the
 CAMS data follows are folded onto it: very low and low become 1, high and very
 high become 3 (`src/pollen/risk.js`).
+
+The TEXT features carry the band ITSELF, 0 to 5: a stored string is displayed as
+it is, where a `risk`/`integer` above 3 would be re-labelled "Inconnu" by the
+core. That is the one surface where a "high" day and a "very high" one are still
+two different things — everything numeric, the widgets, the scene triggers and
+the scene outputs included, stays on 0-3.
 
 Concentrations are graded with **per-species thresholds**: 30 grains/m³ is a
 quiet day for birch and a heavy one for ragweed. A taxon the model has no value
@@ -212,7 +218,7 @@ be created.
 │  │  ├─ index.js                    #   provider registry + grading
 │  │  ├─ openMeteo.js                #   Open-Meteo / CAMS Europe driver (current + forecast)
 │  │  ├─ taxa.js                     #   the names of the six species
-│  │  └─ risk.js                     #   grains/m³ -> 0-3 risk, per species
+│  │  └─ risk.js                     #   grains/m³ -> 0-5 band -> 0-3 risk
 │  ├─ devices/
 │  │  ├─ index.js                    #   devices = a projection of the locations
 │  │  └─ pollenStation.js            #   the device type (features, poll, states)

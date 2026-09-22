@@ -127,8 +127,8 @@ test('a device carries one risk feature per taxon, its wording, plus the overall
   const externalIds = device.features.map((feature) => feature.external_id);
   for (const taxon of allTaxa()) {
     assert.ok(externalIds.includes(ids.feature(taxon)), `missing feature for ${taxon}`);
-    // The index the core badges, and the same level in words next to it: a
-    // scene reads a `3`, a notification wants "3/3 (élevé)".
+    // The index the core badges, and the measured band in words next to it: a
+    // scene reads a `3`, a notification wants "4/5 (élevé)".
     assert.ok(
       externalIds.includes(ids.feature(taxonTextFeatureId(taxon))),
       `missing text feature for ${taxon}`,
@@ -259,19 +259,21 @@ test('a reading becomes one state per taxon plus the overall trio', () => {
   const ids = deviceExternalIds(gladys, paris);
   const states = buildStates(ids, {
     risks: { birch: 2, grass: 1 },
-    overall: { level: 2, taxon: 'birch' },
+    eanRisks: { birch: 3, grass: 2 },
+    overall: { level: 2, eanLevel: 3, taxon: 'birch' },
     measuredAt: '2026-08-06T13:00+02:00',
   });
 
   // The TEXT states are stored as they are published, so they follow the same
-  // language as the feature names — French unless the user says otherwise.
+  // language as the feature names — French unless the user says otherwise —
+  // and they carry the measured band, not the index beside them.
   assert.deepEqual(states, [
     { device_feature_external_id: ids.feature('birch'), state: 2 },
-    { device_feature_external_id: ids.feature(taxonTextFeatureId('birch')), text: '2/3 (moyen)' },
+    { device_feature_external_id: ids.feature(taxonTextFeatureId('birch')), text: '3/5 (moyen)' },
     { device_feature_external_id: ids.feature('grass'), state: 1 },
-    { device_feature_external_id: ids.feature(taxonTextFeatureId('grass')), text: '1/3 (faible)' },
+    { device_feature_external_id: ids.feature(taxonTextFeatureId('grass')), text: '2/5 (faible)' },
     { device_feature_external_id: ids.feature(FEATURE.OVERALL_RISK), state: 2 },
-    { device_feature_external_id: ids.feature(FEATURE.OVERALL_RISK_TEXT), text: '2/3 (moyen)' },
+    { device_feature_external_id: ids.feature(FEATURE.OVERALL_RISK_TEXT), text: '3/5 (moyen)' },
     { device_feature_external_id: ids.feature(FEATURE.DOMINANT_POLLEN), text: 'Bouleau' },
     { device_feature_external_id: ids.feature(FEATURE.LAST_UPDATE), text: '06/08/2026 13:00' },
   ]);
@@ -309,21 +311,63 @@ test('an undated reading publishes its risks and no date', () => {
   );
 });
 
+test('the text states carry the measured band, 0 to 5', () => {
+  // THE point of the text features: the index has to call a "very high" day a
+  // 3, because that is the highest level Gladys can name. The sentence next to
+  // it says what was actually measured.
+  const gladys = createFakeGladys();
+  const ids = deviceExternalIds(gladys, paris);
+  const states = buildStates(
+    ids,
+    {
+      risks: { birch: 3, grass: 1 },
+      eanRisks: { birch: 5, grass: 2 },
+      overall: { level: 3, eanLevel: 5, taxon: 'birch' },
+    },
+    'fr',
+  );
+  const text = (feature) =>
+    states.find((state) => state.device_feature_external_id === ids.feature(feature)).text;
+
+  assert.equal(text(taxonTextFeatureId('birch')), '5/5 (très élevé)');
+  assert.equal(text(taxonTextFeatureId('grass')), '2/5 (faible)');
+  assert.equal(text(FEATURE.OVERALL_RISK_TEXT), '5/5 (très élevé)');
+  // The numbers beside them stay on the scale the core can name.
+  const level = (feature) =>
+    states.find((state) => state.device_feature_external_id === ids.feature(feature)).state;
+  assert.equal(level('birch'), 3);
+  assert.equal(level(FEATURE.OVERALL_RISK), 3);
+});
+
+test('a reading without bands falls back on the published level', () => {
+  // Nothing in this integration builds one, but writing "undefined/5" on a
+  // device is worse than writing the index.
+  const gladys = createFakeGladys();
+  const ids = deviceExternalIds(gladys, paris);
+  const states = buildStates(ids, { risks: { birch: 2 }, overall: { level: 2, taxon: 'birch' } });
+  const text = states.find(
+    (state) => state.device_feature_external_id === ids.feature(FEATURE.OVERALL_RISK_TEXT),
+  ).text;
+  assert.equal(text, '2/3 (moyen)');
+});
+
 test('the text states are written in the configured language', () => {
   const gladys = createFakeGladys();
   const ids = deviceExternalIds(gladys, paris);
-  const reading = { risks: { birch: 3 }, overall: { level: 3, taxon: 'birch' } };
+  const reading = {
+    risks: { birch: 3 },
+    eanRisks: { birch: 4 },
+    overall: { level: 3, eanLevel: 4, taxon: 'birch' },
+  };
   const text = (states, feature) =>
     states.find((state) => state.device_feature_external_id === ids.feature(feature)).text;
 
   const english = buildStates(ids, reading, 'en');
-  // The words are the core's own, so the sentence and the badge of the "device
-  // in a room" box never disagree about what a level 3 is called.
-  assert.equal(text(english, FEATURE.OVERALL_RISK_TEXT), '3/3 (high)');
+  assert.equal(text(english, FEATURE.OVERALL_RISK_TEXT), '4/5 (high)');
   assert.equal(text(english, FEATURE.DOMINANT_POLLEN), 'Birch');
 
   const french = buildStates(ids, reading, 'fr');
-  assert.equal(text(french, FEATURE.OVERALL_RISK_TEXT), '3/3 (élevé)');
+  assert.equal(text(french, FEATURE.OVERALL_RISK_TEXT), '4/5 (élevé)');
 });
 
 test('a taxon without data publishes nothing rather than a zero', () => {
@@ -344,15 +388,17 @@ test('no state is ever published above the scale the core can name', () => {
   const ids = deviceExternalIds(gladys, paris);
   const states = buildStates(ids, {
     risks: { ragweed: 3, mugwort: 2, birch: 0 },
-    overall: { level: 3, taxon: 'ragweed' },
+    eanRisks: { ragweed: 5, mugwort: 3, birch: 0 },
+    overall: { level: 3, eanLevel: 5, taxon: 'ragweed' },
   });
   for (const { state } of states.filter((one) => one.state !== undefined)) {
     assert.ok(state >= 0 && state <= 3, `published state ${state} is off the core scale`);
   }
+  // The band it could not carry is on the text feature beside it.
   const text = states.find(
     (one) => one.device_feature_external_id === ids.feature(FEATURE.OVERALL_RISK_TEXT),
   );
-  assert.equal(text.text, '3/3 (élevé)');
+  assert.equal(text.text, '5/5 (très élevé)');
 });
 
 test('a quiet day reports no dominant pollen', () => {

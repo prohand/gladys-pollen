@@ -17,7 +17,12 @@
 // -----------------------------------------------------------------------------
 
 import { openMeteoProvider } from './openMeteo.js';
-import { concentrationToRiskLevel, overallRisk } from './risk.js';
+import {
+  concentrationToEanLevel,
+  concentrationToRiskLevel,
+  foldEanLevel,
+  overallRisk,
+} from './risk.js';
 
 export const PROVIDERS = [openMeteoProvider];
 
@@ -54,10 +59,15 @@ export function allTaxa() {
  *   provider: string,
  *   concentrations: Record<string, number|null>,
  *   risks: Record<string, number|null>,
- *   overall: { level: number|null, taxon: string|null },
+ *   eanRisks: Record<string, number|null>,
+ *   overall: { level: number|null, eanLevel: number|null, taxon: string|null },
  *   measuredAt: string|null,
- * }>} `measuredAt` is the ISO 8601 instant the reading is valid at, in the local
- *   time of the location — null when the provider does not date its answer.
+ * }>} `risks` are on the core's 0-3 scale — what every feature, widget and
+ *   scene works on. `eanRisks` are the same readings on the six EAN bands,
+ *   0-5, which only the TEXT features of a station display (see
+ *   `src/pollen/risk.js`). `measuredAt` is the ISO 8601 instant the reading is
+ *   valid at, in the local time of the location — null when the provider does
+ *   not date its answer.
  */
 export async function readPollenRisk(location) {
   const provider = findProvider(location);
@@ -71,15 +81,25 @@ export async function readPollenRisk(location) {
   const { concentrations, measuredAt } = await provider.fetchPollen(location);
 
   const risks = {};
+  const eanRisks = {};
   for (const [taxon, concentration] of Object.entries(concentrations)) {
-    risks[taxon] = concentrationToRiskLevel(taxon, concentration);
+    const band = concentrationToEanLevel(taxon, concentration);
+    eanRisks[taxon] = band;
+    risks[taxon] = foldEanLevel(band);
   }
+
+  // The worst taxon is picked on the MEASURED bands, then folded: the fold is
+  // monotonic, so the published 0-3 level is the same either way, but two taxa
+  // both reading 3 are no longer a tie — the one actually higher in the air is
+  // the dominant one.
+  const worst = overallRisk(eanRisks);
 
   return {
     provider: provider.key,
     concentrations,
     risks,
-    overall: overallRisk(risks),
+    eanRisks,
+    overall: { level: foldEanLevel(worst.level), eanLevel: worst.level, taxon: worst.taxon },
     measuredAt,
   };
 }

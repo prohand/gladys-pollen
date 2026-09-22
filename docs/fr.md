@@ -122,26 +122,34 @@ chiffré et le même risque écrit en toutes lettres.
 | Mesure                                | Description                                                    |
 | ------------------------------------- | -------------------------------------------------------------- |
 | Risque pollinique global              | Le plus élevé des six risques ci-dessous (0 à 3)               |
-| Risque pollinique global (texte)      | Le même niveau écrit en toutes lettres : « 2/3 (moyen) »       |
+| Risque pollinique global (texte)      | Le risque mesuré, écrit en toutes lettres : « 4/5 (élevé) »    |
 | Pollen dominant                       | Le nom du pollen responsable du risque global                  |
 | Dernière mise à jour des données      | La date et l'heure auxquelles la prévision affichée correspond |
 | Risque pollinique — Aulne             | Risque de 0 à 3                                                |
-| Risque pollinique — Aulne (texte)     | Le même risque écrit : « 2/3 (moyen) »                         |
+| Risque pollinique — Aulne (texte)     | Le risque mesuré, écrit : « 4/5 (élevé) »                      |
 | Risque pollinique — Bouleau           | Risque de 0 à 3                                                |
-| Risque pollinique — Bouleau (texte)   | Le même risque écrit : « 2/3 (moyen) »                         |
+| Risque pollinique — Bouleau (texte)   | Le risque mesuré, écrit : « 4/5 (élevé) »                      |
 | Risque pollinique — Graminées         | Risque de 0 à 3                                                |
-| Risque pollinique — Graminées (texte) | Le même risque écrit : « 2/3 (moyen) »                         |
+| Risque pollinique — Graminées (texte) | Le risque mesuré, écrit : « 4/5 (élevé) »                      |
 | Risque pollinique — Armoise           | Risque de 0 à 3                                                |
-| Risque pollinique — Armoise (texte)   | Le même risque écrit : « 2/3 (moyen) »                         |
+| Risque pollinique — Armoise (texte)   | Le risque mesuré, écrit : « 4/5 (élevé) »                      |
 | Risque pollinique — Olivier           | Risque de 0 à 3                                                |
-| Risque pollinique — Olivier (texte)   | Le même risque écrit : « 2/3 (moyen) »                         |
+| Risque pollinique — Olivier (texte)   | Le risque mesuré, écrit : « 4/5 (élevé) »                      |
 | Risque pollinique — Ambroisie         | Risque de 0 à 3                                                |
-| Risque pollinique — Ambroisie (texte) | Le même risque écrit : « 2/3 (moyen) »                         |
+| Risque pollinique — Ambroisie (texte) | Le risque mesuré, écrit : « 4/5 (élevé) »                      |
 
 Les mesures « (texte) » servent aux notifications, aux boîtes texte d'un
 tableau de bord et aux assistants vocaux : une scène qui lit le risque chiffré
 reçoit un « 3 », et c'est « 3 » qu'elle met dans son message. Un pollen que le
 modèle ne mesure pas ne publie rien du tout, ni chiffre ni texte.
+
+**Le chiffre et le texte ne sont pas sur la même échelle, et c'est voulu.** Le
+chiffre est sur l'échelle de Gladys, de 0 à 3, la seule que le cœur sache
+nommer. Le texte, lui, est une chaîne de caractères que personne ne réinterprète
+en aval : il porte donc la **mesure réelle, de 0 à 5**, celle des paliers
+européens que suit la donnée CAMS. Une journée « élevé » et une journée « très
+élevé » s'affichent toutes les deux « 3 » sur le chiffre, mais « 4/5 (élevé) »
+et « 5/5 (très élevé) » sur le texte.
 
 Les mesures numériques sont historisées : vous pouvez tracer la saison
 pollinique de votre commune sur un graphique.
@@ -186,25 +194,32 @@ boîte « appareil dans une pièce » :
 | 2      | Moyen                | Orange  |
 | 3      | Élevé                | Rouge   |
 
-L'intégration publie exactement ces quatre niveaux, et nulle part autre chose.
-Conséquence : la boîte appareil, les widgets, les déclencheurs de scène et les
-notifications disent tous la même chose du même chiffre. Les mesures texte et
-les widgets ajoutent l'échelle au mot — « 2/3 (moyen) » — pour qu'on sache où
-l'on se situe sans avoir à la connaître par cœur.
+L'intégration publie exactement ces quatre niveaux en **chiffre**, et nulle part
+autre chose. Conséquence : la boîte appareil, les widgets, les déclencheurs de
+scène et les notifications disent tous la même chose du même chiffre. Les
+widgets ajoutent l'échelle au mot — « 2/3 (moyen) » — pour qu'on sache où l'on
+se situe sans avoir à la connaître par cœur.
 
 Les données CAMS, elles, suivent les paliers du Réseau européen d'aérobiologie
 (EAN), qui en compte six. Ils sont repliés sur les quatre niveaux de Gladys :
 
-| Palier EAN          | Niveau publié | Nom Gladys    |
-| ------------------- | ------------- | ------------- |
-| aucun               | 0             | Pas de risque |
-| très faible, faible | 1             | Faible        |
-| moyen               | 2             | Moyen         |
-| élevé, très élevé   | 3             | Élevé         |
+| Palier EAN (mesure texte) | Chiffre publié | Nom Gladys    |
+| ------------------------- | -------------- | ------------- |
+| 0/5 (nul)                 | 0              | Pas de risque |
+| 1/5 (très faible)         | 1              | Faible        |
+| 2/5 (faible)              | 1              | Faible        |
+| 3/5 (moyen)               | 2              | Moyen         |
+| 4/5 (élevé)               | 3              | Élevé         |
+| 5/5 (très élevé)          | 3              | Élevé         |
 
 Rien d'important ne se perd dans ce repli : les deux paliers bas veulent tous
 les deux dire « il y en a à peine », et les deux paliers hauts « restez à
 l'intérieur si vous y réagissez ».
+
+**Le palier mesuré reste lisible** : les mesures « (texte) » de l'appareil
+l'affichent tel quel, de 0 à 5 — « nul, très faible, faible, moyen, élevé, très
+élevé ». C'est le seul endroit où il survit, parce qu'un texte est affiché tel
+qu'il est stocké là où Gladys relit un chiffre avec ses propres libellés.
 
 Le niveau est calculé à partir de la concentration en grains de pollen par mètre
 cube d'air, avec des **seuils propres à chaque espèce** : 30 grains/m³, c'est une
@@ -231,6 +246,10 @@ L'historique déjà enregistré garde ses anciennes valeurs : sur un graphique q
 couvre la bascule, les points d'avant sont sur l'échelle 0-5 et ceux d'après sur
 l'échelle 0-3. Ça se lit encore, mais la comparaison n'est pas juste sur cette
 période.
+
+Le palier mesuré de 0 à 5 n'a pas disparu pour autant : c'est ce qu'affichent
+les mesures « (texte) » de l'appareil, à côté du chiffre. Seuls les nombres que
+lisent les scènes et les graphiques sont sur l'échelle 0-3.
 
 ## La langue des noms
 

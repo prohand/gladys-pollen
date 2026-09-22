@@ -13,7 +13,10 @@
 // AND for why the scale is the core's own 0-3 rather than the six EAN bands.
 // Every level is published TWICE, as an index and as a sentence: the core names
 // an index for itself in the "device in a room" box and nowhere else, so a
-// scene, a text box or an assistant reading the number gets a bare `3`.
+// scene, a text box or an assistant reading the number gets a bare `3`. The
+// sentence also carries the MEASURED band — "4/5 (élevé)", 0 to 5 — which the
+// index cannot: the core re-labels a number and reads "Inconnu" above 3, a
+// string it displays as it is.
 //
 // The date of the data belongs HERE, on each station, and not on some device
 // global to the integration: it is the hour the forecast is valid at for THAT
@@ -36,7 +39,7 @@ import { DEFAULT_LANGUAGE, inLanguage } from '../language.js';
 import { allTaxa, findProvider, readPollenRisk } from '../pollen/index.js';
 import { RISK_LEVEL_LABELS, RISK_LEVEL_MAX } from '../pollen/risk.js';
 import { taxonName } from '../pollen/taxa.js';
-import { levelText } from '../riskText.js';
+import { eanLevelText, levelText } from '../riskText.js';
 import { publishRiskEvents } from '../scenes/riskEvents.js';
 import { nudgeWidgets } from '../widgets/keys.js';
 import {
@@ -168,7 +171,11 @@ function riskFeature(externalId, name) {
  * box is the ONE place that does it: a scene reading `Risque pollinique —
  * Bouleau` gets a `3`, and `3` is what it puts in the notification it sends.
  * The text feature is what a scene, a dashboard text box or an assistant reads
- * to say "3/3 (élevé)" without carrying the label table itself.
+ * to say "4/5 (élevé)" without carrying the label table itself.
+ *
+ * It is also the ONE place the MEASURED band survives: a stored string is
+ * displayed as it is, so it says "5/5 (très élevé)" where the index beside it
+ * has to fold that onto the 3 the core can name (see `src/pollen/risk.js`).
  *
  * It is a LABEL, not a measure: `keep_history` stays false — the index next to
  * it is what draws the season on a chart.
@@ -250,13 +257,28 @@ export function buildDevice(gladys, location, language = DEFAULT_LANGUAGE) {
 }
 
 /**
+ * How a risk is written on a TEXT feature: the measured EAN band, 0 to 5.
+ *
+ * The band is what the user's pollen bulletin says — "élevé" and "très élevé"
+ * are two different days, and the published index has to call both of them 3.
+ * A reading built without bands (an older caller) falls back on the index
+ * rather than writing "undefined/5".
+ */
+function riskWording(eanLevel, level, language) {
+  return eanLevel === null || eanLevel === undefined
+    ? levelText(level, language)
+    : eanLevelText(eanLevel, language);
+}
+
+/**
  * Build the `publishStates` batch of one location from a provider reading.
  * Split out of `poll()` so the mapping "reading -> states" is testable without
  * a Gladys connection.
  *
- * The three TEXT states are written in the same language as the features that
- * carry them: a stored state is a string like a feature name, translated by
- * nobody downstream.
+ * The TEXT states are written in the same language as the features that carry
+ * them: a stored state is a string like a feature name, translated by nobody
+ * downstream. They are also the only states on the 0-5 measured scale — the
+ * indexes beside them stay on the core's 0-3 one.
  * @param {string} [language] one of LANGUAGES (see src/language.js)
  * @returns {Array<{ device_feature_external_id: string, state?: number, text?: string }>}
  */
@@ -273,10 +295,10 @@ export function buildStates(ids, reading, language = DEFAULT_LANGUAGE) {
       states.push(
         { device_feature_external_id: ids.feature(taxon), state: level },
         {
-          // The same helper as the overall wording, the widget rows and the
-          // scene messages: one level, one sentence, everywhere.
+          // The band, not the index: this is where a "4/5 (élevé)" day is told
+          // apart from a "5/5 (très élevé)" one.
           device_feature_external_id: ids.feature(taxonTextFeatureId(taxon)),
-          text: levelText(level, language),
+          text: riskWording(reading.eanRisks?.[taxon], level, language),
         },
       );
     }
@@ -289,11 +311,10 @@ export function buildStates(ids, reading, language = DEFAULT_LANGUAGE) {
         state: reading.overall.level,
       },
       {
-        // The scale AND the word — "3/3 (élevé)" — written by the same helper
-        // as the widget rows and the scene messages, so every surface of this
-        // integration says a level in the very same terms.
+        // The scale AND the word — "4/5 (élevé)" — on the scale the data is
+        // measured on, which the index above cannot carry.
         device_feature_external_id: ids.feature(FEATURE.OVERALL_RISK_TEXT),
-        text: levelText(reading.overall.level, language),
+        text: riskWording(reading.overall.eanLevel, reading.overall.level, language),
       },
       {
         device_feature_external_id: ids.feature(FEATURE.DOMINANT_POLLEN),

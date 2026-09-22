@@ -116,26 +116,33 @@ index and the same risk spelled out.
 | Measurement                | Description                                     |
 | -------------------------- | ----------------------------------------------- |
 | Overall pollen risk        | The highest of the six risks below (0 to 3)     |
-| Overall pollen risk (text) | The same level spelled out: "2/3 (medium)"      |
+| Overall pollen risk (text) | The measured risk spelled out: "4/5 (high)"     |
 | Dominant pollen            | The name of the pollen driving that risk        |
 | Last data update           | The date and hour the displayed forecast is for |
 | Alder pollen risk          | Risk from 0 to 3                                |
-| Alder pollen risk (text)   | The same risk spelled out: "2/3 (medium)"       |
+| Alder pollen risk (text)   | The measured risk spelled out: "4/5 (high)"     |
 | Birch pollen risk          | Risk from 0 to 3                                |
-| Birch pollen risk (text)   | The same risk spelled out: "2/3 (medium)"       |
+| Birch pollen risk (text)   | The measured risk spelled out: "4/5 (high)"     |
 | Grass pollen risk          | Risk from 0 to 3                                |
-| Grass pollen risk (text)   | The same risk spelled out: "2/3 (medium)"       |
+| Grass pollen risk (text)   | The measured risk spelled out: "4/5 (high)"     |
 | Mugwort pollen risk        | Risk from 0 to 3                                |
-| Mugwort pollen risk (text) | The same risk spelled out: "2/3 (medium)"       |
+| Mugwort pollen risk (text) | The measured risk spelled out: "4/5 (high)"     |
 | Olive pollen risk          | Risk from 0 to 3                                |
-| Olive pollen risk (text)   | The same risk spelled out: "2/3 (medium)"       |
+| Olive pollen risk (text)   | The measured risk spelled out: "4/5 (high)"     |
 | Ragweed pollen risk        | Risk from 0 to 3                                |
-| Ragweed pollen risk (text) | The same risk spelled out: "2/3 (medium)"       |
+| Ragweed pollen risk (text) | The measured risk spelled out: "4/5 (high)"     |
 
 The "(text)" measurements are what a notification, a dashboard text box or a
 voice assistant reads: a scene reading the index gets a `3`, and `3` is what it
 puts in its message. A pollen the model has no value for publishes nothing at
 all, neither index nor wording.
+
+**The index and the wording are not on the same scale, on purpose.** The index
+is on the Gladys scale, 0 to 3 — the only one the core can name. The wording is
+a plain string nobody re-reads downstream, so it carries the **measurement
+itself, 0 to 5**, the European bands the CAMS data follows. A "high" day and a
+"very high" day both read `3` on the index, but "4/5 (high)" and "5/5 (very
+high)" on the text.
 
 > These are the names with the **Language of the device names** setting on
 > English. It defaults to **French** (`Risque pollinique — Bouleau`) — see
@@ -189,15 +196,22 @@ the scale by heart.
 The CAMS data follows the bands of the European Aeroallergen Network (EAN),
 which has six of them. They are folded onto Gladys's four levels:
 
-| EAN band        | Published level | Gladys name |
-| --------------- | --------------- | ----------- |
-| none            | 0               | No Risk     |
-| very low, low   | 1               | Low         |
-| moderate        | 2               | Medium      |
-| high, very high | 3               | High        |
+| EAN band (text measurement) | Published index | Gladys name |
+| --------------------------- | --------------- | ----------- |
+| 0/5 (none)                  | 0               | No Risk     |
+| 1/5 (very low)              | 1               | Low         |
+| 2/5 (low)                   | 1               | Low         |
+| 3/5 (moderate)              | 2               | Medium      |
+| 4/5 (high)                  | 3               | High        |
+| 5/5 (very high)             | 3               | High        |
 
 Nothing important is lost in the fold: the two quiet bands both mean "there is
 barely any", and the two loud ones both mean "stay inside if you react to it".
+
+**The measured band stays readable**: the "(text)" measurements of the device
+show it as it is, from 0 to 5. That is the one place it survives, because a
+string is displayed exactly as it was stored where Gladys re-labels a number
+with its own words.
 
 The level is derived from the concentration in pollen grains per cubic metre of
 air, using **per-species thresholds**: 30 grains/m³ is a quiet day for birch
@@ -222,6 +236,10 @@ Two things to check after the update:
 The history already recorded keeps its old values: on a chart covering the
 switch, the points before it are on the 0-5 scale and the ones after on the 0-3
 scale. It still reads, but a comparison across that period is not a fair one.
+
+The measured 0-5 band is not gone, though: it is what the "(text)" measurements
+of the device display, next to the index. Only the numbers a scene or a chart
+reads are on the 0-3 scale.
 
 ## The language of the names
 
