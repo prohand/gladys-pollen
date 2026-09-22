@@ -109,7 +109,8 @@ second one.
 
 ## What the device measures
 
-Each device exposes ten measurements:
+Each device exposes sixteen measurements: every risk comes with a **text
+measurement** spelling the same level out ("4/5 (high)").
 
 | Measurement                | Description                                     |
 | -------------------------- | ----------------------------------------------- |
@@ -118,11 +119,20 @@ Each device exposes ten measurements:
 | Dominant pollen            | The name of the pollen driving that risk        |
 | Last data update           | The date and hour the displayed forecast is for |
 | Alder pollen risk          | Risk from 0 to 5                                |
+| Alder pollen risk (text)   | The same level, spelled out                     |
 | Birch pollen risk          | Risk from 0 to 5                                |
+| Birch pollen risk (text)   | The same level, spelled out                     |
 | Grass pollen risk          | Risk from 0 to 5                                |
+| Grass pollen risk (text)   | The same level, spelled out                     |
 | Mugwort pollen risk        | Risk from 0 to 5                                |
+| Mugwort pollen risk (text) | The same level, spelled out                     |
 | Olive pollen risk          | Risk from 0 to 5                                |
+| Olive pollen risk (text)   | The same level, spelled out                     |
 | Ragweed pollen risk        | Risk from 0 to 5                                |
+| Ragweed pollen risk (text) | The same level, spelled out                     |
+
+The numeric measurement is what scenes compare and what the history charts;
+**the text one is what to display on a dashboard**, for the reason below.
 
 > These are the names with the **Language of the device names** setting on
 > English. It defaults to **French** (`Risque pollinique — Bouleau`) — see
@@ -171,10 +181,35 @@ If the date stays stuck in the past, the refresh is failing: the **Test the
 pollen provider** button shows the same date for every location, and says what
 is going wrong if anything is.
 
-> On a dashboard, the "device in a room" box labels a risk value with the names
-> Gladys knows, which stop at 3: levels 4 and 5 show up as "Unknown" there. The
-> text measurement carries the exact wording, which is what to display next to
-> it.
+## Why every risk has a text measurement
+
+On a dashboard, the "device in a room" box does not show the number of a risk
+measurement: it labels it with **the names Gladys knows**, which only go from 0
+to 3 ("No risk", "Low", "Medium", "High"). On the 0-5 scale of the pollen
+bulletins, that label is wrong at every level but 0:
+
+| Published level | What Gladys shows | What it means here |
+| --------------- | ----------------- | ------------------ |
+| 0               | No risk           | None               |
+| 1               | Low               | Very low           |
+| 2               | Medium            | Low                |
+| 3               | High              | Moderate           |
+| 4               | Unknown           | High               |
+| 5               | Unknown           | Very high          |
+
+The 0-5 scale is kept as it is — it is the one every pollen bulletin publishes —
+and the exact wording travels beside it, in a text measurement Gladys stores and
+displays untouched. It is written in the same words as the dashboard cards and
+the scene messages: "4/5 (high)" everywhere.
+
+So on a dashboard, display the **(text)** measurements; keep the numeric ones
+for scenes and history charts.
+
+> **Device already created?** The per-pollen text measurements arrived after the
+> first version of the integration. A device created before that shows up in the
+> **Discovery** tab with an **Update** button: one click adds the new
+> measurements, leaving the history and the place of the device in your rooms
+> and scenes untouched.
 
 ## The language of the names
 

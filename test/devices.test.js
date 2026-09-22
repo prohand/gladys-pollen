@@ -120,12 +120,18 @@ test('a device carries one risk feature per taxon, plus the overall four', () =>
   const gladys = createFakeGladys();
   const config = configWith([paris]);
   const device = buildDevice(gladys, stored(paris, config));
-  assert.equal(device.features.length, allTaxa().length + 4);
+  // Each taxon twice — the level and its wording — and the same pair for the
+  // overall risk, plus the dominant pollen and the date.
+  assert.equal(device.features.length, allTaxa().length * 2 + 4);
 
   const ids = deviceExternalIds(gladys, paris);
   const externalIds = device.features.map((feature) => feature.external_id);
   for (const taxon of allTaxa()) {
     assert.ok(externalIds.includes(ids.feature(taxon)), `missing feature for ${taxon}`);
+    assert.ok(
+      externalIds.includes(ids.feature(`${taxon}-text`)),
+      `missing wording feature for ${taxon}`,
+    );
   }
   assert.ok(externalIds.includes(ids.feature(FEATURE.OVERALL_RISK)));
   assert.ok(externalIds.includes(ids.feature(FEATURE.OVERALL_RISK_TEXT)));
@@ -157,15 +163,23 @@ test('the features are named in French unless the user asks for English', () => 
   const namesOf = (config) =>
     buildDevice(gladys, stored(paris, config), config.language).features.map((f) => f.name);
 
+  // Every risk is followed by its wording: the core names a `risk`/`integer`
+  // with its own 0-3 label set, which cannot say a level 4 or 5.
   assert.deepEqual(namesOf(french), [
     'Risque pollinique global',
     'Risque pollinique global (texte)',
     'Risque pollinique — Aulne',
+    'Risque pollinique — Aulne (texte)',
     'Risque pollinique — Bouleau',
+    'Risque pollinique — Bouleau (texte)',
     'Risque pollinique — Graminées',
+    'Risque pollinique — Graminées (texte)',
     'Risque pollinique — Armoise',
+    'Risque pollinique — Armoise (texte)',
     'Risque pollinique — Olivier',
+    'Risque pollinique — Olivier (texte)',
     'Risque pollinique — Ambroisie',
+    'Risque pollinique — Ambroisie (texte)',
     'Pollen dominant',
     'Dernière mise à jour des données',
   ]);
@@ -173,6 +187,7 @@ test('the features are named in French unless the user asks for English', () => 
   const english = namesOf(configWith([paris], { language: 'en' }));
   assert.equal(english[0], 'Overall pollen risk');
   assert.ok(english.includes('Birch pollen risk'));
+  assert.ok(english.includes('Birch pollen risk (text)'));
   assert.ok(english.includes('Dominant pollen'));
   assert.ok(english.includes('Last data update'));
 });
@@ -251,9 +266,11 @@ test('a reading becomes one state per taxon plus the overall trio', () => {
   // language as the feature names — French unless the user says otherwise.
   assert.deepEqual(states, [
     { device_feature_external_id: ids.feature('birch'), state: 3 },
+    { device_feature_external_id: ids.feature('birch-text'), text: '3/5 (moyen)' },
     { device_feature_external_id: ids.feature('grass'), state: 1 },
+    { device_feature_external_id: ids.feature('grass-text'), text: '1/5 (très faible)' },
     { device_feature_external_id: ids.feature(FEATURE.OVERALL_RISK), state: 3 },
-    { device_feature_external_id: ids.feature(FEATURE.OVERALL_RISK_TEXT), text: 'moyen' },
+    { device_feature_external_id: ids.feature(FEATURE.OVERALL_RISK_TEXT), text: '3/5 (moyen)' },
     { device_feature_external_id: ids.feature(FEATURE.DOMINANT_POLLEN), text: 'Bouleau' },
     { device_feature_external_id: ids.feature(FEATURE.LAST_UPDATE), text: '06/08/2026 13:00' },
   ]);
@@ -299,8 +316,14 @@ test('the text states are written in the configured language', () => {
     states.find((state) => state.device_feature_external_id === ids.feature(feature)).text;
 
   const english = buildStates(ids, reading, 'en');
-  assert.equal(text(english, FEATURE.OVERALL_RISK_TEXT), 'moderate');
+  assert.equal(text(english, FEATURE.OVERALL_RISK_TEXT), '3/5 (moderate)');
+  assert.equal(text(english, 'birch-text'), '3/5 (moderate)');
   assert.equal(text(english, FEATURE.DOMINANT_POLLEN), 'Birch');
+
+  // The scale travels with the word on purpose: "moyen" alone is what the
+  // core's own 0-3 label set calls a level 2, and "élevé" its level 3.
+  const french = buildStates(ids, reading, 'fr');
+  assert.equal(text(french, 'birch-text'), '3/5 (moyen)');
 });
 
 test('a taxon without data publishes nothing rather than a zero', () => {
@@ -312,6 +335,27 @@ test('a taxon without data publishes nothing rather than a zero', () => {
   });
   const featureIds = states.map((state) => state.device_feature_external_id);
   assert.ok(!featureIds.includes(ids.feature('olive')));
+  // Its wording stays silent with it: a text state has no null, so "no value"
+  // would have to be written down — and would then outlive the measurement.
+  assert.ok(!featureIds.includes(ids.feature('olive-text')));
+});
+
+test('a level the core cannot name is still written in full', () => {
+  // The reason the wording features exist: the core renders a `risk`/`integer`
+  // through its own label set, which stops at 3 — levels 4 and 5 read
+  // "Inconnu" in the "device in a room" box.
+  const gladys = createFakeGladys();
+  const ids = deviceExternalIds(gladys, paris);
+  const states = buildStates(ids, {
+    risks: { ragweed: 4, mugwort: 5 },
+    overall: { level: 5, taxon: 'mugwort' },
+  });
+  const text = (feature) =>
+    states.find((state) => state.device_feature_external_id === ids.feature(feature))?.text;
+
+  assert.equal(text('ragweed-text'), '4/5 (élevé)');
+  assert.equal(text('mugwort-text'), '5/5 (très élevé)');
+  assert.equal(text(FEATURE.OVERALL_RISK_TEXT), '5/5 (très élevé)');
 });
 
 test('a quiet day reports no dominant pollen', () => {

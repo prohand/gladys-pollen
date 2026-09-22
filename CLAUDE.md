@@ -91,8 +91,8 @@ contact's, `getContacts()` / contract B.15 — this integration has no contacts)
 Hence `src/language.js`: `config.language`, a manifest `select`, **`fr` by
 default**. It is threaded through `buildDevice`/`buildStates`/`poll` as an
 argument rather than read from a module-level variable, so the mapping stays
-testable in both languages. The three TEXT states follow it too — a stored state
-is a string like a name, translated by nobody downstream — including the date
+testable in both languages. The TEXT states follow it too — a stored state is a
+string like a name, translated by nobody downstream — including the date
 written by `src/dateTime.js` (`06/08/2026 13:00` in French, `2026-08-06 13:00` in
 English). Anything else that speaks
 to the user stays `{ en, fr }`; `taxonName(taxon, 'en' | 'fr')` is what the
@@ -239,9 +239,21 @@ empty. The core sources are worth cloning when in doubt
   States published before the user adds the device go nowhere, which is why
   `index.js` listens to `onDeviceCreated` and refreshes immediately.
 - **A `risk`/`integer` value is rendered through the core's OWN label set** in
-  the "device in a room" box, which stops at 3; levels 4 and 5 read "Inconnu"
-  there. The 0-5 scale is kept — it is the scale every pollen bulletin uses — and
-  the overall-risk TEXT feature carries the exact wording for dashboards.
+  the "device in a room" box (`BadgeNumberDeviceValue`), which stops at 3:
+  `0 no-risk / 1 low-risk / 2 medium-risk / 3 high-risk`, anything else
+  "Inconnu". On the 0-5 scale that set is wrong at every level but 0 — a level 3
+  reads "Élevé" where it means "moyen". The scale is kept — it is the one every
+  pollen bulletin uses — so EVERY risk feature is doubled by a TEXT feature
+  carrying `levelText()` ("4/5 (élevé)"), the taxa included. That is what the
+  docs tell users to put on a dashboard, and it is why the device has
+  `2 × taxa + 4` features.
+- **Adding or redefining a feature needs the user's "Update" click.** A
+  re-publish upserts only the PARAMS of a device already created
+  (`setDiscoveredDevices`); a changed feature signature (external_id, category,
+  type, unit, min, max, step) raises `structure_changed`, and the Discovery tab
+  then offers an Update button that runs `device.create` again — features are
+  matched by `external_id`, so the history survives. Nothing at all happens
+  until the user clicks it.
 - **A newline does not survive the Configuration screen** (`white-space: normal`
   on a plain `<div class="alert">`), and markup is escaped. Hence
   `LOCATION_LINE_MARKER` opening every entry of a list, and the Unicode bold of

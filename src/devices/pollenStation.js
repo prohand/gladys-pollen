@@ -6,10 +6,12 @@
 // `config.locations`, so every function here works on the locations of the
 // configuration it is handed.
 //
-// Features: one risk level (0-5) per pollen taxon, plus an overall risk, its
-// wording, the name of the dominant taxon and the date of the data. Risk levels
-// rather than raw concentrations, because that is what a user (and a Gladys
-// scene) can act on — see `src/pollen/risk.js` for the thresholds.
+// Features: one risk level (0-5) per pollen taxon and an overall risk, each
+// doubled by a TEXT feature carrying its wording ("4/5 (élevé)"), plus the name
+// of the dominant taxon and the date of the data. Risk levels rather than raw
+// concentrations, because that is what a user (and a Gladys scene) can act on —
+// see `src/pollen/risk.js` for the thresholds, and `textFeature` below for why
+// the number never travels alone.
 //
 // The date of the data belongs HERE, on each station, and not on some device
 // global to the integration: it is the hour the forecast is valid at for THAT
@@ -32,6 +34,7 @@ import { DEFAULT_LANGUAGE, inLanguage } from '../language.js';
 import { allTaxa, findProvider, readPollenRisk } from '../pollen/index.js';
 import { RISK_LEVEL_LABELS, RISK_LEVEL_MAX } from '../pollen/risk.js';
 import { taxonName } from '../pollen/taxa.js';
+import { levelText } from '../riskText.js';
 import { publishRiskEvents } from '../scenes/riskEvents.js';
 import { nudgeWidgets } from '../widgets/keys.js';
 import {
@@ -79,6 +82,23 @@ const TAXON_FEATURE_NAME = {
   en: (name) => `${name} pollen risk`,
   fr: (name) => `Risque pollinique — ${name}`,
 };
+
+/** How the same name becomes the one of its WORDING twin (see `textFeature`). */
+const TAXON_TEXT_FEATURE_NAME = {
+  en: (name) => `${name} pollen risk (text)`,
+  fr: (name) => `Risque pollinique — ${name} (texte)`,
+};
+
+/**
+ * External id of the wording twin of a taxon.
+ *
+ * The same `-text` suffix as `overall-risk-text`, and no collision to fear: a
+ * taxon key is a plain species name (`birch`, `grass`, `ragweed`).
+ * @param {string} taxon pollen taxon key
+ */
+function taxonTextFeatureId(taxon) {
+  return `${taxon}-text`;
+}
 
 /** What the "dominant pollen" feature says when nothing is in the air. */
 const NO_DOMINANT_POLLEN = { en: 'None', fr: 'Aucun' };
@@ -136,7 +156,22 @@ function riskFeature(externalId, name) {
   };
 }
 
-/** Shape shared by every text feature. */
+/**
+ * Shape shared by every text feature.
+ *
+ * Every risk of this device has one, and that is not decoration: the core
+ * renders a `risk`/`integer` through its OWN label set, which only names 0 to
+ * 3 (`Pas de risque` / `Faible` / `Moyen` / `Élevé`). On the 0-5 scale of the
+ * pollen bulletins that set is wrong at every level but 0 — level 3 reads
+ * "Élevé" where it means "moyen" — and levels 4 and 5 fall through to
+ * "Inconnu". The scale itself is not negotiable (it is the one every bulletin
+ * publishes), so the exact wording travels beside it, in a TEXT feature the
+ * core stores and displays as it is.
+ *
+ * It is written with `levelText()`, the same helper the widget rows and the
+ * scene messages use, so a station box and a dashboard card say "4/5 (élevé)"
+ * in the very same words.
+ */
 function textFeature(externalId, name) {
   return {
     name,
@@ -188,19 +223,23 @@ export function buildDevice(gladys, location, language = DEFAULT_LANGUAGE) {
     features: [
       // The one to use in a scene: the worst taxon of the moment.
       //
-      // NOTE: a `risk`/`integer` value is rendered through the core's OWN label
-      // set in the "device in a room" dashboard box, which only names 0 to 3;
-      // levels 4 and 5 show as "Inconnu" there. The text feature below carries
-      // the exact wording, and the numeric one stays on the 0-5 scale every
-      // pollen bulletin uses.
+      // Every risk comes in PAIRS, the number and its wording, and the pair is
+      // kept together so a dashboard box lists them side by side. The number is
+      // what a scene compares and what the history charts; the wording is what
+      // a human reads, because the core would otherwise name it with its own
+      // 0-3 label set — see `textFeature` above.
       riskFeature(ids.feature(FEATURE.OVERALL_RISK), featureName(FEATURE.OVERALL_RISK)),
       textFeature(ids.feature(FEATURE.OVERALL_RISK_TEXT), featureName(FEATURE.OVERALL_RISK_TEXT)),
-      ...allTaxa().map((taxon) =>
-        riskFeature(
-          ids.feature(taxon),
-          inLanguage(TAXON_FEATURE_NAME, language)(taxonName(taxon, language)),
-        ),
-      ),
+      ...allTaxa().flatMap((taxon) => {
+        const name = taxonName(taxon, language);
+        return [
+          riskFeature(ids.feature(taxon), inLanguage(TAXON_FEATURE_NAME, language)(name)),
+          textFeature(
+            ids.feature(taxonTextFeatureId(taxon)),
+            inLanguage(TAXON_TEXT_FEATURE_NAME, language)(name),
+          ),
+        ];
+      }),
       textFeature(ids.feature(FEATURE.DOMINANT_POLLEN), featureName(FEATURE.DOMINANT_POLLEN)),
       // "How old is what I am looking at?" — the hour the forecast is valid at,
       // not the moment of the last request: the model publishes once a day, so
@@ -215,9 +254,9 @@ export function buildDevice(gladys, location, language = DEFAULT_LANGUAGE) {
  * Split out of `poll()` so the mapping "reading -> states" is testable without
  * a Gladys connection.
  *
- * The two TEXT states are written in the same language as the features that
- * carry them: a stored state is a string like a feature name, translated by
- * nobody downstream.
+ * The TEXT states are written in the same language as the features that carry
+ * them: a stored state is a string like a feature name, translated by nobody
+ * downstream.
  * @param {string} [language] one of LANGUAGES (see src/language.js)
  * @returns {Array<{ device_feature_external_id: string, state?: number, text?: string }>}
  */
@@ -227,9 +266,16 @@ export function buildStates(ids, reading, language = DEFAULT_LANGUAGE) {
   for (const [taxon, level] of Object.entries(reading.risks)) {
     // A taxon the provider has no value for publishes nothing at all: an absent
     // measurement is not a zero risk, and writing 0 would pollute the history
-    // and could fire a "risk is back to none" scene.
+    // and could fire a "risk is back to none" scene. Its wording stays silent
+    // with it — a text state saying "no value" would outlive the measurement.
     if (level !== null && level !== undefined) {
-      states.push({ device_feature_external_id: ids.feature(taxon), state: level });
+      states.push(
+        { device_feature_external_id: ids.feature(taxon), state: level },
+        {
+          device_feature_external_id: ids.feature(taxonTextFeatureId(taxon)),
+          text: levelText(level, language),
+        },
+      );
     }
   }
 
@@ -240,8 +286,10 @@ export function buildStates(ids, reading, language = DEFAULT_LANGUAGE) {
         state: reading.overall.level,
       },
       {
+        // The scale AND the word: "élevé" alone is what the core's own 0-3
+        // label set calls level 3, so the number is what tells the two apart.
         device_feature_external_id: ids.feature(FEATURE.OVERALL_RISK_TEXT),
-        text: inLanguage(RISK_LEVEL_LABELS[reading.overall.level], language),
+        text: levelText(reading.overall.level, language),
       },
       {
         device_feature_external_id: ids.feature(FEATURE.DOMINANT_POLLEN),
@@ -441,11 +489,11 @@ export const pollenStation = {
         };
         return {
           en:
-            `risk ${level}/${RISK_LEVEL_MAX} (${RISK_LEVEL_LABELS[level].en})` +
+            `risk ${levelText(level, 'en')}` +
             `${dominant ? `, dominant ${taxonName(dominant, 'en')}` : ''} — ${reading.provider}` +
             measuredAt('en', 'updated'),
           fr:
-            `risque ${level}/${RISK_LEVEL_MAX} (${RISK_LEVEL_LABELS[level].fr})` +
+            `risque ${levelText(level, 'fr')}` +
             `${dominant ? `, dominant ${taxonName(dominant, 'fr')}` : ''} — ${reading.provider}` +
             measuredAt('fr', 'à jour au'),
         };

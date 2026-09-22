@@ -115,20 +115,31 @@ supprimer un deuxième.
 
 ## Ce que mesure l'appareil
 
-Chaque appareil expose dix mesures :
+Chaque appareil expose seize mesures : chaque risque est **doublé d'une mesure
+texte** qui écrit le même niveau en toutes lettres (« 4/5 (élevé) »).
 
-| Mesure                           | Description                                                    |
-| -------------------------------- | -------------------------------------------------------------- |
-| Risque pollinique global         | Le plus élevé des six risques ci-dessous (0 à 5)               |
-| Risque pollinique global (texte) | Le même niveau, écrit en toutes lettres                        |
-| Pollen dominant                  | Le nom du pollen responsable du risque global                  |
-| Dernière mise à jour des données | La date et l'heure auxquelles la prévision affichée correspond |
-| Risque pollinique — Aulne        | Risque de 0 à 5                                                |
-| Risque pollinique — Bouleau      | Risque de 0 à 5                                                |
-| Risque pollinique — Graminées    | Risque de 0 à 5                                                |
-| Risque pollinique — Armoise      | Risque de 0 à 5                                                |
-| Risque pollinique — Olivier      | Risque de 0 à 5                                                |
-| Risque pollinique — Ambroisie    | Risque de 0 à 5                                                |
+| Mesure                                | Description                                                    |
+| ------------------------------------- | -------------------------------------------------------------- |
+| Risque pollinique global              | Le plus élevé des six risques ci-dessous (0 à 5)               |
+| Risque pollinique global (texte)      | Le même niveau, écrit en toutes lettres                        |
+| Pollen dominant                       | Le nom du pollen responsable du risque global                  |
+| Dernière mise à jour des données      | La date et l'heure auxquelles la prévision affichée correspond |
+| Risque pollinique — Aulne             | Risque de 0 à 5                                                |
+| Risque pollinique — Aulne (texte)     | Le même niveau, écrit en toutes lettres                        |
+| Risque pollinique — Bouleau           | Risque de 0 à 5                                                |
+| Risque pollinique — Bouleau (texte)   | Le même niveau, écrit en toutes lettres                        |
+| Risque pollinique — Graminées         | Risque de 0 à 5                                                |
+| Risque pollinique — Graminées (texte) | Le même niveau, écrit en toutes lettres                        |
+| Risque pollinique — Armoise           | Risque de 0 à 5                                                |
+| Risque pollinique — Armoise (texte)   | Le même niveau, écrit en toutes lettres                        |
+| Risque pollinique — Olivier           | Risque de 0 à 5                                                |
+| Risque pollinique — Olivier (texte)   | Le même niveau, écrit en toutes lettres                        |
+| Risque pollinique — Ambroisie         | Risque de 0 à 5                                                |
+| Risque pollinique — Ambroisie (texte) | Le même niveau, écrit en toutes lettres                        |
+
+La mesure numérique est celle qu'utilisent les scènes et les graphiques
+d'historique ; **la mesure texte est celle à afficher sur un tableau de bord**,
+pour la raison expliquée plus bas.
 
 L'échelle de risque est la suivante :
 
@@ -178,10 +189,37 @@ Si la prévision reste bloquée sur une date ancienne, c'est que le
 rafraîchissement échoue : le bouton **Tester le fournisseur de pollens** affiche
 la même date pour chaque lieu, et dit ce qui coince le cas échéant.
 
-> Sur un tableau de bord, la tuile « appareil dans une pièce » traduit une valeur
-> de risque avec les libellés que Gladys connaît, qui s'arrêtent à 3 : les
-> niveaux 4 et 5 s'y affichent donc « Inconnu ». La mesure texte porte le libellé
-> exact, c'est elle qu'il faut afficher à côté.
+## Pourquoi chaque risque a une mesure texte
+
+Sur un tableau de bord, la boîte « appareil dans une pièce » n'affiche pas le
+chiffre d'une mesure de risque : elle le traduit avec **les libellés de Gladys**,
+qui vont de 0 à 3 seulement (« Pas de risque », « Faible », « Moyen »,
+« Élevé »). Sur l'échelle 0-5 des bulletins polliniques, cette traduction est
+fausse à tous les niveaux sauf 0 :
+
+| Niveau publié | Ce que Gladys affiche | Ce que ça veut dire ici |
+| ------------- | --------------------- | ----------------------- |
+| 0             | Pas de risque         | Nul                     |
+| 1             | Faible                | Très faible             |
+| 2             | Moyen                 | Faible                  |
+| 3             | Élevé                 | Moyen                   |
+| 4             | Inconnu               | Élevé                   |
+| 5             | Inconnu               | Très élevé              |
+
+L'échelle 0-5 est gardée telle quelle — c'est celle de tous les bulletins
+polliniques — et le libellé exact voyage à côté, dans une mesure texte que
+Gladys enregistre et affiche sans y toucher. Elle est écrite dans les mêmes
+termes que les cartes de tableau de bord et les messages de scène : « 4/5
+(élevé) » partout.
+
+Sur un tableau de bord, affichez donc les mesures **(texte)** ; gardez les
+mesures numériques pour les scènes et les courbes d'historique.
+
+> **Appareil déjà créé ?** Les mesures texte par pollen sont arrivées après la
+> première version de l'intégration. Un appareil créé avant s'affiche dans
+> l'onglet **Découverte** avec un bouton **Mettre à jour** : un clic ajoute les
+> nouvelles mesures sans toucher à l'historique ni à la place de l'appareil dans
+> vos pièces et vos scènes.
 
 ## La langue des noms
 
