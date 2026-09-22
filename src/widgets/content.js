@@ -24,16 +24,19 @@ import { RISK_LEVELS } from '../pollen/risk.js';
 export const CONTENT_TTL_SECONDS = 900;
 
 /**
- * The colour of a risk level. Six levels, six semantic colours — the scale
- * reads at a glance and stays legible in both themes.
+ * The colour of a risk level, matched to the badge the core paints for the very
+ * same value in the "device in a room" box (`success` / `warning` / `orange` /
+ * `danger`): one level, one colour, wherever the reader sees it.
+ *
+ * The widget palette has no `orange`, so levels 1 and 2 share `warning` —
+ * closer than painting a "moyen" in the red of a "élevé", which would raise an
+ * alarm the data does not carry.
  */
 const LEVEL_COLORS = {
-  [RISK_LEVELS.NONE]: WIDGET_COLORS.NEUTRAL,
-  [RISK_LEVELS.VERY_LOW]: WIDGET_COLORS.SUCCESS,
-  [RISK_LEVELS.LOW]: WIDGET_COLORS.SUCCESS,
-  [RISK_LEVELS.MODERATE]: WIDGET_COLORS.WARNING,
+  [RISK_LEVELS.NONE]: WIDGET_COLORS.SUCCESS,
+  [RISK_LEVELS.LOW]: WIDGET_COLORS.WARNING,
+  [RISK_LEVELS.MEDIUM]: WIDGET_COLORS.WARNING,
   [RISK_LEVELS.HIGH]: WIDGET_COLORS.DANGER,
-  [RISK_LEVELS.VERY_HIGH]: WIDGET_COLORS.DANGER,
 };
 
 /** Colour of a level, `neutral` for a level there is no value for. */

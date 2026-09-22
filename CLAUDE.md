@@ -91,8 +91,8 @@ contact's, `getContacts()` / contract B.15 — this integration has no contacts)
 Hence `src/language.js`: `config.language`, a manifest `select`, **`fr` by
 default**. It is threaded through `buildDevice`/`buildStates`/`poll` as an
 argument rather than read from a module-level variable, so the mapping stays
-testable in both languages. The TEXT states follow it too — a stored state is a
-string like a name, translated by nobody downstream — including the date
+testable in both languages. The three TEXT states follow it too — a stored state
+is a string like a name, translated by nobody downstream — including the date
 written by `src/dateTime.js` (`06/08/2026 13:00` in French, `2026-08-06 13:00` in
 English). Anything else that speaks
 to the user stays `{ en, fr }`; `taxonName(taxon, 'en' | 'fr')` is what the
@@ -173,9 +173,12 @@ Unlike a device name, a widget content is built for ONE reader and the core says
 which language they read — `widgetLanguage()` uses it, falling back to
 `config.language` for a language this integration does not speak.
 
-`src/riskText.js` is where a risk is put into WORDS, shared by the events, the
-action outputs and the widget rows so "risque 4/5 (élevé)" reads identically
-everywhere.
+`src/riskText.js` is where a risk is put into WORDS, shared by the overall-risk
+TEXT feature, the events, the action outputs and the widget rows so
+"risque 3/3 (élevé)" reads identically everywhere. The words are the core's own
+(`RISK_LEVEL_LABELS`), so a card never contradicts the badge next to it — and
+`levelColor()` maps each level to the colour the core paints for that same
+value (the widget palette has no `orange`, so 1 and 2 share `warning`).
 
 ### One extension registry
 
@@ -239,14 +242,12 @@ empty. The core sources are worth cloning when in doubt
   States published before the user adds the device go nowhere, which is why
   `index.js` listens to `onDeviceCreated` and refreshes immediately.
 - **A `risk`/`integer` value is rendered through the core's OWN label set** in
-  the "device in a room" box (`BadgeNumberDeviceValue`), which stops at 3:
-  `0 no-risk / 1 low-risk / 2 medium-risk / 3 high-risk`, anything else
-  "Inconnu". On the 0-5 scale that set is wrong at every level but 0 — a level 3
-  reads "Élevé" where it means "moyen". The scale is kept — it is the one every
-  pollen bulletin uses — so EVERY risk feature is doubled by a TEXT feature
-  carrying `levelText()` ("4/5 (élevé)"), the taxa included. That is what the
-  docs tell users to put on a dashboard, and it is why the device has
-  `2 × taxa + 4` features.
+  the "device in a room" box (`BadgeNumberDeviceValue`), which knows exactly
+  four: `0 no-risk / 1 low-risk / 2 medium-risk / 3 high-risk`, anything else
+  "Inconnu". THAT is the published scale (`RISK_LEVELS`), and `RISK_LEVEL_LABELS`
+  are the core's own words. 1.x-2.0 published the six EAN bands instead, and the
+  box called a 3 "Élevé" where it meant "moyen" and a 4 "Inconnu". Nothing here
+  may ever grade above `RISK_LEVEL_MAX`; a test asserts it per taxon.
 - **Adding or redefining a feature needs the user's "Update" click.** A
   re-publish upserts only the PARAMS of a device already created
   (`setDiscoveredDevices`); a changed feature signature (external_id, category,
@@ -267,6 +268,11 @@ empty. The core sources are worth cloning when in doubt
   to none" scene. `overallRisk()` likewise reports no dominant taxon at level 0.
 - **Risk thresholds are per species** (`src/pollen/risk.js`). 30 grains/m³ is
   quiet for birch and heavy for ragweed. Don't unify the bands.
+- **The scale is the core's, and the fold onto it lives in one place.** The EAN
+  publishes six bands, the core names four, so `THRESHOLDS` carries the folded
+  bounds (two per taxon) rather than the six and a mapping somewhere else.
+  Widening the scale means teaching the CORE new labels first, not publishing a
+  level it cannot name.
 - **A timestamp never travels as a bare wall clock.** `timezone=auto` makes
   Open-Meteo date its answer on the local clock of the point, with the offset in
   a field of its own; `withUtcOffset()` glues them back together at the provider

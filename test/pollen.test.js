@@ -150,10 +150,10 @@ test('readPollenRisk grades the concentrations it reads', async () => {
 
   const reading = await readPollenRisk(paris);
   assert.equal(reading.provider, 'open-meteo-cams');
-  assert.equal(reading.risks.birch, 4);
+  assert.equal(reading.risks.birch, 3);
   assert.equal(reading.risks.ragweed, 0);
   assert.equal(reading.risks.grass, null);
-  assert.deepEqual(reading.overall, { level: 4, taxon: 'birch' });
+  assert.deepEqual(reading.overall, { level: 3, taxon: 'birch' });
 });
 
 test('every registered provider exposes the same contract', () => {
@@ -202,7 +202,7 @@ test('readPollenForecast grades every hour it reads', async () => {
   const { hours } = await readPollenForecast(paris);
   assert.equal(hours.length, 3);
   assert.equal(hours[0].risks.birch, 0);
-  assert.equal(hours[1].risks.birch, 4);
+  assert.equal(hours[1].risks.birch, 3);
   // A missing value is null, never a zero: a curve dropping to the floor would
   // read as "nothing in the air" where the model simply said nothing.
   assert.equal(hours[2].risks.birch, null);

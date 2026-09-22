@@ -168,7 +168,7 @@ test('an unfiltered gauge is bound to the device feature, a filtered one is not'
   // No feature holds "the worst of the species you ticked": that number can
   // only be the one this content computed.
   assert.equal(own.device_feature, undefined);
-  assert.equal(own.value, 2, 'the grass level, not the birch one');
+  assert.equal(own.value, 1, 'the grass level, not the birch one');
 });
 
 test('the species rows show what IS in the air, worst first', async () => {
@@ -185,7 +185,9 @@ test('the species rows show what IS in the air, worst first', async () => {
     ['Bouleau', 'Graminées'],
     'olive is at zero: a row saying nothing is a row too many',
   );
-  assert.equal(status.items[0].value, '4/5 (élevé)');
+  assert.equal(status.items[0].value, '3/3 (élevé)');
+  // The colour of the badge the core paints for the same value in the "device
+  // in a room" box: one level, one colour, wherever it is read.
   assert.equal(status.items[0].color, 'danger');
 });
 
@@ -290,7 +292,7 @@ test('a card is written in the language of whoever reads it', async () => {
   });
   const [status] = componentsOf(english, 'status');
   assert.equal(status.items[0].label, 'Birch');
-  assert.equal(status.items[0].value, '4/5 (high)');
+  assert.equal(status.items[0].value, '3/3 (high)');
 });
 
 test('a language this integration does not speak falls back to the configured one', async () => {
@@ -332,7 +334,7 @@ test('the list card holds one row per place, with its dominant pollen', async ()
     status.items.map((item) => item.label),
     ['Maison', 'Bureau'],
   );
-  assert.equal(status.items[0].value, '4/5 (élevé) — Bouleau');
+  assert.equal(status.items[0].value, '3/3 (élevé) — Bouleau');
 });
 
 test('a place the provider refuses is one row saying so', async () => {

@@ -3,8 +3,6 @@
 //
 // What it adds over the core's "device in a room" box, which already shows the
 // features of a pollen station:
-//   - it reads the 0-5 scale properly. The core's own label set for a
-//     `risk`/`integer` stops at 3, so levels 4 and 5 show as "Inconnu" there;
 //   - it only shows the species that ARE in the air, biggest first, instead of
 //     seven rows of which five say zero;
 //   - it can be narrowed to the pollens the reader actually reacts to;

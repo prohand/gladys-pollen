@@ -2,7 +2,7 @@
 
 Cette intégration expose le **risque pollinique** des lieux de votre choix sous
 forme d'appareils Gladys : un appareil par lieu, avec un niveau de risque de
-0 à 5 pour chaque type de pollen. Vous ajoutez vos **maisons Gladys en un clic**,
+0 à 3 — l'échelle de Gladys — pour chaque type de pollen. Vous ajoutez vos **maisons Gladys en un clic**,
 ou un lieu en saisissant sa **commune**.
 
 Aucun compte à créer, aucune clé d'API à saisir.
@@ -115,49 +115,20 @@ supprimer un deuxième.
 
 ## Ce que mesure l'appareil
 
-Chaque appareil expose seize mesures : chaque risque est **doublé d'une mesure
-texte** qui écrit le même niveau en toutes lettres (« 4/5 (élevé) »).
+Chaque appareil expose dix mesures :
 
-| Mesure                                | Description                                                    |
-| ------------------------------------- | -------------------------------------------------------------- |
-| Risque pollinique global              | Le plus élevé des six risques ci-dessous (0 à 5)               |
-| Risque pollinique global (texte)      | Le même niveau, écrit en toutes lettres                        |
-| Pollen dominant                       | Le nom du pollen responsable du risque global                  |
-| Dernière mise à jour des données      | La date et l'heure auxquelles la prévision affichée correspond |
-| Risque pollinique — Aulne             | Risque de 0 à 5                                                |
-| Risque pollinique — Aulne (texte)     | Le même niveau, écrit en toutes lettres                        |
-| Risque pollinique — Bouleau           | Risque de 0 à 5                                                |
-| Risque pollinique — Bouleau (texte)   | Le même niveau, écrit en toutes lettres                        |
-| Risque pollinique — Graminées         | Risque de 0 à 5                                                |
-| Risque pollinique — Graminées (texte) | Le même niveau, écrit en toutes lettres                        |
-| Risque pollinique — Armoise           | Risque de 0 à 5                                                |
-| Risque pollinique — Armoise (texte)   | Le même niveau, écrit en toutes lettres                        |
-| Risque pollinique — Olivier           | Risque de 0 à 5                                                |
-| Risque pollinique — Olivier (texte)   | Le même niveau, écrit en toutes lettres                        |
-| Risque pollinique — Ambroisie         | Risque de 0 à 5                                                |
-| Risque pollinique — Ambroisie (texte) | Le même niveau, écrit en toutes lettres                        |
-
-La mesure numérique est celle qu'utilisent les scènes et les graphiques
-d'historique ; **la mesure texte est celle à afficher sur un tableau de bord**,
-pour la raison expliquée plus bas.
-
-L'échelle de risque est la suivante :
-
-| Niveau | Signification |
-| ------ | ------------- |
-| 0      | Nul           |
-| 1      | Très faible   |
-| 2      | Faible        |
-| 3      | Moyen         |
-| 4      | Élevé         |
-| 5      | Très élevé    |
-
-Le niveau est calculé à partir de la concentration en grains de pollen par mètre
-cube d'air, avec des **seuils propres à chaque espèce** : 30 grains/m³, c'est une
-journée calme pour le bouleau mais une journée chargée pour l'ambroisie, dont le
-pouvoir allergisant est bien plus fort. Ces seuils suivent les paliers publiés
-par le Réseau européen d'aérobiologie (EAN) et repris par les produits
-polliniques CAMS.
+| Mesure                           | Description                                                    |
+| -------------------------------- | -------------------------------------------------------------- |
+| Risque pollinique global         | Le plus élevé des six risques ci-dessous (0 à 3)               |
+| Risque pollinique global (texte) | Le même niveau écrit en toutes lettres : « 2/3 (moyen) »       |
+| Pollen dominant                  | Le nom du pollen responsable du risque global                  |
+| Dernière mise à jour des données | La date et l'heure auxquelles la prévision affichée correspond |
+| Risque pollinique — Aulne        | Risque de 0 à 3                                                |
+| Risque pollinique — Bouleau      | Risque de 0 à 3                                                |
+| Risque pollinique — Graminées    | Risque de 0 à 3                                                |
+| Risque pollinique — Armoise      | Risque de 0 à 3                                                |
+| Risque pollinique — Olivier      | Risque de 0 à 3                                                |
+| Risque pollinique — Ambroisie    | Risque de 0 à 3                                                |
 
 Les mesures numériques sont historisées : vous pouvez tracer la saison
 pollinique de votre commune sur un graphique.
@@ -189,37 +160,64 @@ Si la prévision reste bloquée sur une date ancienne, c'est que le
 rafraîchissement échoue : le bouton **Tester le fournisseur de pollens** affiche
 la même date pour chaque lieu, et dit ce qui coince le cas échéant.
 
-## Pourquoi chaque risque a une mesure texte
+## L'échelle de risque
 
-Sur un tableau de bord, la boîte « appareil dans une pièce » n'affiche pas le
-chiffre d'une mesure de risque : elle le traduit avec **les libellés de Gladys**,
-qui vont de 0 à 3 seulement (« Pas de risque », « Faible », « Moyen »,
-« Élevé »). Sur l'échelle 0-5 des bulletins polliniques, cette traduction est
-fausse à tous les niveaux sauf 0 :
+**C'est l'échelle de Gladys, pas une échelle maison.** Gladys sait nommer quatre
+niveaux de risque, et c'est lui qui écrit le libellé à côté de la mesure dans la
+boîte « appareil dans une pièce » :
 
-| Niveau publié | Ce que Gladys affiche | Ce que ça veut dire ici |
-| ------------- | --------------------- | ----------------------- |
-| 0             | Pas de risque         | Nul                     |
-| 1             | Faible                | Très faible             |
-| 2             | Moyen                 | Faible                  |
-| 3             | Élevé                 | Moyen                   |
-| 4             | Inconnu               | Élevé                   |
-| 5             | Inconnu               | Très élevé              |
+| Niveau | Ce qu'affiche Gladys | Couleur |
+| ------ | -------------------- | ------- |
+| 0      | Pas de risque        | Vert    |
+| 1      | Faible               | Jaune   |
+| 2      | Moyen                | Orange  |
+| 3      | Élevé                | Rouge   |
 
-L'échelle 0-5 est gardée telle quelle — c'est celle de tous les bulletins
-polliniques — et le libellé exact voyage à côté, dans une mesure texte que
-Gladys enregistre et affiche sans y toucher. Elle est écrite dans les mêmes
-termes que les cartes de tableau de bord et les messages de scène : « 4/5
-(élevé) » partout.
+L'intégration publie exactement ces quatre niveaux, et nulle part autre chose.
+Conséquence : la boîte appareil, les widgets, les déclencheurs de scène et les
+notifications disent tous la même chose du même chiffre. Les mesures texte et
+les widgets ajoutent l'échelle au mot — « 2/3 (moyen) » — pour qu'on sache où
+l'on se situe sans avoir à la connaître par cœur.
 
-Sur un tableau de bord, affichez donc les mesures **(texte)** ; gardez les
-mesures numériques pour les scènes et les courbes d'historique.
+Les données CAMS, elles, suivent les paliers du Réseau européen d'aérobiologie
+(EAN), qui en compte six. Ils sont repliés sur les quatre niveaux de Gladys :
 
-> **Appareil déjà créé ?** Les mesures texte par pollen sont arrivées après la
-> première version de l'intégration. Un appareil créé avant s'affiche dans
-> l'onglet **Découverte** avec un bouton **Mettre à jour** : un clic ajoute les
-> nouvelles mesures sans toucher à l'historique ni à la place de l'appareil dans
-> vos pièces et vos scènes.
+| Palier EAN          | Niveau publié | Nom Gladys    |
+| ------------------- | ------------- | ------------- |
+| aucun               | 0             | Pas de risque |
+| très faible, faible | 1             | Faible        |
+| moyen               | 2             | Moyen         |
+| élevé, très élevé   | 3             | Élevé         |
+
+Rien d'important ne se perd dans ce repli : les deux paliers bas veulent tous
+les deux dire « il y en a à peine », et les deux paliers hauts « restez à
+l'intérieur si vous y réagissez ».
+
+Le niveau est calculé à partir de la concentration en grains de pollen par mètre
+cube d'air, avec des **seuils propres à chaque espèce** : 30 grains/m³, c'est une
+journée calme pour le bouleau (niveau 2) mais une journée chargée pour
+l'ambroisie (niveau 3), dont le pouvoir allergisant est bien plus fort.
+
+## Vous veniez d'une version en 0-5 ?
+
+Les premières versions publiaient les six paliers EAN tels quels, de 0 à 5. Ça
+ne marchait pas : Gladys ne sait nommer que quatre niveaux, donc un niveau 3
+s'affichait « Élevé » alors qu'il voulait dire « moyen », et les niveaux 4 et 5
+s'affichaient « Inconnu ». L'échelle publiée est maintenant celle de Gladys.
+
+Deux choses à vérifier après la mise à jour :
+
+- **L'appareil.** Il apparaît dans l'onglet **Découverte** avec un bouton
+  **Mettre à jour** : un clic suffit. L'historique, les pièces et les scènes sont
+  conservés.
+- **Vos scènes.** Un déclencheur ou une condition qui visait un niveau 4 ou 5 ne
+  correspond plus à rien : visez le niveau 3 (« élevé ») à la place. Un niveau 3
+  qui voulait dire « moyen » devient 2.
+
+L'historique déjà enregistré garde ses anciennes valeurs : sur un graphique qui
+couvre la bascule, les points d'avant sont sur l'échelle 0-5 et ceux d'après sur
+l'échelle 0-3. Ça se lit encore, mais la comparaison n'est pas juste sur cette
+période.
 
 ## La langue des noms
 
@@ -310,20 +308,20 @@ prévision CAMS est republiée une fois par jour, donc une scène déclenchée �
 chaque lecture partirait vingt-quatre fois pour la même valeur.
 
 Chaque déclencheur se filtre : le **lieu** (vide = n'importe lequel), les
-**niveaux** qui vous intéressent (cochez 4 et 5 pour ne réagir qu'aux pics), le
+**niveaux** qui vous intéressent (cochez 3 pour ne réagir qu'aux pics), le
 **sens** (à la hausse pour fermer les fenêtres, à la baisse pour les rouvrir), et
 pour le second les **espèces**.
 
 La scène reçoit ensuite de quoi écrire son message :
 `{{triggerEvent.data.summary}}` contient la phrase toute faite
-« Pollens à Maison : risque 4/5 (élevé), dominant Bouleau. », et
+« Pollens à Maison : risque 3/3 (élevé), dominant Bouleau. », et
 `location_name`, `level`, `level_label`, `previous_level`, `direction`, `taxon`,
 `taxon_name`, `measured_at` sont disponibles séparément.
 
 Deux précisions :
 
 - **rien ne part au démarrage** du conteneur : le niveau précédent est alors
-  inconnu, et « inconnu → 4 » n'est pas un changement. Le premier vrai
+  inconnu, et « inconnu → 3 » n'est pas un changement. Le premier vrai
   changement, lui, part normalement ;
 - **une espèce sans valeur ne déclenche rien** : une absence de mesure n'est pas
   un retour à zéro, et le dernier niveau connu est conservé.
@@ -340,7 +338,7 @@ Toujours dans l'éditeur de scènes, catégorie **Intégrations** :
 « Lire le risque pollinique » est ce qui transforme « tous les matins à 7 h » en
 « tous les matins à 7 h, dis-moi le risque » : choisissez le lieu, laissez
 **Risque global** (ou choisissez une espèce), puis envoyez un message contenant
-la sortie `summary`. Les sorties `level` (0 à 5), `level_label`, `taxon`,
+la sortie `summary`. Les sorties `level` (0 à 3), `level_label`, `taxon`,
 `taxon_name`, `concentration`, `location_name` et `measured_at` sont là si vous
 préférez composer votre propre phrase.
 

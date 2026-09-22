@@ -4,7 +4,8 @@
 
 External integration for [Gladys Assistant](https://gladysassistant.com)
 exposing the **pollen risk** of the locations you choose: one device per
-location, with a 0-to-5 risk level per pollen species.
+location, with a 0-to-3 risk level per pollen species — the scale of the Gladys
+core, the one it knows how to name.
 
 Built from the official
 [JavaScript integration template](https://github.com/GladysAssistant/integration-template-js).
@@ -144,16 +145,21 @@ current hour.
 Ten features per location, all read-only; the risks are historized, the text
 ones are labels and are not:
 
-- **Overall pollen risk** (0-5) — the worst of the six taxa;
-- **Overall pollen risk (text)** — the same level, spelled out;
+- **Overall pollen risk** (0-3) — the worst of the six taxa;
+- **Overall pollen risk (text)** — the same level, spelled out ("2/3 (medium)");
 - **Dominant pollen** (text) — which taxon drives that risk;
 - **Last data update** (text) — the hour the forecast is valid at;
-- one risk (0-5) per taxon: alder, birch, grass, mugwort, olive, ragweed.
+- one risk (0-3) per taxon: alder, birch, grass, mugwort, olive, ragweed.
 
-Concentrations are graded with **per-species thresholds** (`src/pollen/risk.js`):
-30 grains/m³ is a quiet day for birch and a heavy one for ragweed. A taxon the
-model has no value for publishes nothing at all — a missing measurement is not a
-zero risk.
+The scale is the core's own — `no-risk` / `low-risk` / `medium-risk` /
+`high-risk` — so the badge of the "device in a room" box, the widget rows and
+the scene events never disagree about what a level means. The six EAN bands the
+CAMS data follows are folded onto it: very low and low become 1, high and very
+high become 3 (`src/pollen/risk.js`).
+
+Concentrations are graded with **per-species thresholds**: 30 grains/m³ is a
+quiet day for birch and a heavy one for ragweed. A taxon the model has no value
+for publishes nothing at all — a missing measurement is not a zero risk.
 
 The date is that of the DATA, not of the last request: CAMS publishes once a day
 and Open-Meteo interpolates it hourly, so a successful refresh usually re-reads
@@ -203,7 +209,7 @@ be created.
 │  │  ├─ index.js                    #   provider registry + grading
 │  │  ├─ openMeteo.js                #   Open-Meteo / CAMS Europe driver (current + forecast)
 │  │  ├─ taxa.js                     #   the names of the six species
-│  │  └─ risk.js                     #   grains/m³ -> 0-5 risk, per species
+│  │  └─ risk.js                     #   grains/m³ -> 0-3 risk, per species
 │  ├─ devices/
 │  │  ├─ index.js                    #   devices = a projection of the locations
 │  │  └─ pollenStation.js            #   the device type (features, poll, states)
