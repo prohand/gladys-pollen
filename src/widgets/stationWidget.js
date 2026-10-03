@@ -225,11 +225,21 @@ export const stationWidget = {
     const location = findLocationByDeviceId(gladys, config, settings?.location);
     if (!location) {
       // Either nothing is picked yet, or the device the instance points at is
-      // gone: the same sentence fixes both.
+      // gone: the same sentence fixes both. The log names what was received,
+      // the one thing the card cannot show.
+      logger.warn(`Widget setting "location" matches no watched place: ${settings?.location}`);
       return emptyState(NO_LOCATION);
     }
 
     const taxa = selectedTaxa(settings?.taxa);
+    // The curve is asked for NOW, alongside the reading, never after it: the
+    // core waits 15 s for the whole content, and two requests of up to 10 s
+    // each, one after the other, would overrun it — the reader would get
+    // "unavailable" instead of a card. `buildForecast` never rejects.
+    const wantsForecast = settings?.forecast !== false && settings?.forecast !== 'false';
+    const chartPromise = wantsForecast
+      ? stationWidget.buildForecast(location, taxa, lang)
+      : Promise.resolve(null);
     let reading;
     try {
       reading = await readPollenRisk(location);
@@ -258,11 +268,9 @@ export const stationWidget = {
     }
     components.push(speciesStatus(risks, level, taxa, lang));
 
-    if (settings?.forecast !== false && settings?.forecast !== 'false') {
-      const chart = await stationWidget.buildForecast(location, taxa, lang);
-      if (chart) {
-        components.push(chart);
-      }
+    const chart = await chartPromise;
+    if (chart) {
+      components.push(chart);
     }
 
     const measuredAt = formatDateTime(reading.measuredAt, lang);

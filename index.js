@@ -218,7 +218,16 @@ for (const [actionKey, handler] of Object.entries(SCENE_ACTION_HANDLERS)) {
 // widget key, and both are handed the CURRENT configuration — a widget built
 // on a stale location list would show a place the user removed.
 for (const widget of WIDGETS) {
-  gladys.onWidgetGet(widget.key, (options) => widget.getContent(gladys, config, options));
+  gladys.onWidgetGet(widget.key, async (options) => {
+    try {
+      return await widget.getContent(gladys, config, options);
+    } catch (err) {
+      // The SDK acks a thrown error to the core and logs nothing: without this
+      // line a card stuck on "unavailable" leaves no trace in these logs.
+      logger.error(`Widget "${widget.key}" content failed`, err);
+      throw err;
+    }
+  });
   gladys.onWidgetAction(widget.key, (actionKey, params, options) =>
     widget.onAction(gladys, config, actionKey, params, options),
   );

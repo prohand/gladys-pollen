@@ -71,7 +71,7 @@ function currentPayload({ birch = 80, grass = 2, olive = 0 } = {}) {
   };
 }
 
-/** The station card needs TWO requests: the current hour, then the curve. */
+/** The station card needs TWO requests: the current hour and the curve. */
 function stubFetch({ current = currentPayload(), hourly = hourlyPayload(), ok = true } = {}) {
   const calls = [];
   globalThis.fetch = async (url) => {
@@ -343,6 +343,28 @@ test('a failing forecast costs the curve, never the risk', async () => {
   );
   assert.deepEqual(componentsOf(content, 'chart'), []);
   assert.equal(componentsOf(content, 'gauge').length, 1);
+});
+
+test('the curve is asked for alongside the risk, not after it', async () => {
+  // The core waits 15 s for the whole content and each request may take up to
+  // 10 s: one after the other, they could overrun it.
+  const gladys = createFakeGladys();
+  let inFlight = 0;
+  let maxInFlight = 0;
+  globalThis.fetch = async (url) => {
+    inFlight += 1;
+    maxInFlight = Math.max(maxInFlight, inFlight);
+    await new Promise((resolve) => setTimeout(resolve, 5));
+    inFlight -= 1;
+    const body = String(url).includes('hourly=') ? hourlyPayload() : currentPayload();
+    return { ok: true, status: 200, json: async () => body };
+  };
+
+  const content = assertRenderable(
+    await station.getContent(gladys, config, { settings: { location: PARIS_DEVICE } }),
+  );
+  assert.equal(maxInFlight, 2);
+  assert.equal(componentsOf(content, 'chart').length, 1);
 });
 
 test('a provider outage says so instead of showing an empty card', async () => {
