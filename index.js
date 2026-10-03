@@ -219,8 +219,14 @@ for (const [actionKey, handler] of Object.entries(SCENE_ACTION_HANDLERS)) {
 // on a stale location list would show a place the user removed.
 for (const widget of WIDGETS) {
   gladys.onWidgetGet(widget.key, async (options) => {
+    const startedAt = Date.now();
     try {
-      return await widget.getContent(gladys, config, options);
+      const content = await widget.getContent(gladys, config, options);
+      // One line per pull (the core caches a content for its ttl): it tells a
+      // request that never arrived from one that took longer than the 15 s the
+      // core waits — both show the same "unavailable" card.
+      logger.info(`Widget "${widget.key}" served in ${Date.now() - startedAt} ms`);
+      return content;
     } catch (err) {
       // The SDK acks a thrown error to the core and logs nothing: without this
       // line a card stuck on "unavailable" leaves no trace in these logs.
