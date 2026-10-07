@@ -36,6 +36,7 @@ import { LOCATIONS_KEY, serializeLocations } from './src/locations.js';
 import { findProvider } from './src/pollen/index.js';
 import { SCENE_ACTION_HANDLERS } from './src/scenes/index.js';
 import { WIDGETS } from './src/widgets/index.js';
+import { withPullDeadline } from './src/widgetDeadline.js';
 
 const gladys = new GladysIntegration();
 
@@ -221,7 +222,9 @@ for (const widget of WIDGETS) {
   gladys.onWidgetGet(widget.key, async (options) => {
     const startedAt = Date.now();
     try {
-      const content = await widget.getContent(gladys, config, options);
+      // Raced against a deadline: a cold Open-Meteo read must give a loading
+      // card, never miss the core's 15 s and leave the card dead.
+      const content = await withPullDeadline(() => widget.getContent(gladys, config, options));
       // One line per pull (the core caches a content for its ttl): it tells a
       // request that never arrived from one that took longer than the 15 s the
       // core waits — both show the same "unavailable" card.
