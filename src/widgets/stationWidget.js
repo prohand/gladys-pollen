@@ -17,15 +17,11 @@
 import { createLogger } from '@gladysassistant/integration-sdk';
 import { formatDateTime } from '../dateTime.js';
 import { inLanguage } from '../language.js';
-import {
-  deviceExternalIds,
-  FEATURE,
-  findLocationByDeviceId,
-  refreshLocations,
-} from '../devices/pollenStation.js';
+import { deviceExternalIds, FEATURE, findLocationByDeviceId } from '../devices/pollenStation.js';
 import { allTaxa, readPollenForecast, readPollenRisk } from '../pollen/index.js';
 import { overallRisk, RISK_LEVEL_MAX, RISK_LEVELS } from '../pollen/risk.js';
 import { taxonName } from '../pollen/taxa.js';
+import { refreshLocations } from '../refresh.js';
 import { levelText } from '../riskText.js';
 import {
   clip,

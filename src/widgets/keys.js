@@ -2,8 +2,8 @@
 // The widget keys, and the "re-pull me now" nudge.
 //
 // A module of its own, with no import but the SDK, because the refresh cycle
-// has to nudge the widgets and the widgets have to read the devices: anything
-// bigger here would close that circle. Keys in, cards out.
+// (src/refresh.js) has to nudge the widgets and the widgets ask it for
+// refreshes: anything bigger here would close that circle. Keys in, cards out.
 // -----------------------------------------------------------------------------
 
 import { createLogger } from '@gladysassistant/integration-sdk';

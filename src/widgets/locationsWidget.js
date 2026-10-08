@@ -14,9 +14,10 @@
 
 import { createLogger } from '@gladysassistant/integration-sdk';
 import { inLanguage } from '../language.js';
-import { refreshLocations, watchedLocations } from '../devices/pollenStation.js';
+import { watchedLocations } from '../devices/pollenStation.js';
 import { readPollenRisks } from '../pollen/index.js';
 import { taxonName } from '../pollen/taxa.js';
+import { refreshLocations } from '../refresh.js';
 import { levelText } from '../riskText.js';
 import {
   clip,

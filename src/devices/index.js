@@ -8,12 +8,14 @@
 //
 // Every blueprint exposes the same shape:
 //   - key                              : short identifier (used in logs)
+//   - locationDeviceId(gladys, loc)    : the external_id of ONE location's device
 //   - deviceExternalIds(gladys, config): every external_id it publishes
 //   - buildDevices(gladys, config)     : the discovery payloads sent to Gladys
-//   - onPoll(gladys, config, id)        (optional): read of ONE device
-//   - startPolling / refresh            (optional): self-driven refresh
-//   - actions                           (optional): manifest action handlers,
-//     keyed by the action `key` declared in gladys-assistant-integration.json
+//
+// A blueprint DESCRIBES devices and does nothing else. Reading and publishing
+// their states — the timer, a poll, a device just created — is src/refresh.js,
+// and the `test_provider` button is src/providerCheck.js: both import the
+// schema, so the schema importing them back would close a circle.
 //
 // Consequence for the Discovery tab: `publishDiscoveredDevices()` REPLACES the
 // previously published list, so re-publishing after every configuration change

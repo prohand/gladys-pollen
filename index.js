@@ -1,10 +1,12 @@
 // -----------------------------------------------------------------------------
 // Entry point of the Pollens integration.
 //
-// Role of this file: wire the SDK to the device registry (src/devices/) and to
-// the location manager (src/locationEditor.js). It holds NO pollen logic — the
-// Open-Meteo calls live in src/pollen/, the device definition in
-// src/devices/pollenStation.js, the configured locations in src/locations.js.
+// Role of this file: wire the SDK to the device registry (src/devices/), to the
+// refresh cycle (src/refresh.js) and to the location manager
+// (src/locationEditor.js). It holds NO pollen logic — the Open-Meteo calls live
+// in src/pollen/, the device definition in src/devices/pollenStation.js, the
+// refresh and its single-flight in src/refresh.js, the configured locations in
+// src/locations.js.
 // This file only:
 //   1. instantiates the SDK (connection, auth, reconnection: handled for you);
 //   2. registers the event handlers BEFORE connect();
@@ -27,7 +29,6 @@ import { GladysIntegration, logger } from '@gladysassistant/integration-sdk';
 import { applyConfigUpdate, isConfigured, normalizeConfig } from './src/config.js';
 import {
   buildDiscoveredDevices,
-  DEVICE_BLUEPRINTS,
   devicesForLog,
   findBlueprintByDevice,
   locationDeviceIds,
@@ -36,6 +37,12 @@ import { createLifecycle } from './src/lifecycle.js';
 import { createLocationEditor } from './src/locationEditor.js';
 import { LOCATIONS_KEY, serializeLocations } from './src/locations.js';
 import { findProvider } from './src/pollen/index.js';
+import { PROVIDER_ACTIONS } from './src/providerCheck.js';
+import {
+  pollDevice,
+  refreshCreatedDevice,
+  startPolling as startRefreshing,
+} from './src/refresh.js';
 import { SCENE_ACTION_HANDLERS } from './src/scenes/index.js';
 import { WIDGETS } from './src/widgets/index.js';
 import { withPullDeadline } from './src/widgetDeadline.js';
@@ -47,10 +54,10 @@ const gladys = new GladysIntegration();
 // through the event).
 let config = normalizeConfig();
 
-// Cleanup functions of the refresh timers. The devices declare no
-// `poll_frequency` — the core caps its own polling at one minute, far too fast
-// for a daily forecast — so the integration drives its own refresh.
-let pollingCleanups = [];
+// Cleanup of the refresh timer. The devices declare no `poll_frequency` — the
+// core caps its own polling at one minute, far too fast for a daily forecast —
+// so the integration drives its own refresh.
+let pollingCleanup = null;
 
 // Shown in the Supervision screen while no location has been added yet.
 const NOT_CONFIGURED_MESSAGE = {
@@ -101,25 +108,19 @@ async function publishDevices() {
   }
 }
 
-/** (Re)start the refresh timers of every blueprint that has one. */
+/** (Re)start the refresh timer on the current configuration. */
 function startPolling() {
   stopPolling();
-  pollingCleanups = DEVICE_BLUEPRINTS.filter(
-    (blueprint) => typeof blueprint.startPolling === 'function',
-  ).map((blueprint) =>
-    blueprint.startPolling(gladys, config, { reportStatus: lifecycle.reportStatus }),
-  );
+  pollingCleanup = startRefreshing(gladys, config, { reportStatus: lifecycle.reportStatus });
 }
 
 function stopPolling() {
-  for (const cleanup of pollingCleanups) {
-    try {
-      cleanup?.();
-    } catch (err) {
-      logger.error('Refresh timer cleanup failed', err);
-    }
+  try {
+    pollingCleanup?.();
+  } catch (err) {
+    logger.error('Refresh timer cleanup failed', err);
   }
-  pollingCleanups = [];
+  pollingCleanup = null;
 }
 
 /**
@@ -128,7 +129,7 @@ function stopPolling() {
  *
  * The timer FIRST: a refused publication must not leave the devices already
  * created without a refresh. The refresh itself is single-flight and resumes
- * the cadence when nothing changed (see pollenStation.startPolling), so a form
+ * the cadence when nothing changed (see startPolling in src/refresh.js), so a form
  * saved twice in a row does not re-read every place twice.
  */
 async function republish() {
@@ -182,22 +183,16 @@ gladys.onScanRequest(async () => {
 // values, and re-reading all of them for one new device was twenty locations'
 // worth of states for one.
 gladys.onDeviceCreated(async (device) => {
-  for (const blueprint of DEVICE_BLUEPRINTS) {
-    if (typeof blueprint.onDeviceCreated !== 'function') {
-      continue;
-    }
-    if (await blueprint.onDeviceCreated(gladys, config, device.external_id)) {
-      logger.info(`onDeviceCreated -> ${device.external_id}, its location refreshed right away`);
-      return;
-    }
+  if (await refreshCreatedDevice(gladys, config, device.external_id)) {
+    logger.info(`onDeviceCreated -> ${device.external_id}, its location refreshed right away`);
+    return;
   }
   logger.debug(`onDeviceCreated -> ${device.external_id} is not a device of ours`);
 });
 
 // --- Polling: Gladys asks to refresh one device ------------------------------
 gladys.onPoll(async (device) => {
-  const blueprint = findBlueprintByDevice(gladys, config, device);
-  if (!blueprint || typeof blueprint.onPoll !== 'function') {
+  if (!findBlueprintByDevice(gladys, config, device)) {
     // The device exists in Gladys but no location watches it: the user removed
     // the location without deleting the device. It can safely be deleted there.
     logger.warn(
@@ -206,16 +201,14 @@ gladys.onPoll(async (device) => {
     );
     return;
   }
-  await blueprint.onPoll(gladys, config, device.external_id);
+  await pollDevice(gladys, config, device.external_id);
 });
 
 // --- Manifest actions: buttons in the Configuration screen -------------------
 // Each action declared in the `actions` field of the manifest is registered per
 // key; the message resolved by the handler is displayed under the button.
-for (const blueprint of DEVICE_BLUEPRINTS) {
-  for (const [actionKey, handler] of Object.entries(blueprint.actions ?? {})) {
-    gladys.onAction(actionKey, (fields) => handler(gladys, { fields, config }));
-  }
+for (const [actionKey, handler] of Object.entries(PROVIDER_ACTIONS)) {
+  gladys.onAction(actionKey, (fields) => handler(gladys, { fields, config }));
 }
 for (const [actionKey, handler] of Object.entries(locationEditor.actions)) {
   gladys.onAction(actionKey, (fields) => handler(fields));

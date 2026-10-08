@@ -6,18 +6,22 @@
 import { test, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { createFakeGladys, gladysApiError } from './helpers/fakeGladys.js';
-import { hourAnswer, pointCount } from './helpers/openMeteo.js';
+import { hourAnswer, pointCount, stubOpenMeteo } from './helpers/openMeteo.js';
 import { normalizeConfig } from '../src/config.js';
-import {
-  deviceExternalIds,
-  poll,
-  pollenStation,
-  refreshLocations,
-} from '../src/devices/pollenStation.js';
+import { deviceExternalIds } from '../src/devices/pollenStation.js';
 import { resetHttpSleep, setHttpSleep } from '../src/http.js';
 import { clearPollenCache } from '../src/pollen/openMeteo.js';
-import { resetRiskMemory } from '../src/scenes/index.js';
+import {
+  MIN_REFRESH_SECONDS,
+  poll,
+  refreshCreatedDevice,
+  refreshCycle,
+  refreshLocations,
+  startPolling,
+} from '../src/refresh.js';
+import { resetRiskMemory, SCENE_TRIGGERS } from '../src/scenes/index.js';
 import { resetStatePublisher, setStatePublisherClock } from '../src/statePublisher.js';
+import { WIDGET_KEYS } from '../src/widgets/index.js';
 
 const paris = {
   id: 'loc-paris001',
@@ -86,7 +90,7 @@ afterEach(() => {
 test('a cycle reads every place in ONE request', async () => {
   const gladys = createFakeGladys();
   const calls = stubPollen();
-  await pollenStation.refresh(gladys, config);
+  await refreshCycle(gladys, config);
   assert.equal(calls.length, 1);
   assert.equal(pointCount(calls[0]), 2);
   assert.deepEqual(gladys.statuses.at(-1), { connected: true, message: undefined });
@@ -97,7 +101,7 @@ test('a request covered by the running pass JOINS it', async () => {
   const { promise, open } = gate();
   const calls = stubPollen({ gate: promise });
 
-  const cycle = pollenStation.refresh(gladys, config);
+  const cycle = refreshCycle(gladys, config);
   const button = refreshLocations(gladys, [PARIS], 'fr');
   const scene = poll(gladys, LYON, 'fr');
   open();
@@ -140,7 +144,7 @@ test('requests the running pass does not cover are merged into ONE follow-up', a
 test('a provider outage is reported as such', async () => {
   const gladys = createFakeGladys();
   stubPollen({ ok: false });
-  await pollenStation.refresh(gladys, config);
+  await refreshCycle(gladys, config);
   const status = gladys.statuses.at(-1);
   assert.equal(status.connected, false);
   assert.match(status.message.en, /pollen forecast unavailable: Open-Meteo HTTP 503/);
@@ -150,7 +154,7 @@ test('a provider outage is reported as such', async () => {
 test('a host-API 429 is NOT blamed on the pollen provider', async () => {
   const gladys = createFakeGladys({ refuseStates: () => gladysApiError(429) });
   stubPollen();
-  await pollenStation.refresh(gladys, config);
+  await refreshCycle(gladys, config);
   const status = gladys.statuses.at(-1);
   assert.equal(status.connected, false);
   assert.match(status.message.en, /Gladys rate limit reached \(HTTP 429\)/);
@@ -163,7 +167,7 @@ test('a host-API 429 is NOT blamed on the pollen provider', async () => {
 test('another host-API refusal names Gladys too', async () => {
   const gladys = createFakeGladys({ refuseStates: () => gladysApiError(400, 'invalid state') });
   stubPollen();
-  await pollenStation.refresh(gladys, config);
+  await refreshCycle(gladys, config);
   assert.match(
     gladys.statuses.at(-1).message.en,
     /Gladys did not accept the states: invalid state/,
@@ -173,10 +177,10 @@ test('another host-API refusal names Gladys too', async () => {
 test('a place whose states were refused fires no scene event', async () => {
   const gladys = createFakeGladys({ refuseStates: () => gladysApiError(429) });
   stubPollen({ birch: 2 });
-  await pollenStation.refresh(gladys, config);
+  await refreshCycle(gladys, config);
   clearPollenCache();
   stubPollen({ birch: 400 });
-  await pollenStation.refresh(gladys, config);
+  await refreshCycle(gladys, config);
   // The event would describe a value the features do not hold.
   assert.deepEqual(gladys.sceneEvents, []);
 });
@@ -190,7 +194,7 @@ test('a single poll that Gladys refuses throws, for the caller to count', async 
 
 test('no place, no status: "add a location" must stay on screen', async () => {
   const gladys = createFakeGladys();
-  await pollenStation.refresh(gladys, normalizeConfig({ locations: [] }));
+  await refreshCycle(gladys, normalizeConfig({ locations: [] }));
   assert.deepEqual(gladys.statuses, []);
 });
 
@@ -198,7 +202,7 @@ test('the status goes through the reporter it is given', async () => {
   const gladys = createFakeGladys();
   stubPollen();
   const reported = [];
-  await pollenStation.refresh(gladys, config, {
+  await refreshCycle(gladys, config, {
     reportStatus: async (...args) => reported.push(args),
   });
   assert.deepEqual(reported, [[true]]);
@@ -210,7 +214,7 @@ test('a created device refreshes ITS place only', async () => {
   const calls = stubPollen();
   const device = deviceExternalIds(gladys, LYON).device;
 
-  assert.equal(await pollenStation.onDeviceCreated(gladys, config, device), true);
+  assert.equal(await refreshCreatedDevice(gladys, config, device), true);
   assert.equal(calls.length, 1);
   assert.equal(pointCount(calls[0]), 1);
   assert.ok(gladys.published.every((state) => state.featureExternalId.startsWith(device)));
@@ -219,7 +223,7 @@ test('a created device refreshes ITS place only', async () => {
 test('a created device that is not ours refreshes nothing', async () => {
   const gladys = createFakeGladys();
   const calls = stubPollen();
-  assert.equal(await pollenStation.onDeviceCreated(gladys, config, 'zigbee:lamp'), false);
+  assert.equal(await refreshCreatedDevice(gladys, config, 'zigbee:lamp'), false);
   assert.equal(calls.length, 0);
 });
 
@@ -228,7 +232,7 @@ test('a created device that is not ours refreshes nothing', async () => {
 test('a first start refreshes straight away', async () => {
   const gladys = createFakeGladys();
   const calls = stubPollen();
-  const stop = pollenStation.startPolling(gladys, config);
+  const stop = startPolling(gladys, config);
   stop();
   await new Promise((resolve) => setImmediate(resolve));
   assert.equal(calls.length, 1);
@@ -239,11 +243,11 @@ test('a restart right after a healthy cycle resumes the cadence instead', async 
   // whatever the age of the data.
   const gladys = createFakeGladys();
   stubPollen();
-  await pollenStation.refresh(gladys, config);
+  await refreshCycle(gladys, config);
   const published = gladys.published.length;
   const statuses = gladys.statuses.length;
 
-  const stop = pollenStation.startPolling(gladys, config);
+  const stop = startPolling(gladys, config);
   stop();
   await new Promise((resolve) => setImmediate(resolve));
   assert.equal(gladys.published.length, published, 'nothing re-published');
@@ -255,11 +259,11 @@ test('a restart right after a healthy cycle resumes the cadence instead', async 
 test('a restart on another list, or another language, refreshes straight away', async () => {
   const gladys = createFakeGladys();
   const calls = stubPollen();
-  await pollenStation.refresh(gladys, config);
+  await refreshCycle(gladys, config);
   assert.equal(calls.length, 1);
 
   const english = normalizeConfig({ locations: [paris, lyon], language: 'en' });
-  const stop = pollenStation.startPolling(gladys, english);
+  const stop = startPolling(gladys, english);
   stop();
   await new Promise((resolve) => setImmediate(resolve));
   const text = deviceExternalIds(gladys, PARIS).feature('overall-risk-text');
@@ -269,10 +273,59 @@ test('a restart on another list, or another language, refreshes straight away', 
 test('a restart after a FAILED cycle refreshes straight away', async () => {
   const gladys = createFakeGladys();
   stubPollen({ ok: false });
-  await pollenStation.refresh(gladys, config);
+  await refreshCycle(gladys, config);
   const calls = stubPollen();
-  const stop = pollenStation.startPolling(gladys, config);
+  const stop = startPolling(gladys, config);
   stop();
   await new Promise((resolve) => setImmediate(resolve));
   assert.equal(calls.length, 1);
+});
+
+test('the refresh timer never runs faster than the floor', async () => {
+  const gladys = createFakeGladys();
+  const config = normalizeConfig({ locations: [], poll_frequency: 900 });
+  // No location: the cycle publishes nothing, and reports nothing either.
+  const stop = startPolling(gladys, config);
+  stop();
+  assert.ok(MIN_REFRESH_SECONDS <= config.poll_frequency);
+});
+
+// -----------------------------------------------------------------------------
+// What a refresh does BESIDES publishing states, since Gladys 5.1: it fires the
+// scene triggers of what moved, and tells the open dashboards to re-pull their
+// cards. Both are wiring, and wiring is what silently goes missing.
+// -----------------------------------------------------------------------------
+
+test('a poll publishes the states, then fires what moved', async () => {
+  const gladys = createFakeGladys();
+  const location = PARIS;
+
+  stubOpenMeteo(hourAnswer({ birch: 2 }));
+  await poll(gladys, location, 'fr');
+  assert.ok(gladys.published.length > 0);
+  assert.deepEqual(gladys.sceneEvents, [], 'the first reading is not a transition');
+
+  clearPollenCache();
+  stubOpenMeteo(hourAnswer({ birch: 400 }));
+  await poll(gladys, location, 'fr');
+  assert.deepEqual(
+    gladys.sceneEvents.map((event) => event.key),
+    [SCENE_TRIGGERS.RISK_LEVEL_CHANGED, SCENE_TRIGGERS.TAXON_RISK_LEVEL_CHANGED],
+  );
+});
+
+test('a refresh cycle nudges the widgets once, whatever the number of places', async () => {
+  const gladys = createFakeGladys();
+  stubOpenMeteo(hourAnswer({ birch: 80 }));
+  await refreshCycle(gladys, normalizeConfig({ locations: [paris, lyon] }));
+  assert.deepEqual(gladys.widgetRefreshes, [WIDGET_KEYS.STATION, WIDGET_KEYS.LOCATIONS]);
+});
+
+test('a cycle that fails still nudges nothing it cannot refresh', async () => {
+  const gladys = createFakeGladys();
+  stubOpenMeteo({}, { ok: false, status: 503 });
+  // The cycle NEVER throws: a rejection in a timer callback would take the
+  // container down with it.
+  await refreshCycle(gladys, normalizeConfig({ locations: [paris] }));
+  assert.equal(gladys.statuses.at(-1).connected, false);
 });

@@ -10,12 +10,12 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { DEFAULT_CONFIG, POLL_FREQUENCY_LIMITS } from '../src/config.js';
-import { DEVICE_BLUEPRINTS } from '../src/devices/index.js';
 import { DEFAULT_LANGUAGE, LANGUAGES } from '../src/language.js';
 import { createLocationEditor } from '../src/locationEditor.js';
 import { MAX_LOCATIONS } from '../src/locations.js';
 import { allTaxa } from '../src/pollen/index.js';
 import { RISK_LEVEL_LABELS, RISK_LEVEL_MAX } from '../src/pollen/risk.js';
+import { PROVIDER_ACTIONS } from '../src/providerCheck.js';
 import { OVERALL_TAXON, SCENE_ACTION_HANDLERS, SCENE_TRIGGERS } from '../src/scenes/index.js';
 import { WIDGETS } from '../src/widgets/index.js';
 
@@ -23,10 +23,10 @@ const manifest = JSON.parse(
   await readFile(new URL('../gladys-assistant-integration.json', import.meta.url), 'utf8'),
 );
 
-// Every action key the code actually registers: the device blueprints own the
-// ones about pollen, the location manager the ones about the list.
+// Every action key the code actually registers (index.js): the provider check
+// owns the one about pollen, the location manager the ones about the list.
 const HANDLED_ACTIONS = [
-  ...DEVICE_BLUEPRINTS.flatMap((blueprint) => Object.keys(blueprint.actions ?? {})),
+  ...Object.keys(PROVIDER_ACTIONS),
   ...Object.keys(
     createLocationEditor({
       getConfig: () => ({ locations: [] }),

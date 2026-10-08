@@ -39,6 +39,25 @@ in `config.locations`. Copying template device patterns will therefore mislead
 you — the blueprint's `buildDevices`/`deviceExternalIds` map over
 `watchedLocations(config)`.
 
+The device type is split in three, and the arrows only point one way:
+
+- **`src/devices/pollenStation.js`** — the SCHEMA: identity
+  (`deviceExternalIds`, `watchedLocations`, `findLocationByDeviceId`), the
+  features, `buildDevice`, `buildStates`, and the blueprint the registry
+  publishes. No I/O, and it imports nothing that publishes.
+- **`src/refresh.js`** — everything that reads a location and PUBLISHES its
+  states: the single-flight passes, the timer (`startPolling`), the cycle and
+  its connection status (`refreshCycle`), a poll (`pollDevice`), a created
+  device (`refreshCreatedDevice`), and `refreshLocations` for the widgets and
+  the scene actions. `index.js` wires it directly.
+- **`src/providerCheck.js`** — the `test_provider` button (`PROVIDER_ACTIONS`),
+  which reads without publishing and reuses `failureDetail` so its lines blame
+  the same party as the connection status.
+
+Both of the last two import the schema; the schema importing them back is the
+circle this split exists to avoid, so a blueprint stays a description of
+devices, never a holder of their refresh.
+
 A device's identity is `<type>:<location id>`, and the location id is generated
 once, when the user adds the location. Renaming a location or moving its point
 keeps the device, its history and its place in rooms and scenes.
@@ -158,9 +177,9 @@ same test ties every declaration to its handler in both directions.
   matters goes first. The SDK exports the core's own checks
   (`validateWidgetContent`), and `test/widgets.test.js` asserts `[]` for every
   card built here — anything else means the core would alter it.
-  `src/widgets/keys.js` exists only to break a cycle: the refresh cycle nudges
-  the widgets, the widgets read the devices, so the keys and `nudgeWidgets` live
-  in a module that imports nothing of ours.
+  `src/widgets/keys.js` exists only to break a cycle: the refresh cycle
+  (`src/refresh.js`) nudges the widgets, the widgets ask it for refreshes, so
+  the keys and `nudgeWidgets` live in a module that imports nothing of ours.
 - **`src/scenes/riskEvents.js`** — an event is a TRANSITION, never a state. Every
   level is already a device feature; what a trigger adds is the move, fired
   once, with the wording a scene needs. Nothing fires on the first reading after
@@ -267,7 +286,7 @@ empty. The core sources are worth cloning when in doubt
 - **The core silently drops states for a feature that does not exist yet.**
   States published before the user adds the device go nowhere, which is why
   `index.js` listens to `onDeviceCreated` and refreshes THAT device's location
-  immediately (`pollenStation.onDeviceCreated`).
+  immediately (`refreshCreatedDevice` in `src/refresh.js`).
 - **300 states a minute per integration, 100 per request; past that, 429 and
   the states are lost.** A station publishes 16, so the 20 locations allowed
   are over the limit in one cycle. Every state goes through
@@ -347,7 +366,7 @@ empty. The core sources are worth cloning when in doubt
   take the container down; one location failing must not silence the others.
   That now covers the scene events it fires (a 404 on an undeclared key, a 429
   past the rate limit) and the widget nudge it sends.
-- **A refresh is SINGLE-FLIGHT** (`refreshOutcomes` in `pollenStation.js`).
+- **A refresh is SINGLE-FLIGHT** (`refreshOutcomes` in `src/refresh.js`).
   The timer, a reconnection, a saved form, a created device, a widget button
   and a scene action all refresh; one pass runs at a time per SDK instance, a
   request it covers JOINS it, any other is merged into ONE follow-up pass. Every

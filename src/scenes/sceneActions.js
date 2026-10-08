@@ -25,12 +25,9 @@
 import { createLogger } from '@gladysassistant/integration-sdk';
 import { formatDateTime } from '../dateTime.js';
 import { DEFAULT_LANGUAGE } from '../language.js';
-import {
-  findLocationByDeviceId,
-  refreshLocations,
-  watchedLocations,
-} from '../devices/pollenStation.js';
+import { findLocationByDeviceId, watchedLocations } from '../devices/pollenStation.js';
 import { readPollenRisk } from '../pollen/index.js';
+import { refreshLocations } from '../refresh.js';
 import { taxonName } from '../pollen/taxa.js';
 import { levelLabel, noDataSummary, overallSummary, taxonSummary } from '../riskText.js';
 import { nudgeWidgets } from '../widgets/keys.js';
