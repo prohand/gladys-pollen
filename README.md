@@ -214,6 +214,9 @@ be created.
 │  ├─ richText.js                    #   the only emphasis an action message can carry
 │  ├─ dateTime.js                    #   the hour a reading is valid at, and how it is written
 │  ├─ riskText.js                    #   how a risk is SAID (events, outputs, widget rows)
+│  ├─ refresh.js                     # ← the refresh: timer, single-flight passes, status
+│  ├─ statePublisher.js              #   states paced under the host API's rate limit
+│  ├─ providerCheck.js               #   the "test the provider" button
 │  ├─ pollen/                        # ← the pollen data sources
 │  │  ├─ index.js                    #   provider registry + grading
 │  │  ├─ openMeteo.js                #   Open-Meteo / CAMS Europe driver (current + forecast)
@@ -221,7 +224,7 @@ be created.
 │  │  └─ risk.js                     #   grains/m³ -> 0-5 band -> 0-3 risk
 │  ├─ devices/
 │  │  ├─ index.js                    #   devices = a projection of the locations
-│  │  └─ pollenStation.js            #   the device type (features, poll, states)
+│  │  └─ pollenStation.js            #   the device type (identity, features, states)
 │  ├─ scenes/                        # ← the scene editor cards
 │  │  ├─ index.js                    #   registry: handlers + trigger keys
 │  │  ├─ riskEvents.js               #   transitions -> scene events (fires on a MOVE only)

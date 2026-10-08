@@ -7,14 +7,17 @@
 //
 // It stops at ten rows, which is the `status` component's own cap: the places
 // beyond are counted in the caption rather than silently dropped, and only the
-// rows actually shown are read from the provider.
+// rows actually shown are read from the provider — in ONE request for all of
+// them, and usually in none: the refresh cycle has just read the same places
+// and the provider cache outlives this card's ttl.
 // -----------------------------------------------------------------------------
 
 import { createLogger } from '@gladysassistant/integration-sdk';
 import { inLanguage } from '../language.js';
-import { refreshLocations, watchedLocations } from '../devices/pollenStation.js';
-import { readPollenRisk } from '../pollen/index.js';
+import { watchedLocations } from '../devices/pollenStation.js';
+import { readPollenRisks } from '../pollen/index.js';
 import { taxonName } from '../pollen/taxa.js';
+import { refreshLocations } from '../refresh.js';
 import { levelText } from '../riskText.js';
 import {
   clip,
@@ -79,20 +82,16 @@ export const locationsWidget = {
     }
 
     // Only the rows that will be shown are read: the places past the cap would
-    // cost a request each for a line nobody sees.
+    // cost a point in the request for a line nobody sees.
     const shown = every.slice(0, MAX_ROWS);
-    const rows = await Promise.all(
-      shown.map(async (location) => {
-        try {
-          return locationRow(location, await readPollenRisk(location), lang);
-        } catch (err) {
-          // One place failing is one row saying so, never a card saying
-          // nothing about the others.
-          logger.error(`Widget row failed for ${location.name}`, err);
-          return locationRow(location, null, lang);
-        }
-      }),
-    );
+    const rows = (await readPollenRisks(shown)).map(({ location, reading, error }) => {
+      if (error) {
+        // One place failing is one row saying so, never a card saying nothing
+        // about the others.
+        logger.error(`Widget row failed for ${location.name}`, error);
+      }
+      return locationRow(location, reading ?? null, lang);
+    });
 
     return {
       ttl_seconds: CONTENT_TTL_SECONDS,

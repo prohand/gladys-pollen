@@ -8,12 +8,14 @@
 //
 // Every blueprint exposes the same shape:
 //   - key                              : short identifier (used in logs)
+//   - locationDeviceId(gladys, loc)    : the external_id of ONE location's device
 //   - deviceExternalIds(gladys, config): every external_id it publishes
 //   - buildDevices(gladys, config)     : the discovery payloads sent to Gladys
-//   - onPoll(gladys, config, id)        (optional): read of ONE device
-//   - startPolling / refresh            (optional): self-driven refresh
-//   - actions                           (optional): manifest action handlers,
-//     keyed by the action `key` declared in gladys-assistant-integration.json
+//
+// A blueprint DESCRIBES devices and does nothing else. Reading and publishing
+// their states — the timer, a poll, a device just created — is src/refresh.js,
+// and the `test_provider` button is src/providerCheck.js: both import the
+// schema, so the schema importing them back would close a circle.
 //
 // Consequence for the Discovery tab: `publishDiscoveredDevices()` REPLACES the
 // previously published list, so re-publishing after every configuration change
@@ -48,4 +50,22 @@ export function findBlueprintByDevice(gladys, config, device) {
  */
 export function locationDeviceIds(gladys, location) {
   return DEVICE_BLUEPRINTS.map((blueprint) => blueprint.locationDeviceId(gladys, location));
+}
+
+/** Device params whose VALUE never goes to a log: the point of a location. */
+const PRIVATE_PARAMS = new Set(['LATITUDE', 'LONGITUDE']);
+
+/**
+ * A discovery payload as it may be LOGGED: everything that tells which feature
+ * the core refused, nothing that tells where somebody lives. The params keep
+ * their names, so the shape logged is still the shape sent.
+ * @param {Array<object>} devices
+ */
+export function devicesForLog(devices = []) {
+  return devices.map((device) => ({
+    ...device,
+    params: (device.params ?? []).map((param) =>
+      PRIVATE_PARAMS.has(param?.name) ? { ...param, value: '<redacted>' } : param,
+    ),
+  }));
 }

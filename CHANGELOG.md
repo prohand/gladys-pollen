@@ -6,6 +6,22 @@ All notable changes to this integration are documented here. The format follows
 
 ## [Unreleased]
 
+### Fixed
+
+- Saving the Configuration form no longer empties the location list in memory (which stopped every refresh until the next restart).
+- Two location buttons clicked together no longer lose one of the two locations.
+- A transient Gladys error at connection no longer stops the refresh until the next reconnection: the timer is armed first, and the initialization is retried a minute later.
+- A Gladys rate limit (HTTP 429) is no longer reported as a pollen source failure.
+
+### Changed
+
+- All places are read from Open-Meteo in a single request, the current hour and the two-day curve in the same one, cached 30 minutes (longer than the widget refresh).
+- Measurements are sent to Gladys in batches paced under its 300 values a minute, with one retry on a 429.
+- Open-Meteo and the geocoder are asked once more on a 429, a 5xx or a network error.
+- One refresh at a time: buttons, scenes, timer, reconnection and saved form share it; a created device refreshes its own place only, and a reconnection right after a refresh does not re-read everything.
+- The coordinates of the places no longer appear in the logs.
+- Docker image: base image pinned by digest, `npm ci` only, `/data` owned by the `node` user.
+
 ## [2.2.0] - 2026-10-07
 
 - Maintenance release, no functional change.

@@ -27,41 +27,28 @@
 // generated once when the user adds the location: renaming a location, or
 // moving its point, keeps the device, its history and its place in the rooms and
 // scenes.
+//
+// This module is the device SCHEMA and nothing else: what a device is, which
+// location it belongs to, and how a reading becomes its states. It does no I/O
+// and imports nothing that publishes, so everything that does — the refresh
+// cycle (src/refresh.js), the provider check (src/providerCheck.js), the
+// widgets and the scene actions — can import it without closing a circle.
 // -----------------------------------------------------------------------------
 
-import {
-  createLogger,
-  DEVICE_FEATURE_CATEGORIES,
-  DEVICE_FEATURE_TYPES,
-} from '@gladysassistant/integration-sdk';
+import { DEVICE_FEATURE_CATEGORIES, DEVICE_FEATURE_TYPES } from '@gladysassistant/integration-sdk';
 import { formatDateTime } from '../dateTime.js';
 import { DEFAULT_LANGUAGE, inLanguage } from '../language.js';
-import { allTaxa, findProvider, readPollenRisk } from '../pollen/index.js';
-import { RISK_LEVEL_LABELS, RISK_LEVEL_MAX } from '../pollen/risk.js';
+import { allTaxa, findProvider } from '../pollen/index.js';
+import { RISK_LEVEL_MAX } from '../pollen/risk.js';
 import { taxonName } from '../pollen/taxa.js';
 import { eanLevelText, levelText } from '../riskText.js';
-import { publishRiskEvents } from '../scenes/riskEvents.js';
-import { nudgeWidgets } from '../widgets/keys.js';
-import {
-  describeLocation,
-  LOCATION_LINE_SEPARATOR,
-  locationLine,
-  positionOf,
-  usableLocations,
-} from '../locations.js';
+import { usableLocations } from '../locations.js';
 
 export const DEVICE_TYPE = 'pollen-station';
 
 // Re-exported: the taxon vocabulary moved to src/pollen/taxa.js when the
 // widgets and the scene events started needing it too.
 export { taxonName };
-
-const logger = createLogger({ name: DEVICE_TYPE });
-
-// Floor on the refresh interval, whatever the configuration says. Open-Meteo is
-// a free public service and the CAMS forecast is interpolated hourly: hammering
-// it buys nothing.
-export const MIN_REFRESH_SECONDS = 300;
 
 /** Non-taxon features. Prefixed to never collide with a taxon key. */
 export const FEATURE = {
@@ -217,7 +204,7 @@ export function buildDevice(gladys, location, language = DEFAULT_LANGUAGE) {
     // intervals in MILLISECONDS, capped at one minute, and anything else has
     // the WHOLE batch refused — which is what left the Discovery tab empty.
     // A pollen forecast changes once a day, so the integration drives its own
-    // refresh instead; see startPolling below.
+    // refresh instead; see startPolling in src/refresh.js.
     //
     // Keep the resolved position on the device: useful when debugging a wrong
     // town, and it survives a restart independently of the configuration.
@@ -272,8 +259,8 @@ function riskWording(eanLevel, level, language) {
 
 /**
  * Build the `publishStates` batch of one location from a provider reading.
- * Split out of `poll()` so the mapping "reading -> states" is testable without
- * a Gladys connection.
+ * Kept apart from `poll()` (src/refresh.js) so the mapping "reading -> states"
+ * is testable without a Gladys connection.
  *
  * The TEXT states are written in the same language as the features that carry
  * them: a stored state is a string like a feature name, translated by nobody
@@ -336,138 +323,12 @@ export function buildStates(ids, reading, language = DEFAULT_LANGUAGE) {
 }
 
 /**
- * Read one location and publish its states.
- * Throws on an unreadable answer — `refresh` is what never throws.
- * @param {import('@gladysassistant/integration-sdk').GladysIntegration} gladys
- * @param {import('../locations.js').Location} location
- * @param {string} [language] language of the published TEXT states
+ * The blueprint the device registry (src/devices/index.js) publishes: identity
+ * and discovery payloads only. What REFRESHES these devices — the timer, a
+ * poll, a device just created — lives in src/refresh.js, and the
+ * `test_provider` button in src/providerCheck.js: both read this schema, and
+ * keeping them out of it is what lets them do so without a circular import.
  */
-export async function poll(gladys, location, language = DEFAULT_LANGUAGE) {
-  const ids = deviceExternalIds(gladys, location);
-  logger.info(`Polling pollen risk for ${location.name}...`);
-
-  // ------------------------------------------------------------------ //
-  // DO THE WORK: read the pollen concentrations and grade them.
-  // ------------------------------------------------------------------ //
-  const reading = await readPollenRisk(location);
-
-  const states = buildStates(ids, reading, language);
-  if (states.length === 0) {
-    logger.warn(`No pollen data for ${location.name}, nothing published`);
-    return reading;
-  }
-
-  // The logs stay English whatever the devices are named: they are read in the
-  // container output, next to the SDK's own.
-  const overall = RISK_LEVEL_LABELS[reading.overall.level]?.en ?? 'unknown';
-  logger.info(
-    `${location.name}: overall risk ${reading.overall.level} (${overall})` +
-      `${reading.overall.taxon ? `, dominant ${taxonName(reading.overall.taxon, 'en')}` : ''}`,
-  );
-
-  // One request for every feature of the device (batch, up to 100).
-  await gladys.publishStates(states);
-
-  // States first, events after: a scene started by the event reads the
-  // features, and it must find the value the event talks about. Nothing is
-  // fired unless a level actually MOVED — see src/scenes/riskEvents.js.
-  await publishRiskEvents(gladys, {
-    location,
-    deviceExternalId: ids.device,
-    reading,
-    language,
-  });
-  return reading;
-}
-
-/**
- * Read a list of locations and publish what they answer, counting the failures
- * instead of propagating them.
- *
- * Shared by everything that refreshes ON DEMAND — the scene action, the widget
- * buttons — because they all owe their caller a count rather than a stack
- * trace, and one place failing must never cost the others their refresh. The
- * scheduled cycle has its own reporting (see `refresh`).
- * @param {import('@gladysassistant/integration-sdk').GladysIntegration} gladys
- * @param {import('../locations.js').Location[]} locations
- * @param {string} [language] language of the published TEXT states
- * @returns {Promise<{ refreshed: number, failed: number }>}
- */
-export async function refreshLocations(gladys, locations, language = DEFAULT_LANGUAGE) {
-  const outcomes = await Promise.all(
-    locations.map(async (location) => {
-      try {
-        await poll(gladys, location, language);
-        return true;
-      } catch (err) {
-        logger.error(`On-demand refresh failed for ${describeLocation(location)}`, err);
-        return false;
-      }
-    }),
-  );
-  const refreshed = outcomes.filter(Boolean).length;
-  return { refreshed, failed: outcomes.length - refreshed };
-}
-
-/** Why a location could not be read, WITHOUT naming it (the line already does). */
-function failureDetail(err) {
-  const reason = String(err?.message ?? err).slice(0, 120);
-  return {
-    en: `pollen refresh failed: ${reason}`,
-    fr: `le rafraîchissement des pollens a échoué : ${reason}`,
-  };
-}
-
-/** The same reason, named, for the one-line connection status. */
-function failureMessage(err, locationName) {
-  const detail = failureDetail(err);
-  return {
-    en: `${locationName}: ${detail.en}`,
-    fr: `${locationName} : ${detail.fr}`,
-  };
-}
-
-const NO_LOCATION_MESSAGE = {
-  en: 'No location with usable coordinates yet. Add one with "Add a location".',
-  fr: 'Aucun lieu avec des coordonnées utilisables. Ajoutez-en un avec « Ajouter un lieu ».',
-};
-
-/**
- * A header plus one line per location, in both languages — EXACTLY the format of
- * the location listing (`• n. name — detail`, built by the same `locationLine`),
- * because both actions answer about the same list under the same numbers.
- */
-function report(header, lines) {
-  const join = (language) =>
-    lines
-      .map((line) => locationLine(line.position, line.name, line[language]))
-      .join(LOCATION_LINE_SEPARATOR);
-  return {
-    en: `${header.en}${LOCATION_LINE_SEPARATOR}${join('en')}`,
-    fr: `${header.fr}${LOCATION_LINE_SEPARATOR}${join('fr')}`,
-  };
-}
-
-/**
- * Run `read` on every location, turning a failure into a LINE rather than into a
- * rejection: one location the provider refuses must not hide the answer of the
- * others, and a bare error naming no location helps nobody.
- */
-async function readEachLocation(config, locations, read) {
-  const lines = await Promise.all(
-    locations.map(async (location) => {
-      const entry = { position: positionOf(config.locations, location.id), name: location.name };
-      try {
-        return { ...entry, failed: false, ...(await read(location)) };
-      } catch (err) {
-        logger.error(`Pollen query failed for ${location.name}`, err);
-        return { ...entry, failed: true, ...failureDetail(err) };
-      }
-    }),
-  );
-  return { lines, failed: lines.filter((line) => line.failed).length };
-}
-
 export const pollenStation = {
   key: DEVICE_TYPE,
 
@@ -485,138 +346,5 @@ export const pollenStation = {
     return watchedLocations(config).map((location) =>
       buildDevice(gladys, location, config.language),
     );
-  },
-
-  // Manifest actions owned by this device type (see the `actions` field of
-  // `gladys-assistant-integration.json`).
-  actions: {
-    /**
-     * Live check of the data source, on EVERY location: "is it working?" is a
-     * question about the install, not about one entry of a list, and nothing in
-     * this screen designates a single location anyway.
-     */
-    async test_provider(gladys, { config }) {
-      const locations = watchedLocations(config);
-      if (locations.length === 0) {
-        return NO_LOCATION_MESSAGE;
-      }
-      logger.info(`Action test_provider -> live request for ${locations.length} location(s)`);
-
-      const { lines, failed } = await readEachLocation(config, locations, async (location) => {
-        const reading = await readPollenRisk(location);
-        const level = reading.overall.level ?? 0;
-        const dominant = reading.overall.taxon;
-        // "It answers" and "it answers something recent" are two different
-        // questions, and this action is where both are asked.
-        const measuredAt = (language, prefix) => {
-          const at = formatDateTime(reading.measuredAt, language);
-          return at ? `, ${prefix} ${at}` : '';
-        };
-        return {
-          en:
-            `risk ${levelText(level, 'en')}` +
-            `${dominant ? `, dominant ${taxonName(dominant, 'en')}` : ''} — ${reading.provider}` +
-            measuredAt('en', 'updated'),
-          fr:
-            `risque ${levelText(level, 'fr')}` +
-            `${dominant ? `, dominant ${taxonName(dominant, 'fr')}` : ''} — ${reading.provider}` +
-            measuredAt('fr', 'à jour au'),
-        };
-      });
-
-      // "Provider OK" only when it actually is: the header counts the locations
-      // that failed, and each of their lines says why.
-      const header =
-        failed === 0
-          ? {
-              en: `Pollen provider OK — ${locations.length} location(s):`,
-              fr: `Fournisseur de pollens OK — ${locations.length} lieu(x) :`,
-            }
-          : {
-              en: `Pollen provider — ${failed} of ${locations.length} location(s) failing:`,
-              fr: `Fournisseur de pollens — ${failed} lieu(x) en échec sur ${locations.length} :`,
-            };
-      return report(header, lines);
-    },
-  },
-
-  /**
-   * Refresh ONE device, on a poll request Gladys sends for it. The devices
-   * declare no poll_frequency, so this normally never fires; it stays because a
-   * device created by an older version may still carry one.
-   * @param {string} externalId external_id of the device to refresh
-   */
-  async onPoll(gladys, config, externalId) {
-    const location = findLocationByDeviceId(gladys, config, externalId);
-    if (!location) {
-      throw new Error(`No location watches the device ${externalId}`);
-    }
-    await poll(gladys, location, config.language);
-  },
-
-  /**
-   * Drive the refresh ourselves.
-   *
-   * Gladys' own polling is not usable here: `poll_frequency` is a fixed enum of
-   * intervals in milliseconds whose slowest value is one minute, while the CAMS
-   * forecast is interpolated hourly. So the devices declare no poll_frequency
-   * and we run our own timer at the configured interval.
-   * @returns {() => void} cleanup, to stop the timer on disconnection
-   */
-  startPolling(gladys, config) {
-    const intervalMs = Math.max(MIN_REFRESH_SECONDS, config.poll_frequency) * 1000;
-    const count = watchedLocations(config).length;
-    logger.info(`Refreshing ${count} location(s) every ${Math.round(intervalMs / 1000)} s`);
-
-    // Refresh straight away: waiting a full hour for the first value would leave
-    // a freshly added device empty on the dashboard.
-    pollenStation.refresh(gladys, config);
-    const timer = setInterval(() => pollenStation.refresh(gladys, config), intervalMs);
-    return () => clearInterval(timer);
-  },
-
-  /**
-   * One refresh cycle over every location, which NEVER throws: a rejection
-   * inside a timer callback would become an unhandled rejection and take the
-   * container down. Outages are reported through `setConnectionStatus` instead,
-   * and the next cycle simply tries again.
-   */
-  async refresh(gladys, config) {
-    const locations = watchedLocations(config);
-    const outcomes = await Promise.all(
-      locations.map(async (location) => {
-        try {
-          await poll(gladys, location, config.language);
-          return null;
-        } catch (err) {
-          logger.error(`Pollen refresh failed for ${describeLocation(location)}`, err);
-          return failureMessage(err, location.name);
-        }
-      }),
-    );
-
-    // The device-bound tiles of the widgets follow the published states on
-    // their own; their status rows and their forecast curve do not, so one
-    // nudge per cycle tells the open dashboards to re-pull them.
-    nudgeWidgets(gladys);
-
-    const failures = outcomes.filter(Boolean);
-    if (failures.length === 0) {
-      await gladys.setConnectionStatus(true).catch(() => {});
-      return;
-    }
-    // Only the first reason is spelled out: the status line is one line, and two
-    // stack traces in it help nobody.
-    const [first] = failures;
-    const others =
-      failures.length > 1
-        ? {
-            en: ` (+${failures.length - 1} other location(s) failing)`,
-            fr: ` (+${failures.length - 1} autre(s) lieu(x) en échec)`,
-          }
-        : { en: '', fr: '' };
-    await gladys
-      .setConnectionStatus(false, { en: `${first.en}${others.en}`, fr: `${first.fr}${others.fr}` })
-      .catch(() => {});
   },
 };

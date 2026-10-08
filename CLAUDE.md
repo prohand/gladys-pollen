@@ -39,6 +39,25 @@ in `config.locations`. Copying template device patterns will therefore mislead
 you — the blueprint's `buildDevices`/`deviceExternalIds` map over
 `watchedLocations(config)`.
 
+The device type is split in three, and the arrows only point one way:
+
+- **`src/devices/pollenStation.js`** — the SCHEMA: identity
+  (`deviceExternalIds`, `watchedLocations`, `findLocationByDeviceId`), the
+  features, `buildDevice`, `buildStates`, and the blueprint the registry
+  publishes. No I/O, and it imports nothing that publishes.
+- **`src/refresh.js`** — everything that reads a location and PUBLISHES its
+  states: the single-flight passes, the timer (`startPolling`), the cycle and
+  its connection status (`refreshCycle`), a poll (`pollDevice`), a created
+  device (`refreshCreatedDevice`), and `refreshLocations` for the widgets and
+  the scene actions. `index.js` wires it directly.
+- **`src/providerCheck.js`** — the `test_provider` button (`PROVIDER_ACTIONS`),
+  which reads without publishing and reuses `failureDetail` so its lines blame
+  the same party as the connection status.
+
+Both of the last two import the schema; the schema importing them back is the
+circle this split exists to avoid, so a blueprint stays a description of
+devices, never a holder of their refresh.
+
 A device's identity is `<type>:<location id>`, and the location id is generated
 once, when the user adds the location. Renaming a location or moving its point
 keeps the device, its history and its place in rooms and scenes.
@@ -55,6 +74,15 @@ change it. Consequences worth internalising:
 - **`setConfig` does not come back through `onConfigUpdated`.** A self-initiated
   write must update the in-memory `config` by hand. The `setConfig` dependency
   injected into the editor in `index.js` is the only place allowed to do this.
+- **A saved form says nothing about `locations`.** `onConfigUpdated` goes
+  through `applyConfigUpdate()` (`src/config.js`), which keeps the list in
+  memory when the payload does not carry the key — taking its absence as "empty"
+  stopped every refresh until the next restart.
+- **The editor's writers are serialized.** `add_location`, `import_houses` and
+  `remove_location` each read the list, change it and write it back; the core
+  runs two clicks side by side, so they go through one promise-chain queue
+  (`exclusively` in `src/locationEditor.js`) or the last write erases the
+  other's location. A new writer goes through it too.
 - **Coordinates travel as TEXT** (`src/coordinates.js`), in the form and in the
   stored list. `Number('')` is 0 — a valid latitude — and a `number` field is an
   `<input type="number">` the browser sanitizes in its own locale, so a French
@@ -149,9 +177,9 @@ same test ties every declaration to its handler in both directions.
   matters goes first. The SDK exports the core's own checks
   (`validateWidgetContent`), and `test/widgets.test.js` asserts `[]` for every
   card built here — anything else means the core would alter it.
-  `src/widgets/keys.js` exists only to break a cycle: the refresh cycle nudges
-  the widgets, the widgets read the devices, so the keys and `nudgeWidgets` live
-  in a module that imports nothing of ours.
+  `src/widgets/keys.js` exists only to break a cycle: the refresh cycle
+  (`src/refresh.js`) nudges the widgets, the widgets ask it for refreshes, so
+  the keys and `nudgeWidgets` live in a module that imports nothing of ours.
 - **`src/scenes/riskEvents.js`** — an event is a TRANSITION, never a state. Every
   level is already a device feature; what a trigger adds is the move, fired
   once, with the wording a scene needs. Nothing fires on the first reading after
@@ -185,15 +213,30 @@ value (the widget palette has no `orange`, so 1 and 2 share `warning`).
 ### One extension registry
 
 **`src/pollen/`** — providers expose `{ key, name, taxa, supports(location),
-fetchPollen(location) }` plus the OPTIONAL `fetchForecast(location)`, first
-match wins, so callers never name an implementation. Order matters: a national
-source registered before `openMeteoProvider` overrides it for its own area.
+fetchPollen(location) }` plus the OPTIONAL `fetchForecast(location)` and
+`fetchPollenMany(locations)`, first match wins, so callers never name an
+implementation. Order matters: a national source registered before
+`openMeteoProvider` overrides it for its own area.
 
-`fetchForecast` is what the widget curve is drawn from, and it is a SECOND
-request with a cache of its own: the refresh cycle of every device only needs
-the current hour, and it runs whether or not a dashboard is open. A provider
-without it makes `readPollenForecast` answer no hours, and the card drops its
-chart rather than failing.
+Open-Meteo is asked ONE thing per point: the `hourly` block of today and
+tomorrow. The current hour is the row that has started last (`currentHour`,
+picked at READ time, so a cached curve moves to the right hour by itself), and
+`fetchForecast` — the widget curve — is that same answer: a station card costs
+one request, not a `current` plus an `hourly` one. `fetchPollenMany` (what
+`readPollenRisks` uses) puts every point of a cycle in one request,
+comma-separated coordinates answered as an array, chunked at
+`MAX_POINTS_PER_REQUEST`; it answers one SETTLED result per location. The
+parsed answer is cached per point for `CACHE_TTL_MS` (30 min, deliberately ≥ the
+widget ttl so a card re-pull is a cache hit, a test pins it), and a request in
+flight is shared by every concurrent reader. A provider without
+`fetchForecast` makes `readPollenForecast` answer no hours, and the card drops
+its chart rather than failing; one without `fetchPollenMany` is read location
+by location.
+
+Every third-party call (Open-Meteo, the geocoder) goes through
+`fetchWithRetry` (`src/http.js`): ONE retry on 429/5xx/network error, after a
+`Retry-After` capped at 5 s, never on a timeout (the callers run under 15 s
+deadlines). The Gladys host API is not a third party: see `statePublisher.js`.
 
 ### The manifest is a contract checked by tests
 
@@ -232,8 +275,8 @@ empty. The core sources are worth cloning when in doubt
 - **`poll_frequency` is an ENUM in MILLISECONDS capped at one minute.** Anything
   else is rejected and the **whole batch** is refused. Hence the self-driven
   timer: the devices declare no `poll_frequency`, `startPolling` refreshes
-  immediately then every `poll_frequency` seconds, floored at
-  `MIN_REFRESH_SECONDS`.
+  immediately (or resumes a fresh cycle's cadence) then every `poll_frequency`
+  seconds, floored at `MIN_REFRESH_SECONDS`.
 - **Every feature needs an explicit numeric `min` and `max`** —
   `t_device_feature.min/max` are `NOT NULL` with no default, text features
   included. Publishing passes, then the user's "add device" click fails.
@@ -242,7 +285,24 @@ empty. The core sources are worth cloning when in doubt
   reports the reason through `setConnectionStatus`.
 - **The core silently drops states for a feature that does not exist yet.**
   States published before the user adds the device go nowhere, which is why
-  `index.js` listens to `onDeviceCreated` and refreshes immediately.
+  `index.js` listens to `onDeviceCreated` and refreshes THAT device's location
+  immediately (`refreshCreatedDevice` in `src/refresh.js`).
+- **300 states a minute per integration, 100 per request; past that, 429 and
+  the states are lost.** A station publishes 16, so the 20 locations allowed
+  are over the limit in one cycle. Every state goes through
+  `publishStateGroups` (`src/statePublisher.js`): batches of ≤100 that never
+  split a device, paced on a sliding minute at `STATE_BUDGET_PER_MINUTE` (240,
+  a margin under 300), one shared queue per SDK instance, one retry on a 429
+  (the SDK drops the `Retry-After` header, so a 20 s default applies). Its
+  failures are tagged `hostApi`, and the connection status says "Gladys rate
+  limit" / "Gladys did not accept the states" for them, never "pollen forecast
+  unavailable" — that one is the provider's.
+- **Arm the timer BEFORE publishing anything on `connected`.** A transient
+  429/5xx on the discovery publication used to skip `startPolling`, and nothing
+  ran until the next WebSocket reconnection. `src/lifecycle.js` holds that
+  order (config → timer → discovery), retries a transient failure a minute
+  later, and keeps its reason on screen: `reportStatus` does not report
+  "connected" over it.
 - **A `risk`/`integer` value is rendered through the core's OWN label set** in
   the "device in a room" box (`BadgeNumberDeviceValue`), which knows exactly
   four: `0 no-risk / 1 low-risk / 2 medium-risk / 3 high-risk`, anything else
@@ -306,6 +366,19 @@ empty. The core sources are worth cloning when in doubt
   take the container down; one location failing must not silence the others.
   That now covers the scene events it fires (a 404 on an undeclared key, a 429
   past the rate limit) and the widget nudge it sends.
+- **A refresh is SINGLE-FLIGHT** (`refreshOutcomes` in `src/refresh.js`).
+  The timer, a reconnection, a saved form, a created device, a widget button
+  and a scene action all refresh; one pass runs at a time per SDK instance, a
+  request it covers JOINS it, any other is merged into ONE follow-up pass. Every
+  path that publishes states goes through it — never call
+  `gladys.publishStates` elsewhere. `startPolling` RESUMES the cadence instead of
+  refreshing at once when the last cycle was healthy, covered the same places in
+  the same language, and is younger than the interval.
+- **Coordinates never reach a log**, at any level — not the request URL, not an
+  error message (`readPollenRisk` names the place, not its point), not the add
+  form's fields. They stay where the user put them: the stored list, the
+  listing action, and the `LATITUDE`/`LONGITUDE` device params
+  (`buildDevice`), which are the user's to see.
 - **A scene event fires on a MOVE, once.** The CAMS forecast is republished once
   a day and re-read hourly: firing on every reading would fire twenty-four
   identical events a day. See `src/scenes/riskEvents.js` for the three cases
@@ -316,7 +389,17 @@ empty. The core sources are worth cloning when in doubt
 Tests never touch the network: `globalThis.fetch` is stubbed per-file and
 restored in `afterEach`. `src/pollen/openMeteo.js` keeps a module-level TTL
 cache, so tests that count requests must call `clearPollenCache()` in
-`beforeEach` — otherwise state leaks between tests.
+`beforeEach` — otherwise state leaks between tests. It also puts the real clock
+back after `setPollenClock()`, which pins the hour `currentHour` picks.
+`test/helpers/openMeteo.js` builds the answers (`hourAnswer`) and stubs `fetch`
+so one point gets an object and several an array, as the API does.
+
+Waits are injected, never slept: `setHttpSleep()` / `resetHttpSleep()` for the
+one retry of `src/http.js` (any test stubbing a 5xx must set it, or it waits a
+real second), `setStatePublisherClock()` / `resetStatePublisher()` for the
+pacing of `src/statePublisher.js`. The single-flight state and the last cycle
+are kept per SDK instance (WeakMaps), so a fresh `createFakeGladys()` per test
+is all the isolation they need; `refuseStates` on the fake reproduces a host-API 429.
 
 `src/scenes/riskEvents.js` keeps the last known levels in a module-level Map, so
 a test that fires a transition must call `resetRiskMemory()` in `beforeEach` —

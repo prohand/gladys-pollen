@@ -1,10 +1,11 @@
 // The discovery payload and the state mapping: what Gladys actually receives.
 
-import { test, afterEach, beforeEach } from 'node:test';
+import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createFakeGladys } from './helpers/fakeGladys.js';
 import {
   buildDiscoveredDevices,
+  devicesForLog,
   findBlueprintByDevice,
   locationDeviceIds,
 } from '../src/devices/index.js';
@@ -13,17 +14,12 @@ import {
   buildStates,
   deviceExternalIds,
   FEATURE,
-  MIN_REFRESH_SECONDS,
-  poll,
   pollenStation,
   taxonName,
   taxonTextFeatureId,
   watchedLocations,
 } from '../src/devices/pollenStation.js';
 import { allTaxa } from '../src/pollen/index.js';
-import { clearPollenCache, OPEN_METEO_VARIABLES } from '../src/pollen/openMeteo.js';
-import { resetRiskMemory, SCENE_TRIGGERS } from '../src/scenes/index.js';
-import { WIDGET_KEYS } from '../src/widgets/index.js';
 import { normalizeConfig } from '../src/config.js';
 
 const paris = {
@@ -234,6 +230,19 @@ test('the device carries its resolved position as params', () => {
   assert.equal(params.LATITUDE, '48.8592');
 });
 
+test('the payload logged at debug level carries no coordinates', () => {
+  const gladys = createFakeGladys();
+  const devices = buildDiscoveredDevices(gladys, configWith([paris]));
+  const logged = JSON.stringify(devicesForLog(devices));
+  assert.doesNotMatch(logged, /48\.8592|2\.3417/);
+  // Same shape as what is sent: only the values of the point are hidden.
+  assert.deepEqual(
+    devicesForLog(devices)[0].params.map((param) => param.name),
+    devices[0].params.map((param) => param.name),
+  );
+  assert.match(JSON.stringify(devices), /48\.8592/, 'the payload SENT is untouched');
+});
+
 test('a device is routed back to the blueprint that owns it', () => {
   const gladys = createFakeGladys();
   const config = configWith([paris, lyon]);
@@ -426,76 +435,4 @@ test('a reading with no data at all publishes nothing', () => {
     measuredAt: '2026-08-06T13:00+02:00',
   });
   assert.deepEqual(states, []);
-});
-
-test('the refresh timer never runs faster than the floor', async () => {
-  const gladys = createFakeGladys();
-  const config = configWith([], { poll_frequency: 900 });
-  // No location: the cycle publishes nothing and reports a healthy connection.
-  const stop = pollenStation.startPolling(gladys, config);
-  stop();
-  assert.ok(MIN_REFRESH_SECONDS <= config.poll_frequency);
-});
-
-// -----------------------------------------------------------------------------
-// What a refresh does BESIDES publishing states, since Gladys 5.1: it fires the
-// scene triggers of what moved, and tells the open dashboards to re-pull their
-// cards. Both are wiring, and wiring is what silently goes missing.
-// -----------------------------------------------------------------------------
-
-const originalFetch = globalThis.fetch;
-
-function stubPollen(birch) {
-  globalThis.fetch = async () => ({
-    ok: true,
-    status: 200,
-    json: async () => ({
-      utc_offset_seconds: 7200,
-      current: { time: '2026-04-12T13:00', [OPEN_METEO_VARIABLES.birch]: birch },
-    }),
-  });
-}
-
-beforeEach(() => {
-  clearPollenCache();
-  resetRiskMemory();
-});
-
-afterEach(() => {
-  globalThis.fetch = originalFetch;
-});
-
-test('a poll publishes the states, then fires what moved', async () => {
-  const gladys = createFakeGladys();
-  const config = configWith([paris]);
-  const location = stored(paris, config);
-
-  stubPollen(2);
-  await poll(gladys, location, 'fr');
-  assert.ok(gladys.published.length > 0);
-  assert.deepEqual(gladys.sceneEvents, [], 'the first reading is not a transition');
-
-  clearPollenCache();
-  stubPollen(400);
-  await poll(gladys, location, 'fr');
-  assert.deepEqual(
-    gladys.sceneEvents.map((event) => event.key),
-    [SCENE_TRIGGERS.RISK_LEVEL_CHANGED, SCENE_TRIGGERS.TAXON_RISK_LEVEL_CHANGED],
-  );
-});
-
-test('a refresh cycle nudges the widgets once, whatever the number of places', async () => {
-  const gladys = createFakeGladys();
-  stubPollen(80);
-  await pollenStation.refresh(gladys, configWith([paris, lyon]));
-  assert.deepEqual(gladys.widgetRefreshes, [WIDGET_KEYS.STATION, WIDGET_KEYS.LOCATIONS]);
-});
-
-test('a cycle that fails still nudges nothing it cannot refresh', async () => {
-  const gladys = createFakeGladys();
-  globalThis.fetch = async () => ({ ok: false, status: 503, json: async () => ({}) });
-  // The cycle NEVER throws: a rejection in a timer callback would take the
-  // container down with it.
-  await pollenStation.refresh(gladys, configWith([paris]));
-  assert.equal(gladys.statuses.at(-1).connected, false);
 });

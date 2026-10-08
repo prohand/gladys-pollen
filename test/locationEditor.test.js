@@ -410,3 +410,81 @@ test('every answer is a multi-language object, never a thrown string', async () 
     assert.equal(typeof answer.fr, 'string', JSON.stringify(answer));
   }
 });
+
+// --- Two clicks at once ---------------------------------------------------------
+
+test('two writers clicked together both keep their location', async () => {
+  // Every await is a window for the other click: the geocoder, the house list,
+  // the write itself. Each action used to build its list on the one it read
+  // first, and the last write erased the other's location.
+  const tick = () => new Promise((resolve) => setTimeout(resolve, 5));
+  const state = { config: normalizeConfig({ locations: [] }) };
+  const editor = createLocationEditor({
+    getConfig: () => state.config,
+    async setConfig(patch) {
+      await tick();
+      state.config = normalizeConfig({ ...state.config, ...patch });
+    },
+    onLocationsChanged: async () => {},
+    async resolvePlace() {
+      await tick();
+      return { match: montauban, candidates: [montauban] };
+    },
+    async listHouses() {
+      await tick();
+      return [
+        { id: 'h1', name: 'Maison', selector: 'maison', latitude: 48.8592, longitude: 2.3417 },
+      ];
+    },
+  });
+
+  await Promise.all([
+    editor.actions.add_location({ place: 'Montauban' }),
+    editor.actions.import_houses(),
+  ]);
+
+  assert.deepEqual(state.config.locations.map((location) => location.name).sort(), [
+    'Maison',
+    'Montauban',
+  ]);
+});
+
+test('a writer that fails does not block the next one', async () => {
+  const {
+    state,
+    add_location: add,
+    remove_location: remove,
+  } = createEditor({
+    resolvePlace: async () => {
+      throw new Error('geocoder down');
+    },
+  });
+  await assert.rejects(() => add({ place: 'Montauban' }), /geocoder down/);
+  const message = await remove({ location: '1', confirmation: true });
+  assert.match(message.en, /No location yet/);
+  assert.equal(state.config.locations.length, 0);
+});
+
+test('the typed coordinates never reach the logs', async () => {
+  const lines = [];
+  const original = { log: console.log, error: console.error };
+  const level = process.env.LOG_LEVEL;
+  process.env.LOG_LEVEL = 'debug';
+  console.log = console.error = (...args) => lines.push(args.join(' '));
+  try {
+    const { add_location: add } = createEditor();
+    await add({ place: 'Chez mamie', latitude: '45.76791', longitude: '4.83431' });
+  } finally {
+    Object.assign(console, original);
+    if (level === undefined) {
+      delete process.env.LOG_LEVEL;
+    } else {
+      process.env.LOG_LEVEL = level;
+    }
+  }
+  assert.ok(
+    lines.some((line) => line.includes('add_location')),
+    'the action is logged',
+  );
+  assert.ok(!lines.some((line) => /45\.7679|4\.8343/.test(line)));
+});

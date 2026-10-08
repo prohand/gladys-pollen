@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { DEFAULT_CONFIG, isConfigured, normalizeConfig } from '../src/config.js';
+import { applyConfigUpdate, DEFAULT_CONFIG, isConfigured, normalizeConfig } from '../src/config.js';
 
 test('an empty config falls back on the defaults', () => {
   const config = normalizeConfig();
@@ -65,4 +65,40 @@ test('a key a former version declared is carried along, not read', () => {
   const config = normalizeConfig({ default_country: 'FR' });
   assert.equal(config.default_country, 'FR');
   assert.deepEqual(config.locations, []);
+});
+
+// --- A saved form -------------------------------------------------------------
+
+const home = {
+  id: 'loc-home0001',
+  name: 'Maison',
+  address_label: 'Paris',
+  latitude: '48.8592',
+  longitude: '2.3417',
+};
+
+test('a saved form that does not carry the locations keeps them', () => {
+  // `locations` is not a field of the form: its absence says nothing about the
+  // list, and taking it as "empty" stopped the polling until a restart.
+  const current = normalizeConfig({ locations: [home] });
+  const updated = applyConfigUpdate(current, { poll_frequency: 7200, language: 'en' });
+  assert.equal(updated.poll_frequency, 7200);
+  assert.equal(updated.language, 'en');
+  assert.deepEqual(updated.locations, current.locations);
+  assert.ok(isConfigured(updated));
+});
+
+test('a null locations key is no list either', () => {
+  const current = normalizeConfig({ locations: [home] });
+  assert.deepEqual(applyConfigUpdate(current, { locations: null }).locations, current.locations);
+});
+
+test('a payload that carries the locations is taken as it is', () => {
+  const current = normalizeConfig({ locations: [home] });
+  assert.deepEqual(applyConfigUpdate(current, { locations: [] }).locations, []);
+  const other = { ...home, id: 'loc-other001', name: 'Bureau' };
+  assert.deepEqual(
+    applyConfigUpdate(current, { locations: [other] }).locations.map((location) => location.id),
+    ['loc-other001'],
+  );
 });
