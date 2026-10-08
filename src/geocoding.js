@@ -25,6 +25,7 @@
 // -----------------------------------------------------------------------------
 
 import { createLogger } from '@gladysassistant/integration-sdk';
+import { fetchWithRetry } from './http.js';
 
 const logger = createLogger({ name: 'geocoding' });
 
@@ -93,9 +94,12 @@ export async function searchPlaces(name) {
   const url = `${API_BASE_URL}/search?${params.toString()}`;
   logger.debug('Geocoding request ->', url);
 
-  const response = await fetch(url, {
+  // One retry on a 429/5xx/network error: a busy geocoder must not make the
+  // "Add a location" button answer an error the user then retries by hand.
+  const response = await fetchWithRetry(url, {
     headers: { Accept: 'application/json' },
-    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    timeoutMs: REQUEST_TIMEOUT_MS,
+    label: 'Geocoding API',
   });
   if (!response.ok) {
     throw new Error(`Geocoding API HTTP ${response.status}`);

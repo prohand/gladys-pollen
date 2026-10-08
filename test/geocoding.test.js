@@ -1,7 +1,7 @@
 // Turning what the user types into a point. `fetch` is stubbed so the suite
 // never touches the network.
 
-import { test, afterEach } from 'node:test';
+import { test, afterEach, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   describePlace,
@@ -13,6 +13,7 @@ import {
   searchPlaces,
   splitQuery,
 } from '../src/geocoding.js';
+import { resetHttpSleep, setHttpSleep } from '../src/http.js';
 
 const originalFetch = globalThis.fetch;
 
@@ -40,8 +41,32 @@ function place(name, extra = {}) {
   };
 }
 
+beforeEach(() => {
+  setHttpSleep(async () => {});
+});
+
 afterEach(() => {
   globalThis.fetch = originalFetch;
+  resetHttpSleep();
+});
+
+test('a busy geocoder is asked once more before the button answers an error', async () => {
+  let attempt = 0;
+  globalThis.fetch = async () => {
+    attempt += 1;
+    return attempt === 1
+      ? { ok: false, status: 429, headers: new Headers(), json: async () => ({}) }
+      : { ok: true, status: 200, json: async () => ({ results: [place('Montauban')] }) };
+  };
+  const places = await searchPlaces('Montauban');
+  assert.equal(attempt, 2);
+  assert.equal(places.length, 1);
+});
+
+test('a geocoder still failing after its one retry is an error', async () => {
+  const calls = stubFetch({}, { ok: false, status: 502 });
+  await assert.rejects(() => searchPlaces('Montauban'), /Geocoding API HTTP 502/);
+  assert.equal(calls.length, 2);
 });
 
 test('a place name is searched as it is', async () => {
