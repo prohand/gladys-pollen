@@ -6,6 +6,8 @@ All notable changes to this integration are documented here. The format follows
 
 ## [Unreleased]
 
+## [2.2.1] - 2026-10-08
+
 ### Fixed
 
 - Saving the Configuration form no longer empties the location list in memory (which stopped every refresh until the next restart).
@@ -105,7 +107,8 @@ First public release.
 
 - Fix the manifest rejected at install time
 
-[Unreleased]: https://github.com/prohand/gladys-pollen/compare/v2.2.0...HEAD
+[Unreleased]: https://github.com/prohand/gladys-pollen/compare/v2.2.1...HEAD
+[2.2.1]: https://github.com/prohand/gladys-pollen/compare/v2.2.0...v2.2.1
 [2.2.0]: https://github.com/prohand/gladys-pollen/compare/v2.1.0...v2.2.0
 [2.1.0]: https://github.com/prohand/gladys-pollen/compare/v2.0.4...v2.1.0
 [2.0.4]: https://github.com/prohand/gladys-pollen/compare/v2.0.3...v2.0.4
