@@ -11,7 +11,15 @@ import { validateWidgetContent } from '@gladysassistant/integration-sdk';
 import { createFakeGladys } from './helpers/fakeGladys.js';
 import { normalizeConfig } from '../src/config.js';
 import { deviceExternalIds } from '../src/devices/pollenStation.js';
-import { clearPollenCache, OPEN_METEO_VARIABLES } from '../src/pollen/openMeteo.js';
+import {
+  clearPollenCache,
+  openMeteoProvider,
+  OPEN_METEO_VARIABLES,
+  setPollenClock,
+} from '../src/pollen/openMeteo.js';
+import { PROVIDERS, readPollenRisk } from '../src/pollen/index.js';
+import { resetHttpSleep, setHttpSleep } from '../src/http.js';
+import { answerFor, pointCount } from './helpers/openMeteo.js';
 import { findWidget, WIDGET_KEYS, WIDGETS } from '../src/widgets/index.js';
 import { MAX_ROWS } from '../src/widgets/locationsWidget.js';
 import { selectedTaxa } from '../src/widgets/stationWidget.js';
@@ -39,47 +47,47 @@ const locations = findWidget(WIDGET_KEYS.LOCATIONS);
 
 const originalFetch = globalThis.fetch;
 
-/** 48 hourly points, rising from nothing to a birch peak. */
-function hourlyPayload() {
+/** The hour the suite reads "now": 13:00 in Paris, row 13 of the curve. */
+const NOW = Date.parse('2026-04-12T13:00:00+02:00');
+const NOW_ROW = 13;
+
+/**
+ * 48 hourly points, rising from nothing to a birch peak — with the CURRENT
+ * hour carrying the given values: the reading and the curve are one answer.
+ */
+function payload({ birch = 80, grass = 2, olive = 0 } = {}) {
   const time = [];
-  const birch = [];
-  const grass = [];
+  const birchSeries = [];
+  const grassSeries = [];
+  const oliveSeries = [];
   for (let hour = 0; hour < 48; hour += 1) {
-    time.push(`2026-04-12T${String(hour % 24).padStart(2, '0')}:00`);
-    birch.push(hour * 5);
-    grass.push(hour < 24 ? 0 : 6);
+    const day = hour < 24 ? '12' : '13';
+    time.push(`2026-04-${day}T${String(hour % 24).padStart(2, '0')}:00`);
+    birchSeries.push(hour === NOW_ROW ? birch : hour * 5);
+    grassSeries.push(hour === NOW_ROW ? grass : hour < 24 ? 0 : 6);
+    oliveSeries.push(hour === NOW_ROW ? olive : null);
   }
   return {
     utc_offset_seconds: 7200,
     hourly: {
       time,
-      [OPEN_METEO_VARIABLES.birch]: birch,
-      [OPEN_METEO_VARIABLES.grass]: grass,
+      [OPEN_METEO_VARIABLES.birch]: birchSeries,
+      [OPEN_METEO_VARIABLES.grass]: grassSeries,
+      [OPEN_METEO_VARIABLES.olive]: oliveSeries,
     },
   };
 }
 
-function currentPayload({ birch = 80, grass = 2, olive = 0 } = {}) {
-  return {
-    utc_offset_seconds: 7200,
-    current: {
-      time: '2026-04-12T13:00',
-      [OPEN_METEO_VARIABLES.birch]: birch,
-      [OPEN_METEO_VARIABLES.grass]: grass,
-      [OPEN_METEO_VARIABLES.olive]: olive,
-    },
-  };
-}
-
-/** The station card needs TWO requests: the current hour and the curve. */
-function stubFetch({ current = currentPayload(), hourly = hourlyPayload(), ok = true } = {}) {
+/** One request answers the station card: the current hour and the curve. */
+function stubFetch({ current = payload(), ok = true } = {}) {
   const calls = [];
   globalThis.fetch = async (url) => {
     calls.push(String(url));
     return {
       ok,
       status: ok ? 200 : 503,
-      json: async () => (String(url).includes('hourly=') ? hourly : current),
+      headers: new Headers(),
+      json: async () => answerFor(String(url), current),
     };
   };
   return calls;
@@ -97,10 +105,13 @@ function componentsOf(content, type) {
 
 beforeEach(() => {
   clearPollenCache();
+  setPollenClock(() => NOW);
+  setHttpSleep(async () => {});
 });
 
 afterEach(() => {
   globalThis.fetch = originalFetch;
+  resetHttpSleep();
 });
 
 // --- The registry --------------------------------------------------------------
@@ -151,7 +162,7 @@ test('the station card holds the heading, the gauge, the dominant, the species, 
 
 test('the tile names the pollen the level comes from', async () => {
   const gladys = createFakeGladys();
-  stubFetch({ current: currentPayload({ birch: 80, grass: 2, olive: 0 }) });
+  stubFetch({ current: payload({ birch: 80, grass: 2, olive: 0 }) });
 
   const content = await station.getContent(gladys, config, {
     settings: { location: PARIS_DEVICE },
@@ -169,7 +180,7 @@ test('the tile names the pollen the level comes from', async () => {
 
 test('the dominant follows the species the instance is narrowed to', async () => {
   const gladys = createFakeGladys();
-  stubFetch({ current: currentPayload({ birch: 80, grass: 2, olive: 0 }) });
+  stubFetch({ current: payload({ birch: 80, grass: 2, olive: 0 }) });
 
   const content = assertRenderable(
     await station.getContent(gladys, config, {
@@ -182,7 +193,7 @@ test('the dominant follows the species the instance is narrowed to', async () =>
 
 test('nothing in the air names no dominant pollen', async () => {
   const gladys = createFakeGladys();
-  stubFetch({ current: currentPayload({ birch: 0, grass: 0, olive: 0 }) });
+  stubFetch({ current: payload({ birch: 0, grass: 0, olive: 0 }) });
 
   const content = await station.getContent(gladys, config, {
     settings: { location: PARIS_DEVICE },
@@ -195,7 +206,7 @@ test('nothing in the air names no dominant pollen', async () => {
 
 test('the first row spells the risk out, in the wording used everywhere else', async () => {
   const gladys = createFakeGladys();
-  stubFetch({ current: currentPayload({ birch: 80, grass: 2, olive: 0 }) });
+  stubFetch({ current: payload({ birch: 80, grass: 2, olive: 0 }) });
 
   const content = await station.getContent(gladys, config, {
     settings: { location: PARIS_DEVICE },
@@ -209,7 +220,7 @@ test('the first row spells the risk out, in the wording used everywhere else', a
 
 test('a filtered instance spells out ITS risk, not the overall one', async () => {
   const gladys = createFakeGladys();
-  stubFetch({ current: currentPayload({ birch: 80, grass: 2, olive: 0 }) });
+  stubFetch({ current: payload({ birch: 80, grass: 2, olive: 0 }) });
 
   const content = assertRenderable(
     await station.getContent(gladys, config, {
@@ -246,7 +257,7 @@ test('an unfiltered gauge is bound to the device feature, a filtered one is not'
 
 test('the species rows show what IS in the air, worst first', async () => {
   const gladys = createFakeGladys();
-  stubFetch({ current: currentPayload({ birch: 80, grass: 2, olive: 0 }) });
+  stubFetch({ current: payload({ birch: 80, grass: 2, olive: 0 }) });
 
   const content = await station.getContent(gladys, config, {
     settings: { location: PARIS_DEVICE },
@@ -266,7 +277,7 @@ test('the species rows show what IS in the air, worst first', async () => {
 
 test('nothing in the air is an answer, not an empty card', async () => {
   const gladys = createFakeGladys();
-  stubFetch({ current: currentPayload({ birch: 0, grass: 0, olive: 0 }) });
+  stubFetch({ current: payload({ birch: 0, grass: 0, olive: 0 }) });
 
   const content = assertRenderable(
     await station.getContent(gladys, config, {
@@ -326,45 +337,57 @@ test('the forecast can be switched off', async () => {
     settings: { location: PARIS_DEVICE, forecast: false },
   });
   assert.deepEqual(componentsOf(content, 'chart'), []);
-  assert.ok(!calls.some((url) => url.includes('hourly=')), 'no curve, no second request');
+  assert.equal(calls.length, 1);
 });
 
 test('a failing forecast costs the curve, never the risk', async () => {
   const gladys = createFakeGladys();
-  globalThis.fetch = async (url) => {
-    if (String(url).includes('hourly=')) {
-      return { ok: false, status: 503, json: async () => ({}) };
-    }
-    return { ok: true, status: 200, json: async () => currentPayload() };
-  };
-
-  const content = assertRenderable(
-    await station.getContent(gladys, config, { settings: { location: PARIS_DEVICE } }),
-  );
-  assert.deepEqual(componentsOf(content, 'chart'), []);
-  assert.equal(componentsOf(content, 'gauge').length, 1);
+  stubFetch();
+  PROVIDERS.unshift({
+    ...openMeteoProvider,
+    async fetchForecast() {
+      throw new Error('no curve today');
+    },
+  });
+  try {
+    const content = assertRenderable(
+      await station.getContent(gladys, config, { settings: { location: PARIS_DEVICE } }),
+    );
+    assert.deepEqual(componentsOf(content, 'chart'), []);
+    assert.equal(componentsOf(content, 'gauge').length, 1);
+  } finally {
+    PROVIDERS.shift();
+  }
 });
 
-test('the curve is asked for alongside the risk, not after it', async () => {
-  // The core waits 15 s for the whole content and each request may take up to
-  // 10 s: one after the other, they could overrun it.
+test('the curve and the risk are read off ONE request', async () => {
+  // They used to be two requests for the same point — a `current` and an
+  // `hourly` one — when the current hour is nothing but a row of the curve.
   const gladys = createFakeGladys();
-  let inFlight = 0;
-  let maxInFlight = 0;
-  globalThis.fetch = async (url) => {
-    inFlight += 1;
-    maxInFlight = Math.max(maxInFlight, inFlight);
-    await new Promise((resolve) => setTimeout(resolve, 5));
-    inFlight -= 1;
-    const body = String(url).includes('hourly=') ? hourlyPayload() : currentPayload();
-    return { ok: true, status: 200, json: async () => body };
-  };
+  const calls = stubFetch();
 
   const content = assertRenderable(
     await station.getContent(gladys, config, { settings: { location: PARIS_DEVICE } }),
   );
-  assert.equal(maxInFlight, 2);
+  assert.equal(calls.length, 1);
   assert.equal(componentsOf(content, 'chart').length, 1);
+  const captions = componentsOf(content, 'text').map((component) => component.text);
+  assert.ok(
+    captions.some((text) => text.includes('12/04/2026 13:00')),
+    'the current hour is row 13',
+  );
+});
+
+test('a card re-pulled on expiry reads the cache, not the network', async () => {
+  const gladys = createFakeGladys();
+  const calls = stubFetch();
+  await station.getContent(gladys, config, { settings: { location: PARIS_DEVICE } });
+  await locations.getContent(gladys, config, { language: 'fr' });
+  // One ttl later: still within the provider cache.
+  setPollenClock(() => NOW + 900 * 1000);
+  await station.getContent(gladys, config, { settings: { location: PARIS_DEVICE } });
+  await locations.getContent(gladys, config, { language: 'fr' });
+  assert.equal(calls.length, 2, 'Paris once, then Lyon once — and nothing on the re-pulls');
 });
 
 test('a provider outage says so instead of showing an empty card', async () => {
@@ -441,17 +464,16 @@ test('the list card holds one row per place, with its dominant pollen', async ()
 
 test('a place the provider refuses is one row saying so', async () => {
   const gladys = createFakeGladys();
-  let first = true;
-  globalThis.fetch = async () => {
-    const ok = first;
-    first = false;
-    return { ok, status: ok ? 200 : 503, json: async () => currentPayload() };
-  };
+  // Paris is already known; Lyon's request fails.
+  stubFetch();
+  await readPollenRisk(config.locations[0]);
+  stubFetch({ ok: false });
 
   const content = assertRenderable(await locations.getContent(gladys, config, { language: 'fr' }));
   const [status] = componentsOf(content, 'status');
   assert.equal(status.items.length, 2, 'one place failing hides none of the others');
-  assert.ok(status.items.some((item) => item.value === 'indisponible'));
+  assert.equal(status.items[0].value, '3/3 (élevé) — Bouleau');
+  assert.equal(status.items[1].value, 'indisponible');
 });
 
 test('no place at all asks for one', async () => {
@@ -478,7 +500,10 @@ test('the list stops at ten rows and reads only those', async () => {
   const content = assertRenderable(await locations.getContent(gladys, many, { language: 'fr' }));
   const [status] = componentsOf(content, 'status');
   assert.equal(status.items.length, MAX_ROWS);
-  assert.equal(calls.length, MAX_ROWS, 'a row nobody sees is a request nobody needs');
+  // Every row shown in ONE request, and only them: a row nobody sees is a
+  // point nobody needs.
+  assert.equal(calls.length, 1);
+  assert.equal(pointCount(calls[0]), MAX_ROWS);
   assert.match(componentsOf(content, 'text')[0].text, /10 lieux sur 14/);
 });
 

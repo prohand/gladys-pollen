@@ -7,7 +7,9 @@ import assert from 'node:assert/strict';
 import { createFakeGladys } from './helpers/fakeGladys.js';
 import { normalizeConfig } from '../src/config.js';
 import { deviceExternalIds } from '../src/devices/pollenStation.js';
-import { clearPollenCache, OPEN_METEO_VARIABLES } from '../src/pollen/openMeteo.js';
+import { clearPollenCache } from '../src/pollen/openMeteo.js';
+import { resetHttpSleep, setHttpSleep } from '../src/http.js';
+import { hourAnswer, stubOpenMeteo } from './helpers/openMeteo.js';
 import {
   publishRiskEvents,
   resetRiskMemory,
@@ -50,24 +52,12 @@ function reading(risks, { concentrations = {}, measuredAt = '2026-04-12T13:00+02
 }
 
 function stubFetch(payload) {
-  const calls = [];
-  globalThis.fetch = async (url) => {
-    calls.push(url);
-    return { ok: true, status: 200, json: async () => payload };
-  };
-  return calls;
+  return stubOpenMeteo(payload);
 }
 
 /** The canned Open-Meteo answer the scene actions read. */
 function currentPayload({ birch = 80, grass = 2 } = {}) {
-  return {
-    utc_offset_seconds: 7200,
-    current: {
-      time: '2026-04-12T13:00',
-      [OPEN_METEO_VARIABLES.birch]: birch,
-      [OPEN_METEO_VARIABLES.grass]: grass,
-    },
-  };
+  return hourAnswer({ birch, grass });
 }
 
 async function fire(gladys, risks, options) {
@@ -82,10 +72,12 @@ async function fire(gladys, risks, options) {
 beforeEach(() => {
   resetRiskMemory();
   clearPollenCache();
+  setHttpSleep(async () => {});
 });
 
 afterEach(() => {
   globalThis.fetch = originalFetch;
+  resetHttpSleep();
 });
 
 // --- When a trigger fires, and when it does not ------------------------------
@@ -257,7 +249,7 @@ test('get_pollen_risk reads ONE species when asked for one', async () => {
 
 test('get_pollen_risk reports "no data" as an output, never as a failure', async () => {
   const gladys = createFakeGladys();
-  stubFetch({ utc_offset_seconds: 7200, current: { time: '2026-04-12T13:00' } });
+  stubFetch(hourAnswer({}));
 
   const outputs = await SCENE_ACTION_HANDLERS.get_pollen_risk(gladys, {
     fields: { location: DEVICE_ID },
@@ -302,7 +294,7 @@ test('refresh_pollen republishes the states and counts the places', async () => 
 
 test('refresh_pollen counts a failing place instead of throwing', async () => {
   const gladys = createFakeGladys();
-  globalThis.fetch = async () => ({ ok: false, status: 503, json: async () => ({}) });
+  stubOpenMeteo({}, { ok: false, status: 503 });
 
   const outputs = await SCENE_ACTION_HANDLERS.refresh_pollen(gladys, { fields: {}, config });
   assert.deepEqual(outputs, { refreshed: 0, failed: 1 });

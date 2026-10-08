@@ -10,7 +10,9 @@
 // To add one:
 //   1. create `src/pollen/<yourProvider>.js` exposing { key, name, taxa,
 //      supports(location), fetchPollen(location) }, plus the OPTIONAL
-//      fetchForecast(location) the dashboard widgets draw their curve from;
+//      fetchForecast(location) the dashboard widgets draw their curve from,
+//      and the OPTIONAL fetchPollenMany(locations) — one request for a whole
+//      refresh cycle, answering one settled result per location, in order;
 //   2. append it to PROVIDERS below, BEFORE the more generic ones (the first
 //      provider that supports the location wins, so a national source can
 //      override the continental fallback for its own country).
@@ -70,16 +72,85 @@ export function allTaxa() {
  *   not date its answer.
  */
 export async function readPollenRisk(location) {
+  const provider = requireProvider(location);
+  return gradeReading(provider, await provider.fetchPollen(location));
+}
+
+/**
+ * The provider of a location, or an error that does NOT print its point: the
+ * message ends up in the logs and in the Supervision screen, and a location is
+ * often somebody's home.
+ */
+function requireProvider(location) {
   const provider = findProvider(location);
   if (!provider) {
-    throw new Error(
-      `No pollen provider covers ${location.latitude},${location.longitude} ` +
-        '(pollen forecasts are currently limited to the CAMS European domain)',
-    );
+    throw noProviderError(location);
   }
+  return provider;
+}
 
-  const { concentrations, measuredAt } = await provider.fetchPollen(location);
+function noProviderError(location) {
+  return new Error(
+    `No pollen provider covers ${location?.name ? `"${location.name}"` : 'this location'} ` +
+      '(pollen forecasts are currently limited to the CAMS European domain)',
+  );
+}
 
+/**
+ * Read SEVERAL locations at once, one outcome per location, never a rejection.
+ *
+ * What a refresh cycle and the "all places" card call: a provider with the
+ * optional `fetchPollenMany` answers every location of a cycle in ONE request
+ * instead of one each; the others are read location by location. Either way a
+ * location that fails is an `error` in its own slot, and never hides the
+ * answer of the others.
+ * @param {Array<object>} locations
+ * @returns {Promise<Array<{ location: object, reading?: object, error?: Error }>>}
+ *   in the order of `locations`
+ */
+export async function readPollenRisks(locations) {
+  const outcomes = new Array(locations.length);
+  const byProvider = new Map();
+  locations.forEach((location, index) => {
+    const provider = findProvider(location);
+    if (!provider) {
+      outcomes[index] = { location, error: noProviderError(location) };
+      return;
+    }
+    if (!byProvider.has(provider)) {
+      byProvider.set(provider, []);
+    }
+    byProvider.get(provider).push(index);
+  });
+
+  await Promise.all(
+    [...byProvider.entries()].map(async ([provider, indexes]) => {
+      const group = indexes.map((index) => locations[index]);
+      const settled =
+        typeof provider.fetchPollenMany === 'function'
+          ? await provider
+              .fetchPollenMany(group)
+              .catch((reason) => group.map(() => ({ status: 'rejected', reason })))
+          : await Promise.allSettled(group.map((location) => provider.fetchPollen(location)));
+      indexes.forEach((index, position) => {
+        const result = settled[position];
+        const location = locations[index];
+        if (result?.status === 'fulfilled') {
+          outcomes[index] = { location, reading: gradeReading(provider, result.value) };
+        } else {
+          outcomes[index] = {
+            location,
+            error: result?.reason ?? new Error('The pollen provider gave no answer'),
+          };
+        }
+      });
+    }),
+  );
+  return outcomes;
+}
+
+/** Grade a provider answer: concentrations in, risk levels out. */
+function gradeReading(provider, { concentrations, measuredAt }) {
   const risks = {};
   const eanRisks = {};
   for (const [taxon, concentration] of Object.entries(concentrations)) {
@@ -120,13 +191,7 @@ export async function readPollenRisk(location) {
  * }> }>}
  */
 export async function readPollenForecast(location) {
-  const provider = findProvider(location);
-  if (!provider) {
-    throw new Error(
-      `No pollen provider covers ${location.latitude},${location.longitude} ` +
-        '(pollen forecasts are currently limited to the CAMS European domain)',
-    );
-  }
+  const provider = requireProvider(location);
   if (typeof provider.fetchForecast !== 'function') {
     return { provider: provider.key, hours: [] };
   }

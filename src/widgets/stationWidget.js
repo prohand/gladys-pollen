@@ -232,9 +232,10 @@ export const stationWidget = {
     }
 
     const taxa = selectedTaxa(settings?.taxa);
-    // The curve is asked for NOW, alongside the reading, never after it: the
-    // core waits 15 s for the whole content, and two requests of up to 10 s
-    // each, one after the other, would overrun it — the reader would get
+    // The curve is asked for NOW, alongside the reading, never after it: both
+    // are read off the SAME answer of the provider (one request, shared while
+    // in flight), and a provider that answers them separately must not make
+    // the core wait for two requests in a row — past 15 s the reader gets
     // "unavailable" instead of a card. `buildForecast` never rejects.
     const wantsForecast = settings?.forecast !== false && settings?.forecast !== 'false';
     const chartPromise = wantsForecast

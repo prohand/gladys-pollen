@@ -49,3 +49,21 @@ export function findBlueprintByDevice(gladys, config, device) {
 export function locationDeviceIds(gladys, location) {
   return DEVICE_BLUEPRINTS.map((blueprint) => blueprint.locationDeviceId(gladys, location));
 }
+
+/** Device params whose VALUE never goes to a log: the point of a location. */
+const PRIVATE_PARAMS = new Set(['LATITUDE', 'LONGITUDE']);
+
+/**
+ * A discovery payload as it may be LOGGED: everything that tells which feature
+ * the core refused, nothing that tells where somebody lives. The params keep
+ * their names, so the shape logged is still the shape sent.
+ * @param {Array<object>} devices
+ */
+export function devicesForLog(devices = []) {
+  return devices.map((device) => ({
+    ...device,
+    params: (device.params ?? []).map((param) =>
+      PRIVATE_PARAMS.has(param?.name) ? { ...param, value: '<redacted>' } : param,
+    ),
+  }));
+}
