@@ -19,7 +19,12 @@
 // -----------------------------------------------------------------------------
 
 import { DEFAULT_LANGUAGE, normalizeLanguage } from './language.js';
-import { normalizeLocations, usableLocations } from './locations.js';
+import {
+  LOCATIONS_KEY,
+  normalizeLocations,
+  serializeLocations,
+  usableLocations,
+} from './locations.js';
 
 // Re-exported so callers that only read or write a coordinate do not have to
 // know which module holds the parsing rules.
@@ -53,6 +58,27 @@ export function normalizeConfig(raw = {}) {
     // Not a schema field: written by the integration, read back here.
     locations: normalizeLocations(raw.locations),
   };
+}
+
+/**
+ * The configuration after the user saved the Configuration form.
+ *
+ * `locations` is NOT a field of that form (see src/locations.js): a payload
+ * that does not carry it says nothing about the list, it does not say "empty".
+ * Taking it at its word would wipe every location from memory — no device
+ * published, the polling stopped — until the next restart re-read the stored
+ * list. So the list in memory is kept unless the payload actually carries one.
+ * @param {ReturnType<typeof normalizeConfig>} current the configuration in memory
+ * @param {Record<string, unknown>} incoming what `onConfigUpdated` received
+ */
+export function applyConfigUpdate(current, incoming = {}) {
+  const raw = incoming ?? {};
+  const carriesLocations = raw[LOCATIONS_KEY] !== undefined && raw[LOCATIONS_KEY] !== null;
+  return normalizeConfig(
+    carriesLocations
+      ? raw
+      : { ...raw, [LOCATIONS_KEY]: serializeLocations(current?.locations ?? []) },
+  );
 }
 
 /** Keep the polling interval inside the bounds declared in the manifest. */

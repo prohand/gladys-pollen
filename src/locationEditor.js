@@ -180,7 +180,19 @@ export function createLocationEditor({
     }
   }
 
-  return {
+  // The writers below each READ the list, change it and WRITE it back — and
+  // the core runs two button clicks side by side. Without this queue, "Add a
+  // location" and "Add my Gladys houses" clicked together would each write
+  // their own list built on the same old one, and the last write would erase
+  // the other's location. One read-modify-write at a time.
+  let queue = Promise.resolve();
+  function exclusively(work) {
+    const run = queue.then(work, work);
+    queue = run.catch(() => {});
+    return run;
+  }
+
+  const editor = {
     // --- Manifest actions ---------------------------------------------------
     actions: {
       /**
@@ -194,9 +206,14 @@ export function createLocationEditor({
        */
       async add_location(fields = {}) {
         const query = String(fields.place ?? '').trim();
+        // Never the typed coordinates, at any level: a point is often somebody's
+        // home, and a container log travels further than the configuration.
+        const typedSomething =
+          String(fields.latitude ?? '').trim() !== '' ||
+          String(fields.longitude ?? '').trim() !== '';
         logger.info(
-          `Action add_location <- ${fields.name ?? ''} / ${query} / ` +
-            `${fields.latitude ?? ''},${fields.longitude ?? ''}`,
+          `Action add_location <- ${fields.name ?? ''} / ${query}` +
+            `${typedSomething ? ' / typed coordinates' : ''}`,
         );
 
         const typed = typedPoint(fields);
@@ -516,4 +533,13 @@ export function createLocationEditor({
       },
     },
   };
+
+  // Every action that WRITES the list goes through the queue; the listing only
+  // reads it and answers at once.
+  for (const key of ['add_location', 'import_houses', 'remove_location']) {
+    const handler = editor.actions[key];
+    editor.actions[key] = (fields) => exclusively(() => handler(fields));
+  }
+
+  return editor;
 }

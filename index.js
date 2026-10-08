@@ -24,13 +24,15 @@
 // -----------------------------------------------------------------------------
 
 import { GladysIntegration, logger } from '@gladysassistant/integration-sdk';
-import { isConfigured, normalizeConfig } from './src/config.js';
+import { applyConfigUpdate, isConfigured, normalizeConfig } from './src/config.js';
 import {
   buildDiscoveredDevices,
   DEVICE_BLUEPRINTS,
+  devicesForLog,
   findBlueprintByDevice,
   locationDeviceIds,
 } from './src/devices/index.js';
+import { createLifecycle } from './src/lifecycle.js';
 import { createLocationEditor } from './src/locationEditor.js';
 import { LOCATIONS_KEY, serializeLocations } from './src/locations.js';
 import { findProvider } from './src/pollen/index.js';
@@ -71,12 +73,16 @@ async function publishDevices() {
   // location leaves the Discovery screen.
   const devices = configured ? buildDiscoveredDevices(gladys, config) : [];
   // Logged in full at debug level: when Gladys refuses the batch, the rejected
-  // payload is the only thing that tells you WHICH feature it choked on.
-  logger.debug('publishDiscoveredDevices ->', JSON.stringify(devices));
+  // payload is the only thing that tells you WHICH feature it choked on. In
+  // full but for the coordinates, which are somebody's home and help nobody
+  // read a refusal.
+  logger.debug('publishDiscoveredDevices ->', JSON.stringify(devicesForLog(devices)));
 
   try {
     const response = await gladys.publishDiscoveredDevices(devices);
     logger.info(`Published ${response?.count ?? devices.length} device(s) to the Discovery screen`);
+    // Whatever made an earlier initialization fail, the devices are through.
+    lifecycle.clearProblem();
     return configured;
   } catch (err) {
     // Gladys refused the batch — an unsupported feature category, an invalid
@@ -100,7 +106,9 @@ function startPolling() {
   stopPolling();
   pollingCleanups = DEVICE_BLUEPRINTS.filter(
     (blueprint) => typeof blueprint.startPolling === 'function',
-  ).map((blueprint) => blueprint.startPolling(gladys, config));
+  ).map((blueprint) =>
+    blueprint.startPolling(gladys, config, { reportStatus: lifecycle.reportStatus }),
+  );
 }
 
 function stopPolling() {
@@ -114,25 +122,22 @@ function stopPolling() {
   pollingCleanups = [];
 }
 
-/** Run one refresh cycle right now. Never throws (see blueprint.refresh). */
-async function refreshNow() {
-  await Promise.all(
-    DEVICE_BLUEPRINTS.filter((blueprint) => typeof blueprint.refresh === 'function').map(
-      (blueprint) => blueprint.refresh(gladys, config),
-    ),
-  );
-}
-
 /**
- * Re-publish the devices and restart the refresh on the current list. Called by
- * the location manager after every change it makes.
+ * Restart the refresh on the current list, then re-publish the devices. Called
+ * by the location manager after every change it makes, and on a saved form.
+ *
+ * The timer FIRST: a refused publication must not leave the devices already
+ * created without a refresh. The refresh itself is single-flight and resumes
+ * the cadence when nothing changed (see pollenStation.startPolling), so a form
+ * saved twice in a row does not re-read every place twice.
  */
 async function republish() {
-  if (await publishDevices()) {
+  if (isConfigured(config)) {
     startPolling();
   } else {
     stopPolling();
   }
+  await publishDevices();
 }
 
 // The location manager owns everything the user does with the configured
@@ -173,9 +178,20 @@ gladys.onScanRequest(async () => {
 // does not exist yet. Without this handler the brand new device would sit on
 // "no recent value" until the next hourly tick — which is exactly what it looks
 // like when it is broken.
+// Only THAT device's location is refreshed: the others already hold their
+// values, and re-reading all of them for one new device was twenty locations'
+// worth of states for one.
 gladys.onDeviceCreated(async (device) => {
-  logger.info(`onDeviceCreated -> ${device.external_id}, refreshing right away`);
-  await refreshNow();
+  for (const blueprint of DEVICE_BLUEPRINTS) {
+    if (typeof blueprint.onDeviceCreated !== 'function') {
+      continue;
+    }
+    if (await blueprint.onDeviceCreated(gladys, config, device.external_id)) {
+      logger.info(`onDeviceCreated -> ${device.external_id}, its location refreshed right away`);
+      return;
+    }
+  }
+  logger.debug(`onDeviceCreated -> ${device.external_id} is not a device of ours`);
 });
 
 // --- Polling: Gladys asks to refresh one device ------------------------------
@@ -245,54 +261,42 @@ for (const widget of WIDGETS) {
 // --- Configuration updated by the user ---------------------------------------
 gladys.onConfigUpdated(async (newConfig) => {
   logger.info('onConfigUpdated -> new configuration received');
-  config = normalizeConfig(newConfig);
-  // Nothing in that screen touches a location — it only holds the refresh
-  // interval, which `republish` applies by restarting the timers.
+  // Nothing in that screen touches a location — `locations` is not one of its
+  // fields — so a payload without the key keeps the list in memory rather than
+  // emptying it (which stopped every refresh until the next restart).
+  config = applyConfigUpdate(config, newConfig);
+  // The form holds the refresh interval and the language, which `republish`
+  // applies by restarting the timers.
   await republish();
 });
 
 // --- Connection lifecycle ----------------------------------------------------
 // The SDK logs the WebSocket lifecycle itself (under the `gladys-sdk` name).
-gladys.on('connected', async () => {
-  try {
-    // 1) Fetch the configuration filled in by the user.
+
+// Read the configuration, arm the refresh, publish the devices — the timer
+// BEFORE any publication, and a transient failure retried a minute later. See
+// src/lifecycle.js for why that order matters.
+const lifecycle = createLifecycle({
+  gladys,
+  async loadConfig() {
     const rawConfig = await gladys.getConfig();
     config = normalizeConfig(rawConfig);
-
-    // 1 bis) An install made before 2.0.0 stored its locations as postal codes
+    // An install made before 2.0.0 stored its locations as postal codes
     // (`country` / `postal_code` / `city`). normalizeConfig has already rebuilt
     // them as points — keeping the very ids their devices were published under,
     // so nothing is orphaned — and this writes that shape back, so the actions
     // work on the current one. Skipped when nothing changed, which is the case
     // on every normal start.
     await migrateStoredLocations(rawConfig);
+  },
+  isReady: () => isConfigured(config),
+  startPolling,
+  stopPolling,
+  publishDevices,
+});
 
-    // 2) (Re)publish the devices as soon as we are connected.
-    if (!(await publishDevices())) {
-      stopPolling();
-      return;
-    }
-
-    // 3) Start our own refresh loop (the devices declare no poll_frequency).
-    startPolling();
-
-    // 4) Report the application-level status, shown in the Supervision screen.
-    // Distinct from the container state machine: an integration can be RUNNING
-    // and still unable to reach its third-party service.
-    await gladys.setConnectionStatus(true);
-  } catch (err) {
-    logger.error('Post-connection initialization failed', err);
-    // Carry the real reason into the Supervision screen. A rejected device batch
-    // is otherwise invisible: the user just sees an empty Discovery tab with no
-    // clue that Gladys refused the payload.
-    const reason = String(err?.message ?? err).slice(0, 150);
-    await gladys
-      .setConnectionStatus(false, {
-        en: `Initialization failed: ${reason}`,
-        fr: `L'initialisation a échoué : ${reason}`,
-      })
-      .catch(() => {});
-  }
+gladys.on('connected', () => {
+  lifecycle.initialize();
 });
 
 /**
@@ -316,11 +320,13 @@ async function migrateStoredLocations(rawConfig) {
 gladys.on('disconnected', () => {
   // No point hammering Open-Meteo while we cannot publish anything.
   stopPolling();
+  lifecycle.cancelRetry();
 });
 
 gladys.handleShutdown((signal) => {
   logger.info(`Received ${signal} -> graceful shutdown`);
   stopPolling();
+  lifecycle.cancelRetry();
 });
 
 // --- Startup -----------------------------------------------------------------
