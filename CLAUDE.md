@@ -145,15 +145,26 @@ picking the first answer.
 
 `src/houses.js` reads `GET /api/integration/v1/house` — the houses the user
 placed on the map in Gladys — and `import_houses` turns each one into an ordinary
-location. Three things it is easy to get wrong:
+location. Four things it is easy to get wrong:
 
 - **`"location": true` in the manifest is an authorization contract**, shown on
   the install screen and enforced server-side. Without it the core answers 403,
   which no retry fixes — only re-installing does, so that status carries
   `HOUSE_ACCESS_DENIED` and gets its own message. The endpoint opened in Gladys
-  4.85.0, below the `>=4.86.0` the manifest requires anyway.
-- **The SDK does not wrap the endpoint** (0.14.0), hence the hand-made `fetch`
-  with `GLADYS_HOST_API_URL` / `GLADYS_INTEGRATION_TOKEN`.
+  4.85.0, below the `>=5.2.0` the manifest requires anyway.
+- **It is read through `gladys.getHouses()`** (SDK 0.14.0). It was a hand-made
+  `fetch` until the SDK wrapped it; a refusal now arrives as a `GladysApiError`
+  whose `status` (never its `code`, the core's error code) is what
+  `fetchHouses` turns into `HOUSE_ACCESS_DENIED`. `index.js` injects
+  `listHouses: () => fetchHouses(gladys)` into the editor, and
+  `test/houses.test.js` reads through `fakeGladys`, never the network.
+- **One house or all of them.** `import_houses` takes an optional `house`
+  field, a `select` with `source: "houses"` (Gladys 5.2.0, hence the
+  `gladys_version` floor, pinned by `test/manifest.test.js`): the core lists
+  the houses by NAME and hands over the picked house's `selector`, matched
+  against `GET /house`. Empty = every house. No `default` on it (the store
+  refuses one on a dynamic source), and a selector matching no house any more
+  is answered "pick again", never widened to every house.
 - **The import is one `setConfig` and one re-publish**, computed against a single
   list. A house with no coordinates, one outside the CAMS domain, a duplicate or
   one over `MAX_LOCATIONS` is named in the answer rather than dropped silently,
@@ -166,7 +177,7 @@ Declaring any of them pins `gladys_version` to `>=5.1.0` — an older core
 validates manifests against a strict field allowlist and rejects the whole
 integration over the unknown field — and both the store validator and
 `test/manifest.test.js` enforce that coupling, exactly as `categories` pins
-4.86.0.
+4.86.0 and `source: "houses"` pins 5.2.0.
 
 They are registered in `index.js` by key, like the manifest `actions`, and the
 same test ties every declaration to its handler in both directions.

@@ -357,12 +357,11 @@ test('the manifest asks for the house coordinates the import button reads', () =
 test('the compatibility range covers every field the manifest declares', () => {
   // Each capability field has a floor, and the range must clear the HIGHEST
   // one: house coordinates landed in Gladys 4.85.0, `categories` in 4.86.0,
-  // and the widgets / scene declarations in 5.1.0. An instance older than that
-  // validates manifests against a strict field allowlist and rejects the whole
-  // integration over the unknown field — which turns a catalog filter into a
-  // cryptic install failure. 5.1.0 is the floor as long as `widgets`,
-  // `scene_triggers` or `scene_actions` is declared.
-  assert.match(manifest.gladys_version, /^>=(5\.[1-9]\d*|[6-9]\.\d+|\d{2,}\.\d+)\./);
+  // the widgets / scene declarations in 5.1.0 and `source: "houses"` in 5.2.0.
+  // An instance older than that validates manifests against a strict allowlist
+  // and rejects the whole integration over the unknown field or source — which
+  // turns a catalog filter into a cryptic install failure.
+  assert.match(manifest.gladys_version, /^>=\d+\.\d+\.\d+$/);
   const [, major, minor] = manifest.gladys_version.match(/^>=(\d+)\.(\d+)\./).map(Number);
   for (const field of ['widgets', 'scene_triggers', 'scene_actions']) {
     if (manifest[field] !== undefined) {
@@ -372,6 +371,32 @@ test('the compatibility range covers every field the manifest declares', () => {
       );
     }
   }
+  const houseFields = [
+    ...(manifest.config_schema ?? []),
+    ...(manifest.actions ?? []).flatMap((declared) => declared.fields ?? []),
+    ...(manifest.widgets ?? []).flatMap((declared) => declared.settings ?? []),
+    ...(manifest.scene_triggers ?? []).flatMap((declared) => declared.fields ?? []),
+    ...(manifest.scene_actions ?? []).flatMap((declared) => declared.fields ?? []),
+  ].filter((field) => field.source === 'houses');
+  if (houseFields.length > 0) {
+    assert.ok(
+      major > 5 || (major === 5 && minor >= 2),
+      `source "houses" requires gladys_version >= 5.2.0, got "${manifest.gladys_version}"`,
+    );
+  }
+});
+
+test('"Add my Gladys houses" offers to pick one house, by name, from the core', () => {
+  // The core fills the options with the Gladys houses and hands over the
+  // picked house's `selector`, which `import_houses` matches against GET /house.
+  const declared = manifest.actions.find((action) => action.key === 'import_houses');
+  const picker = (declared.fields ?? []).find((field) => field.key === 'house');
+  assert.ok(picker, 'import_houses declares a "house" field');
+  assert.equal(picker.type, 'select');
+  assert.equal(picker.source, 'houses');
+  assert.equal(picker.options, undefined, '`source` and `options` are mutually exclusive');
+  assert.equal(picker.default, undefined, 'a dynamic-source select takes no default');
+  assert.notEqual(picker.required, true, 'empty must keep meaning "every house"');
 });
 
 test('the catalog categories are 1 to 3 keys of the store vocabulary', () => {

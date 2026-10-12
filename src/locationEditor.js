@@ -33,7 +33,7 @@ import {
   placeContext,
   resolvePlace as geocodePlace,
 } from './geocoding.js';
-import { fetchHouses, HOUSE_ACCESS_DENIED } from './houses.js';
+import { HOUSE_ACCESS_DENIED } from './houses.js';
 import {
   describeLocation,
   describeLocations,
@@ -69,7 +69,8 @@ const logger = createLogger({ name: 'locations' });
  * @param {(point: object) => boolean} [deps.isCovered] whether a pollen provider
  *   has data for a point
  * @param {typeof geocodePlace} [deps.resolvePlace] injected in tests
- * @param {typeof fetchHouses} [deps.listHouses] injected in tests
+ * @param {() => Promise<import('./houses.js').House[]>} [deps.listHouses] the
+ *   houses configured in Gladys (`fetchHouses` bound to the SDK in `index.js`)
  */
 export function createLocationEditor({
   getConfig,
@@ -78,7 +79,9 @@ export function createLocationEditor({
   findCreatedDevice = async () => null,
   isCovered = () => true,
   resolvePlace = geocodePlace,
-  listHouses = fetchHouses,
+  listHouses = async () => {
+    throw new Error('listHouses is not wired');
+  },
 }) {
   /**
    * Persist a new list, then re-publish the devices on it.
@@ -305,12 +308,24 @@ export function createLocationEditor({
        * leaves its location where it was — the same rule as everywhere else
        * here, a point that moved is another location.
        *
+       * ONE HOUSE OR ALL OF THEM. The optional `house` field is a `select`
+       * whose options the CORE fills with the Gladys houses (`source:
+       * "houses"`, Gladys 5.2.0): the user picks a NAME, and what reaches us is
+       * that house's `selector` — the very identifier `GET /house` returns, so
+       * it is matched against the list read here. Left empty, every house is
+       * imported, as before the field existed. The core refuses a selector
+       * whose house was deleted before the action runs; the check below is for
+       * the house deleted or renamed between that validation and our read.
+       *
        * Nothing is written unless something is actually added, and everything
        * skipped is named: a button that answers "0 added" without saying why is
        * a button the user clicks again.
        */
-      async import_houses() {
-        logger.info('Action import_houses');
+      async import_houses(fields = {}) {
+        const wanted = String(fields.house ?? '').trim();
+        // A selector is a slug the user typed as a house name, never a point:
+        // it may reach the log, the coordinates never do.
+        logger.info(`Action import_houses <- ${wanted === '' ? 'every house' : wanted}`);
 
         let houses;
         try {
@@ -338,6 +353,15 @@ export function createLocationEditor({
             en: 'Gladys has no house configured. Create one in Settings > Houses, place it on the map, then click this button again.',
             fr: 'Gladys ne contient aucune maison. Créez-en une dans Réglages > Maisons, placez-la sur la carte, puis relancez cette action.',
           };
+        }
+        if (wanted !== '') {
+          houses = houses.filter((house) => house.selector === wanted);
+          if (houses.length === 0) {
+            return {
+              en: 'The house picked in "House" no longer exists in Gladys: it was deleted or renamed since. Pick it again in the list, or leave the field empty to add every house.',
+              fr: "La maison choisie dans « Maison » n'existe plus dans Gladys : elle a été supprimée ou renommée depuis. Choisissez-la de nouveau dans la liste, ou laissez le champ vide pour ajouter toutes les maisons.",
+            };
+          }
         }
 
         // The whole import is computed against ONE list and written ONCE: a

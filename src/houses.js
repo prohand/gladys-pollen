@@ -8,10 +8,10 @@
 // reads it, and "Add my Gladys houses" is the button that turns it into
 // locations.
 //
-// WHY IT IS NOT THE SDK. `GET /house` was opened by Gladys 4.85.0 and the
-// JavaScript SDK does not wrap it yet (0.11.0), so the call is made by hand with
-// the credentials the supervisor injects into the container — the two variables
-// the SDK itself reads, and nothing more.
+// THROUGH THE SDK. `GET /house` was opened by Gladys 4.85.0 and read here by
+// hand until the SDK wrapped it: `gladys.getHouses()` (0.14.0) makes the same
+// call with the same credentials, and raises a `GladysApiError` carrying the
+// HTTP status on a refusal.
 //
 // WHY IT NEEDS A LINE IN THE MANIFEST. Where somebody lives is sensitive personal
 // data, so the core treats the access as an AUTHORIZATION CONTRACT rather than an
@@ -33,11 +33,6 @@ import { createLogger } from '@gladysassistant/integration-sdk';
 import { toCoordinate } from './coordinates.js';
 
 const logger = createLogger({ name: 'houses' });
-
-/** Path of the endpoint on the host API, prefix included. */
-export const HOUSE_API_PATH = '/api/integration/v1/house';
-
-const REQUEST_TIMEOUT_MS = 15_000;
 
 /**
  * Marker carried by the error raised when the core refuses the read.
@@ -80,55 +75,30 @@ export function normalizeHouse(raw) {
 }
 
 /**
- * The base URL of the host API, without its trailing slash — the SDK builds its
- * own URLs the same way, and `.../api` doubled by a slash is a 404 nobody
- * enjoys reading.
- */
-function normalizeBaseUrl(value) {
-  return String(value ?? '').replace(/\/+$/, '');
-}
-
-/**
  * Read the houses configured in Gladys.
  *
  * Throws rather than returns on failure — every case here is either a
  * misconfiguration or an outage, i.e. exactly the "unexpected" the editor turns
  * into one message. The 403 carries `code = HOUSE_ACCESS_DENIED` so the caller
  * can name the one fix that works.
- * @param {object} [options] injected in tests; the defaults are the variables
- *   the supervisor puts in the container
- * @param {string} [options.hostApiUrl]
- * @param {string} [options.token]
+ * @param {{ getHouses: () => Promise<unknown> }} gladys the SDK instance
  * @returns {Promise<House[]>} in the order the core sorted them (by name)
  */
-export async function fetchHouses({
-  hostApiUrl = process.env.GLADYS_HOST_API_URL,
-  token = process.env.GLADYS_INTEGRATION_TOKEN,
-} = {}) {
-  const baseUrl = normalizeBaseUrl(hostApiUrl);
-  if (baseUrl === '' || !token) {
-    // Only reachable outside a Gladys container: the supervisor always injects
-    // both, and the SDK would not have connected without them.
-    throw new Error('GLADYS_HOST_API_URL and GLADYS_INTEGRATION_TOKEN are required');
+export async function fetchHouses(gladys) {
+  let payload;
+  try {
+    payload = await gladys.getHouses();
+  } catch (err) {
+    // `GladysApiError.status` is the HTTP status of the host API's answer (its
+    // `code` is the core's error code, never the marker below).
+    if (err?.status === 403) {
+      const denied = new Error('Gladys refused the access to the house coordinates (HTTP 403)');
+      denied.code = HOUSE_ACCESS_DENIED;
+      throw denied;
+    }
+    throw err;
   }
 
-  const url = `${baseUrl}${HOUSE_API_PATH}`;
-  logger.debug('House lookup ->', url);
-
-  const response = await fetch(url, {
-    headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
-    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-  });
-  if (response.status === 403) {
-    const denied = new Error('Gladys refused the access to the house coordinates (HTTP 403)');
-    denied.code = HOUSE_ACCESS_DENIED;
-    throw denied;
-  }
-  if (!response.ok) {
-    throw new Error(`Gladys host API HTTP ${response.status}`);
-  }
-
-  const payload = await response.json();
   const houses = (Array.isArray(payload) ? payload : []).map(normalizeHouse);
   logger.info(`House lookup -> ${houses.length} house(s)`);
   return houses;

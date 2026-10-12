@@ -34,6 +34,7 @@ import {
   locationDeviceIds,
 } from './src/devices/index.js';
 import { createLifecycle } from './src/lifecycle.js';
+import { fetchHouses } from './src/houses.js';
 import { createLocationEditor } from './src/locationEditor.js';
 import { LOCATIONS_KEY, serializeLocations } from './src/locations.js';
 import { findProvider } from './src/pollen/index.js';
@@ -155,6 +156,8 @@ const locationEditor = createLocationEditor({
     config = normalizeConfig({ ...config, ...patch });
   },
   onLocationsChanged: republish,
+  // "Add my Gladys houses" reads the houses through the SDK (`GET /house`).
+  listHouses: () => fetchHouses(gladys),
   // Outside the CAMS European domain the forecast answers nulls for every
   // taxon: better to refuse the location than to publish a device that never
   // holds a value.

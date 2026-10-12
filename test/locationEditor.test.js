@@ -267,6 +267,47 @@ test('one click turns the Gladys houses into locations', async () => {
   assert.equal(state.writes, 1);
 });
 
+test('a house picked in the form is the only one imported', async () => {
+  // The core hands over the picked house's `selector` (`source: "houses"`).
+  const { state, import_houses: importHouses } = createHouseEditor({
+    houses: [house('Maison', 44.0181, 1.3549), house('Chalet', 46.5, 6.6)],
+  });
+
+  const message = await importHouses({ house: 'chalet' });
+
+  assert.match(message.fr, /1 maison\(s\) Gladys ajoutée\(s\)/);
+  assert.deepEqual(
+    state.config.locations.map((location) => location.name),
+    ['Chalet'],
+  );
+});
+
+test('an empty house field still imports every house', async () => {
+  const { state, import_houses: importHouses } = createHouseEditor({
+    houses: [house('Maison', 44.0181, 1.3549), house('Chalet', 46.5, 6.6)],
+  });
+
+  await importHouses({ house: '' });
+
+  assert.equal(state.config.locations.length, 2);
+});
+
+test('a picked house gone from Gladys asks to pick again and writes nothing', async () => {
+  // Deleted or renamed between the core's validation and our read: the stored
+  // selector matches nothing, and importing every house instead would be a
+  // surprise the user did not ask for.
+  const { state, import_houses: importHouses } = createHouseEditor({
+    houses: [house('Maison', 44.0181, 1.3549)],
+  });
+
+  const message = await importHouses({ house: 'chalet' });
+
+  assert.match(message.fr, /n'existe plus/);
+  assert.match(message.en, /no longer exists/);
+  assert.equal(state.writes, 0);
+  assert.equal(state.config.locations.length, 0);
+});
+
 test('a house already watched is named rather than added twice', async () => {
   const { state, import_houses: importHouses } = createHouseEditor({
     locations: [{ id: 'loc-1', name: 'Domicile', latitude: '44.0181', longitude: '1.3549' }],
