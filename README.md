@@ -14,8 +14,9 @@ Built from the official
 types a town, and gets a device — plus two dashboard widgets, two scene triggers
 and two scene actions.
 
-Requires **Gladys ≥ 5.1**, the release that accepts an integration's `widgets`,
-`scene_triggers` and `scene_actions`.
+Requires **Gladys ≥ 5.2**, the release that accepts a `select` listing the
+Gladys houses (`source: "houses"`), on top of the `widgets`, `scene_triggers` and
+`scene_actions` Gladys 5.1 opened.
 
 - 🇫🇷 [User documentation (français)](./docs/fr.md)
 - 🇬🇧 [User documentation (English)](./docs/en.md)
@@ -76,8 +77,12 @@ answers 403 to an integration that did not ask — and why `src/houses.js` tells
 that status apart from every other failure (only a re-install grants it, no retry
 ever will).
 
-The SDK does not wrap the endpoint (0.14.0), so the call is made by hand with
-the two environment variables the SDK itself reads.
+The call goes through the SDK, `gladys.getHouses()` (0.14.0+), whose refusal is
+a `GladysApiError` carrying the HTTP status.
+
+The button takes an optional **House** field, a `select` whose options the core
+fills with the Gladys houses (`source: "houses"`, Gladys 5.2.0): left empty, every
+house is imported; set, only the house whose `selector` it holds.
 
 It is a read, not a sync: the houses are fetched at the click, and what comes out
 is an ordinary location. A house with no position on the map, or one outside the

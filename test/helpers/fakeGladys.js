@@ -9,6 +9,8 @@
 //   - publishDiscoveredDevices      -> record the last published list
 //   - setConfig                     -> record the persisted config keys
 //   - getDevices                    -> the devices the user already created
+//   - getHouses                     -> the houses configured in Gladys, or the
+//                                      refusal (`houseError`) the host API sends
 //   - setConnectionStatus           -> record the reported status
 //   - publishSceneEvent             -> record the fired scene triggers
 //   - requestWidgetRefresh          -> record the widget freshness nudges
@@ -33,11 +35,19 @@ export function gladysApiError(status, message = `HTTP ${status}`) {
 /**
  * @param {object} [options]
  * @param {Array<object>} [options.devices] what getDevices answers
+ * @param {unknown} [options.houses] what getHouses answers
+ * @param {Error} [options.houseError] what getHouses throws instead
  * @param {boolean} [options.refuseSceneEvents]
  * @param {(states: object[], call: number) => Error|null} [options.refuseStates]
  *   the error a publishStates request is refused with, by call number (0-based)
  */
-export function createFakeGladys({ devices = [], refuseSceneEvents = false, refuseStates } = {}) {
+export function createFakeGladys({
+  devices = [],
+  houses = [],
+  houseError = null,
+  refuseSceneEvents = false,
+  refuseStates,
+} = {}) {
   const published = [];
   // The size of every publishStates request, accepted or not.
   const stateBatches = [];
@@ -47,7 +57,8 @@ export function createFakeGladys({ devices = [], refuseSceneEvents = false, refu
   const sceneEvents = [];
   const widgetRefreshes = [];
 
-  return {
+  const fake = {
+    houseReads: 0,
     published,
     stateBatches,
     discovered,
@@ -97,6 +108,14 @@ export function createFakeGladys({ devices = [], refuseSceneEvents = false, refu
       return devices;
     },
 
+    async getHouses() {
+      fake.houseReads += 1;
+      if (houseError) {
+        throw houseError;
+      }
+      return houses;
+    },
+
     async setConnectionStatus(connected, message) {
       statuses.push({ connected, message });
       return { success: true };
@@ -117,4 +136,5 @@ export function createFakeGladys({ devices = [], refuseSceneEvents = false, refu
       widgetRefreshes.push(key);
     },
   };
+  return fake;
 }

@@ -10,8 +10,9 @@ No account to create, no API key to paste.
 The risk also shows on your **dashboard** (two widgets) and drives your
 **scenes** (two triggers, two actions).
 
-> This version requires **Gladys 5.1** or newer: an integration's dashboard
-> widgets and scene cards do not exist before it.
+> This version requires **Gladys 5.2** or newer: the list of your Gladys houses
+> in "Add my Gladys houses" does not exist before it, nor (before 5.1) an
+> integration's dashboard widgets and scene cards.
 
 ## Where the data comes from
 
@@ -37,7 +38,9 @@ there is no country to pick anywhere in this integration.
 
 You have already told Gladys where you live: that is the map in **Settings >
 Houses**. The **"Add my Gladys houses"** button reads those houses and creates a
-location for each one that is not watched yet — no town to type.
+location for each one that is not watched yet — no town to type. To add only
+one of them, pick it in the button's **House** list; leave the list empty to add
+them all.
 
 Four things worth knowing:
 
@@ -55,8 +58,8 @@ Four things worth knowing:
 
 Clicking again is safe: a house already watched is reported, not added twice.
 
-Reading the houses needs the house coordinates Gladys opened in 4.85.0 — this
-integration requires **Gladys 4.86.0 or newer** in any case.
+Reading the houses needs the house coordinates Gladys opened in 4.85.0, and the
+**House** list needs Gladys 5.2.0 — the version this integration requires.
 
 ## Adding a location
 

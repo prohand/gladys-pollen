@@ -1,62 +1,38 @@
 // -----------------------------------------------------------------------------
-// Reading GET /house on the host API.
+// Reading the Gladys houses through the SDK (`gladys.getHouses()`).
 //
-// The network is never touched: `globalThis.fetch` is stubbed per test and
-// restored afterwards.
+// The SDK is stood in for by the in-memory fake: these tests never touch the
+// network.
 // -----------------------------------------------------------------------------
 
-import { afterEach, test } from 'node:test';
+import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { fetchHouses, HOUSE_ACCESS_DENIED, HOUSE_API_PATH, normalizeHouse } from '../src/houses.js';
+import { GladysApiError } from '@gladysassistant/integration-sdk';
+import { fetchHouses, HOUSE_ACCESS_DENIED, normalizeHouse } from '../src/houses.js';
+import { createFakeGladys } from './helpers/fakeGladys.js';
 
-const CREDENTIALS = { hostApiUrl: 'http://172.30.0.1:80', token: 'jwt' };
-
-const realFetch = globalThis.fetch;
-
-afterEach(() => {
-  globalThis.fetch = realFetch;
-});
-
-/** Stub `fetch` with one canned answer, and record what it was called with. */
-function stubFetch({ status = 200, body = [] } = {}) {
-  const calls = [];
-  globalThis.fetch = async (url, options) => {
-    calls.push({ url, options });
-    return {
-      ok: status >= 200 && status < 300,
-      status,
-      json: async () => body,
-    };
-  };
-  return calls;
-}
-
-test('the houses are read from the documented endpoint, with the integration token', async () => {
-  const calls = stubFetch({
-    body: [{ id: 'h1', name: 'Maison', selector: 'maison', latitude: 44.0181, longitude: 1.3549 }],
+test('the houses are read through the SDK, in the order the core sorted them', async () => {
+  const gladys = createFakeGladys({
+    houses: [
+      { id: 'h1', name: 'Maison', selector: 'maison', latitude: 44.0181, longitude: 1.3549 },
+    ],
   });
 
-  const houses = await fetchHouses(CREDENTIALS);
+  const houses = await fetchHouses(gladys);
 
-  assert.equal(calls.length, 1);
-  assert.equal(calls[0].url, `http://172.30.0.1:80${HOUSE_API_PATH}`);
-  assert.equal(calls[0].options.headers.Authorization, 'Bearer jwt');
+  assert.equal(gladys.houseReads, 1);
   assert.deepEqual(houses, [
     { id: 'h1', name: 'Maison', selector: 'maison', latitude: 44.0181, longitude: 1.3549 },
   ]);
 });
 
-test('a trailing slash on the host URL does not double the one in the path', async () => {
-  const calls = stubFetch();
-  await fetchHouses({ ...CREDENTIALS, hostApiUrl: 'http://172.30.0.1:80/' });
-  assert.equal(calls[0].url, `http://172.30.0.1:80${HOUSE_API_PATH}`);
-});
-
 test('a house that was never placed on the map has no coordinates, not a zero', async () => {
   // `Number(null)` is 0, a valid latitude in the Gulf of Guinea.
-  stubFetch({ body: [{ id: 'h1', name: 'Bureau', latitude: null, longitude: null }] });
+  const gladys = createFakeGladys({
+    houses: [{ id: 'h1', name: 'Bureau', latitude: null, longitude: null }],
+  });
 
-  const [house] = await fetchHouses(CREDENTIALS);
+  const [house] = await fetchHouses(gladys);
 
   assert.equal(house.latitude, null);
   assert.equal(house.longitude, null);
@@ -65,28 +41,30 @@ test('a house that was never placed on the map has no coordinates, not a zero', 
 test('a refused access is told apart from every other failure', async () => {
   // A 403 means the installed manifest never declared `location: true`, which
   // only a re-install fixes — nothing a retry would help with.
-  stubFetch({ status: 403 });
+  const gladys = createFakeGladys({
+    houseError: new GladysApiError(403, 'FORBIDDEN', 'Forbidden'),
+  });
 
-  await assert.rejects(fetchHouses(CREDENTIALS), (err) => {
+  await assert.rejects(fetchHouses(gladys), (err) => {
     assert.equal(err.code, HOUSE_ACCESS_DENIED);
     return true;
   });
 });
 
-test('any other HTTP error carries its status', async () => {
-  stubFetch({ status: 500 });
-  await assert.rejects(fetchHouses(CREDENTIALS), /500/);
+test('any other host API error goes through as it is', async () => {
+  const gladys = createFakeGladys({
+    houseError: new GladysApiError(500, 'SERVER_ERROR', 'Boom'),
+  });
+  await assert.rejects(fetchHouses(gladys), (err) => {
+    assert.equal(err.status, 500);
+    assert.notEqual(err.code, HOUSE_ACCESS_DENIED);
+    return true;
+  });
 });
 
 test('an answer that is not a list is no houses, not a crash', async () => {
-  stubFetch({ body: { message: 'nope' } });
-  assert.deepEqual(await fetchHouses(CREDENTIALS), []);
-});
-
-test('missing credentials fail before any request is made', async () => {
-  const calls = stubFetch();
-  await assert.rejects(fetchHouses({ hostApiUrl: '', token: '' }), /GLADYS_HOST_API_URL/);
-  assert.equal(calls.length, 0);
+  const gladys = createFakeGladys({ houses: { message: 'nope' } });
+  assert.deepEqual(await fetchHouses(gladys), []);
 });
 
 test('a house with no name is still listed under one', () => {

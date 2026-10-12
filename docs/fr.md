@@ -10,8 +10,9 @@ Aucun compte à créer, aucune clé d'API à saisir.
 Le risque s'affiche aussi sur votre **tableau de bord** (deux widgets) et se
 pilote depuis vos **scènes** (deux déclencheurs, deux actions).
 
-> Cette version nécessite **Gladys 5.1** ou plus récent : les widgets de tableau
-> de bord et les cartes de scène d'une intégration n'existent pas avant.
+> Cette version nécessite **Gladys 5.2** ou plus récent : la liste de vos maisons
+> Gladys dans « Ajouter mes maisons Gladys » n'existe pas avant, ni (avant la
+> 5.1) les widgets de tableau de bord et les cartes de scène d'une intégration.
 
 ## D'où viennent les données ?
 
@@ -39,6 +40,8 @@ mondiale : il n'y a donc aucun pays à choisir nulle part dans l'intégration.
 Vous avez déjà dit à Gladys où vous habitez : c'est la carte de **Réglages >
 Maisons**. Le bouton **« Ajouter mes maisons Gladys »** lit ces maisons et crée
 un lieu pour chacune qui n'est pas déjà surveillée — aucune commune à saisir.
+Pour n'en ajouter qu'une, choisissez-la dans la liste **Maison** du bouton ;
+laissez la liste vide pour les ajouter toutes.
 
 Quatre choses à savoir :
 
@@ -60,8 +63,8 @@ Relancer l'action est sans risque : une maison déjà surveillée est signalée,
 ajoutée une deuxième fois.
 
 Cette lecture des maisons s'appuie sur les coordonnées des maisons ouvertes par
-Gladys 4.85.0 ; l'intégration demande de toute façon **Gladys 4.86.0 ou plus
-récent**.
+Gladys 4.85.0, et la liste **Maison** sur Gladys 5.2.0 — la version que demande
+l'intégration.
 
 ## Ajouter un lieu
 

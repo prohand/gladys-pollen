@@ -6,6 +6,16 @@ All notable changes to this integration are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- "Add my Gladys houses" takes an optional **House** list: pick one Gladys house to add only that one, or leave it empty to add them all.
+
+### Changed
+
+- `@gladysassistant/integration-sdk` updated to 0.15.0.
+- Requires Gladys 5.2.0 (the list of the Gladys houses in an action form).
+- The Gladys houses are read through the SDK (`gladys.getHouses()`) instead of a hand-made request.
+
 ## [2.2.1] - 2026-10-08
 
 ### Fixed
