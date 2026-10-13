@@ -8,8 +8,8 @@
     "de": "Pollenrisiko für die Orte deiner Wahl, aus der europäischen CAMS-Vorhersage von Copernicus.",
     "es": "Riesgo de polen en los lugares que elija, según la previsión europea CAMS de Copernicus."
   },
-  "version": "2.3.0",
-  "docker_image": "ghcr.io/prohand/gladys-pollen:2.3.0",
+  "version": "2.4.0",
+  "docker_image": "ghcr.io/prohand/gladys-pollen:2.4.0",
   "gladys_version": ">=5.2.0",
   "cover_image": "https://raw.githubusercontent.com/prohand/gladys-pollen/main/cover.png",
   "categories": ["environment"],
