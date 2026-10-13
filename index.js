@@ -64,7 +64,7 @@ let pollingCleanup = null;
 const NOT_CONFIGURED_MESSAGE = {
   en: 'Add a location to start following the pollen risk.',
   fr: 'Ajoutez un lieu pour suivre le risque pollinique.',
-  de: 'Fügen Sie einen Ort hinzu, um das Pollenrisiko zu verfolgen.',
+  de: 'Füge einen Ort hinzu, um das Pollenrisiko zu verfolgen.',
   es: 'Añada un lugar para seguir el riesgo de polen.',
 };
 

@@ -86,7 +86,7 @@ igual que `48.8566`. Las coordenadas tienen prioridad sobre la localidad, que
 entonces solo se conserva como etiqueta del lugar.
 
 El lugar aparece entonces en la pestaña **Descubrir**, con el nombre
-`Pollens — <nombre>`. Púlselo para crear el dispositivo en Gladys: es entonces
+`Pollens — <nombre>`. Pulse **Añadir a Gladys** para crear el dispositivo: es entonces
 cuando se puede usar en paneles y escenas.
 
 Puede añadir hasta 20 lugares.
@@ -265,7 +265,7 @@ defecto**: las medidas se llaman `Risque pollinique global`,
 el inglés y el alemán).
 
 ¿Por qué un ajuste y no el idioma de su cuenta? Todo lo que la integración
-_muestra_ — el mensaje bajo un botón, el estado en la pantalla «Supervisión» — se
+_muestra_ — el mensaje bajo un botón, el estado en la pestaña «Supervisión» — se
 envía a Gladys en inglés, francés, alemán y español, y Gladys elige el de la
 persona que lo lee. Un nombre de dispositivo no es un mensaje: es un texto simple
 que se guarda tal como está el día en que crea el dispositivo, y nada en la API de
@@ -279,7 +279,7 @@ cambiarle el nombre (su historial se va con el dispositivo eliminado).
 ## En su panel
 
 La integración incluye dos widgets. Añádalos desde un panel de Gladys: **Editar**,
-**Agregar** y luego elíjalos en la lista.
+**Nuevo widget** y luego elíjalos en la lista.
 
 ### Polen — un lugar
 
@@ -427,16 +427,16 @@ rechaza al añadirlo, en lugar de crear un dispositivo que nunca tendría un val
   lugar, numerada como la lista. Cada línea termina con la fecha de los datos
   leídos, así que una fuente anclada en el pasado también se ve aquí. Es la forma
   más rápida de distinguir un problema de red de uno de configuración.
-- **La pantalla «Supervisión»** indica _quién_ ha fallado: «previsión de polen no
+- **La pestaña «Supervisión»** indica _quién_ ha fallado: «previsión de polen no
   disponible» es la fuente (Open-Meteo), «límite de peticiones de Gladys
   alcanzado» o «Gladys no ha aceptado los estados» es su Gladys; en ese caso la
   fuente no tiene la culpa, y la siguiente actualización publica los valores.
-- **Los registros**: lea los registros de la integración desde la interfaz de
-  Gladys, o con `docker logs`. Ponga `LOG_LEVEL` en `debug` para ver cada petición
+- **Los registros**: léalos en la pestaña «Registros» de la integración, o
+  con `docker logs`. Ponga `LOG_LEVEL` en `debug` para ver cada petición
   a la fuente y la carga exacta del dispositivo enviada a Gladys. Las coordenadas
   de sus lugares nunca aparecen en los registros, en ningún nivel.
 - **No aparece nada en la pestaña «Descubrir»**: compruebe el estado de la
-  integración en la pantalla «Supervisión»; cuando Gladys rechaza un dispositivo,
+  integración en la pestaña «Supervisión»; cuando Gladys rechaza un dispositivo,
   el motivo se indica allí.
 - **Un dispositivo se queda vacío**: compruebe que su lugar sigue apareciendo en
   «Mostrar mis lugares». Un dispositivo cuyo lugar se eliminó deja de

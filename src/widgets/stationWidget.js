@@ -41,7 +41,7 @@ const MAX_CHART_SERIES = 4;
 const NO_LOCATION = {
   en: 'Pick a place in the widget settings.',
   fr: 'Choisissez un lieu dans les réglages du widget.',
-  de: 'Wählen Sie einen Ort in den Einstellungen des Widgets.',
+  de: 'Wähle einen Ort in den Einstellungen des Widgets.',
   es: 'Elija un lugar en los ajustes del widget.',
 };
 const NO_DATA = {
@@ -62,7 +62,7 @@ const OVERALL_LABEL = {
   de: 'Gesamtrisiko',
   es: 'Riesgo global',
 };
-const FILTERED_LABEL = { en: 'Your risk', fr: 'Votre risque', de: 'Ihr Risiko', es: 'Su riesgo' };
+const FILTERED_LABEL = { en: 'Your risk', fr: 'Votre risque', de: 'Dein Risiko', es: 'Su riesgo' };
 const DOMINANT_LABEL = {
   en: 'Dominant pollen',
   fr: 'Pollen dominant',

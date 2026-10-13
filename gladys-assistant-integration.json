@@ -5,7 +5,7 @@
   "description": {
     "en": "Pollen risk for the locations you choose, from the Copernicus CAMS European forecast.",
     "fr": "Risque pollinique pour les lieux de votre choix, via la prévision européenne CAMS de Copernicus.",
-    "de": "Pollenrisiko für die Orte Ihrer Wahl, aus der europäischen CAMS-Vorhersage von Copernicus.",
+    "de": "Pollenrisiko für die Orte deiner Wahl, aus der europäischen CAMS-Vorhersage von Copernicus.",
     "es": "Riesgo de polen en los lugares que elija, según la previsión europea CAMS de Copernicus."
   },
   "version": "2.3.0",
@@ -26,9 +26,9 @@
         "es": "Cómo funciona"
       },
       "description": {
-        "en": "Add a location with the button below: type a town, it is geocoded, and a pollen device appears in the Discovery tab, ready to be added to Gladys. Pollen data comes from the CAMS European air quality forecast (Copernicus), republished as open data by Open-Meteo, and places are searched through the Open-Meteo geocoding API: no account and no API key are needed. Coverage is Europe, wherever the CAMS model reaches.",
+        "en": "Add a location with the button below: type a town, it is geocoded, and a pollen device appears in the Discover tab, ready to be added to Gladys. Pollen data comes from the CAMS European air quality forecast (Copernicus), republished as open data by Open-Meteo, and places are searched through the Open-Meteo geocoding API: no account and no API key are needed. Coverage is Europe, wherever the CAMS model reaches.",
         "fr": "Ajoutez un lieu avec le bouton ci-dessous : saisissez une commune, elle est géocodée, puis un appareil pollens apparaît dans l'onglet Découverte, prêt à être ajouté à Gladys. Les données polliniques proviennent de la prévision européenne de qualité de l'air CAMS (Copernicus), rediffusée en open data par Open-Meteo, et les lieux sont recherchés via l'API de géocodage Open-Meteo : aucun compte ni clé d'API n'est nécessaire. La couverture est européenne, partout où porte le modèle CAMS.",
-        "de": "Fügen Sie mit der Schaltfläche unten einen Ort hinzu: Geben Sie eine Gemeinde ein, sie wird geokodiert, und ein Pollengerät erscheint im Tab „Entdecken“, bereit, zu Gladys hinzugefügt zu werden. Die Pollendaten stammen aus der europäischen CAMS-Luftqualitätsvorhersage (Copernicus), die Open-Meteo als Open Data weiterverbreitet, und Orte werden über die Geokodierungs-API von Open-Meteo gesucht: Es werden weder ein Konto noch ein API-Schlüssel benötigt. Abgedeckt ist Europa, so weit das CAMS-Modell reicht.",
+        "de": "Füge mit der Schaltfläche unten einen Ort hinzu: Gib eine Gemeinde ein, sie wird geokodiert, und ein Pollengerät erscheint im Tab „Entdecken“, bereit, zu Gladys hinzugefügt zu werden. Die Pollendaten stammen aus der europäischen CAMS-Luftqualitätsvorhersage (Copernicus), die Open-Meteo als Open Data weiterverbreitet, und Orte werden über die Geokodierungs-API von Open-Meteo gesucht: Es werden weder ein Konto noch ein API-Schlüssel benötigt. Abgedeckt ist Europa, so weit das CAMS-Modell reicht.",
         "es": "Añada un lugar con el botón de abajo: escriba una localidad, se geocodifica y aparece un dispositivo de polen en la pestaña «Descubrir», listo para añadirlo a Gladys. Los datos de polen proceden de la previsión europea de calidad del aire CAMS (Copernicus), redistribuida como datos abiertos por Open-Meteo, y los lugares se buscan mediante la API de geocodificación de Open-Meteo: no se necesita ninguna cuenta ni clave de API. La cobertura es Europa, hasta donde llega el modelo CAMS."
       },
       "links": [
@@ -78,9 +78,9 @@
         "es": "Idioma de los nombres de los dispositivos"
       },
       "description": {
-        "en": "The language the pollen names are written in: \"Bouleau\" or \"Birch\". Everything else this integration displays already follows your Gladys language, but the name of a device and of its features is stored as it is published, so it has to be chosen here. A device already added to Gladys keeps the names it was created with: delete it and add it again from the Discovery tab to rename it.",
+        "en": "The language the pollen names are written in: \"Bouleau\" or \"Birch\". Everything else this integration displays already follows your Gladys language, but the name of a device and of its features is stored as it is published, so it has to be chosen here. A device already added to Gladys keeps the names it was created with: delete it and add it again from the Discover tab to rename it.",
         "fr": "La langue dans laquelle sont écrits les noms de pollens : « Bouleau » ou « Birch ». Tout le reste de ce que l'intégration affiche suit déjà la langue de votre compte Gladys, mais le nom d'un appareil et de ses fonctionnalités est enregistré tel qu'il est publié : il faut donc le choisir ici. Un appareil déjà ajouté à Gladys conserve les noms avec lesquels il a été créé : supprimez-le et rajoutez-le depuis l'onglet Découverte pour le renommer.",
-        "de": "Die Sprache, in der die Pollennamen geschrieben werden: „Birke“ oder „Birch“. Alles andere, was diese Integration anzeigt, folgt bereits Ihrer Gladys-Sprache, aber der Name eines Geräts und seiner Funktionen wird so gespeichert, wie er veröffentlicht wird, daher muss er hier gewählt werden. Ein bereits zu Gladys hinzugefügtes Gerät behält die Namen, mit denen es erstellt wurde: Löschen Sie es und fügen Sie es über den Tab „Entdecken“ erneut hinzu, um es umzubenennen.",
+        "de": "Die Sprache, in der die Pollennamen geschrieben werden: „Birke“ oder „Birch“. Alles andere, was diese Integration anzeigt, folgt bereits deiner Gladys-Sprache, aber der Name eines Geräts und seiner Funktionen wird so gespeichert, wie er veröffentlicht wird, daher muss er hier gewählt werden. Ein bereits zu Gladys hinzugefügtes Gerät behält die Namen, mit denen es erstellt wurde: Lösche es und füge es über den Tab „Entdecken“ erneut hinzu, um es umzubenennen.",
         "es": "El idioma en el que se escriben los nombres de los pólenes: «Abedul» o «Birch». Todo lo demás que muestra esta integración ya sigue el idioma de su cuenta de Gladys, pero el nombre de un dispositivo y de sus funciones se guarda tal como se publica, por lo que hay que elegirlo aquí. Un dispositivo ya añadido a Gladys conserva los nombres con los que se creó: elimínelo y vuelva a añadirlo desde la pestaña «Descubrir» para cambiarle el nombre."
       },
       "required": false,
@@ -150,13 +150,13 @@
       "label": {
         "en": "Your locations",
         "fr": "Vos lieux",
-        "de": "Ihre Orte",
+        "de": "Deine Orte",
         "es": "Sus lugares"
       },
       "description": {
         "en": "Use the buttons below to add, list and remove your locations. \"Add my Gladys houses\" turns the houses you already placed on the map in Gladys into locations, in one click. They are not fields of this form: a list you build as you go cannot be one, so everything about them happens under a button, and the answer displayed there is what shows you the list.",
         "fr": "Utilisez les boutons ci-dessous pour ajouter, lister et supprimer vos lieux. « Ajouter mes maisons Gladys » transforme en lieux, en un clic, les maisons que vous avez déjà placées sur la carte dans Gladys. Ce ne sont pas des champs de ce formulaire : une liste que l'on construit au fil de l'eau ne peut pas en être un, donc tout se passe sous un bouton et c'est la réponse affichée là qui vous montre la liste.",
-        "de": "Verwenden Sie die Schaltflächen unten, um Ihre Orte hinzuzufügen, aufzulisten und zu entfernen. „Meine Gladys-Häuser hinzufügen“ verwandelt die Häuser, die Sie in Gladys bereits auf der Karte platziert haben, mit einem Klick in Orte. Sie sind keine Felder dieses Formulars: Eine Liste, die nach und nach entsteht, kann keines sein, daher geschieht alles unter einer Schaltfläche, und die dort angezeigte Antwort zeigt Ihnen die Liste.",
+        "de": "Verwende die Schaltflächen unten, um deine Orte hinzuzufügen, aufzulisten und zu entfernen. „Meine Gladys-Häuser hinzufügen“ verwandelt die Häuser, die du in Gladys bereits auf der Karte platziert hast, mit einem Klick in Orte. Sie sind keine Felder dieses Formulars: Eine Liste, die nach und nach entsteht, kann keines sein, daher geschieht alles unter einer Schaltfläche, und die dort angezeigte Antwort zeigt dir die Liste.",
         "es": "Utilice los botones de abajo para añadir, listar y eliminar sus lugares. «Añadir mis viviendas de Gladys» convierte en lugares, con un clic, las viviendas que ya colocó en el mapa de Gladys. No son campos de este formulario: una lista que se construye sobre la marcha no puede serlo, así que todo ocurre bajo un botón, y la respuesta que aparece allí es la que le muestra la lista."
       }
     }
@@ -171,9 +171,9 @@
         "es": "Añadir un lugar"
       },
       "description": {
-        "en": "Geocodes the town you type and adds a location watching that point. Fill the latitude and the longitude in instead to add a point directly. Its device then shows up in the Discovery tab, and \"Show my locations\" lists it.",
+        "en": "Geocodes the town you type and adds a location watching that point. Fill the latitude and the longitude in instead to add a point directly. Its device then shows up in the Discover tab, and \"Show my locations\" lists it.",
         "fr": "Géocode la commune saisie et ajoute un lieu surveillant ce point. Renseignez plutôt la latitude et la longitude pour ajouter un point directement. Son appareil apparaît ensuite dans l'onglet Découverte, et « Afficher mes lieux » le liste.",
-        "de": "Geokodiert die eingegebene Gemeinde und fügt einen Ort hinzu, der diesen Punkt überwacht. Geben Sie stattdessen Breiten- und Längengrad ein, um einen Punkt direkt hinzuzufügen. Sein Gerät erscheint dann im Tab „Entdecken“, und „Meine Orte anzeigen“ listet es auf.",
+        "de": "Geokodiert die eingegebene Gemeinde und fügt einen Ort hinzu, der diesen Punkt überwacht. Gib stattdessen Breiten- und Längengrad ein, um einen Punkt direkt hinzuzufügen. Sein Gerät erscheint dann im Tab „Entdecken“, und „Meine Orte anzeigen“ listet es auf.",
         "es": "Geocodifica la localidad que escriba y añade un lugar que vigila ese punto. Rellene en su lugar la latitud y la longitud para añadir un punto directamente. Su dispositivo aparece después en la pestaña «Descubrir», y «Mostrar mis lugares» lo incluye."
       },
       "timeout_seconds": 30,
@@ -213,7 +213,7 @@
           "description": {
             "en": "The town to watch, anywhere in Europe. Several places share most names: add a comma and the region, the country or the postal code to narrow it down, e.g. \"Montauban, Tarn-et-Garonne\". Optional if you fill the two coordinates in below.",
             "fr": "La commune à surveiller, partout en Europe. La plupart des noms sont partagés par plusieurs lieux : ajoutez une virgule puis la région, le pays ou le code postal pour préciser, par exemple « Montauban, Tarn-et-Garonne ». Facultatif si vous renseignez les deux coordonnées ci-dessous.",
-            "de": "Die zu überwachende Gemeinde, überall in Europa. Die meisten Namen teilen sich mehrere Orte: Fügen Sie ein Komma und die Region, das Land oder die Postleitzahl hinzu, um einzugrenzen, z. B. „Montauban, Tarn-et-Garonne“. Optional, wenn Sie unten die beiden Koordinaten angeben.",
+            "de": "Die zu überwachende Gemeinde, überall in Europa. Die meisten Namen teilen sich mehrere Orte: Füge ein Komma und die Region, das Land oder die Postleitzahl hinzu, um einzugrenzen, z. B. „Montauban, Tarn-et-Garonne“. Optional, wenn du unten die beiden Koordinaten angibst.",
             "es": "La localidad que se va a vigilar, en cualquier lugar de Europa. La mayoría de los nombres los comparten varios lugares: añada una coma y la región, el país o el código postal para precisar, por ejemplo «Montauban, Tarn-et-Garonne». Opcional si rellena las dos coordenadas de abajo."
           },
           "required": false,
@@ -283,7 +283,7 @@
       "description": {
         "en": "Reads the houses you configured in Gladys and adds a location for each one that is not watched yet — no town to type. Pick one house below to add only that one. A house you never placed on the map has no coordinates: locate it in Settings > Houses first. The houses are read once, when you click: a location added this way is an ordinary one, which you rename and remove like the others.",
         "fr": "Lit les maisons que vous avez configurées dans Gladys et ajoute un lieu pour chacune qui n'est pas déjà surveillée — aucune commune à saisir. Choisissez une maison ci-dessous pour n'ajouter que celle-là. Une maison jamais placée sur la carte n'a pas de coordonnées : localisez-la d'abord dans Réglages > Maisons. Les maisons sont lues une fois, au clic : un lieu ajouté ainsi est un lieu ordinaire, que vous renommez et supprimez comme les autres.",
-        "de": "Liest die Häuser, die Sie in Gladys konfiguriert haben, und fügt für jedes noch nicht überwachte Haus einen Ort hinzu — ohne eine Gemeinde einzugeben. Wählen Sie unten ein Haus, um nur dieses hinzuzufügen. Ein Haus, das Sie nie auf der Karte platziert haben, hat keine Koordinaten: Verorten Sie es zuerst unter Einstellungen > Zuhause. Die Häuser werden einmal gelesen, beim Klick: Ein so hinzugefügter Ort ist ein gewöhnlicher Ort, den Sie wie die anderen umbenennen und entfernen.",
+        "de": "Liest die Häuser, die du in Gladys konfiguriert hast, und fügt für jedes noch nicht überwachte Haus einen Ort hinzu — ohne eine Gemeinde einzugeben. Wähle unten ein Haus, um nur dieses hinzuzufügen. Ein Haus, das du nie auf der Karte platziert hast, hat keine Koordinaten: Verorte es zuerst unter Einstellungen > Zuhause. Die Häuser werden einmal gelesen, beim Klick: Ein so hinzugefügter Ort ist ein gewöhnlicher Ort, den du wie die anderen umbenennst und entfernst.",
         "es": "Lee las viviendas que configuró en Gladys y añade un lugar por cada una que aún no se vigila, sin escribir ninguna localidad. Elija una vivienda abajo para añadir solo esa. Una vivienda que nunca colocó en el mapa no tiene coordenadas: ubíquela primero en Configuración > Viviendas. Las viviendas se leen una vez, al pulsar: un lugar añadido así es un lugar normal, que se renombra y se elimina como los demás."
       },
       "timeout_seconds": 30,
@@ -351,7 +351,7 @@
       "description": {
         "en": "Stops watching the location whose number you pick here — the numbers are the ones \"Show my locations\" lists. Its Gladys device is not deleted (an integration cannot do that): delete it yourself if you no longer want it.",
         "fr": "Arrête de surveiller le lieu dont vous choisissez le numéro ici — ce sont les numéros qu'affiche « Afficher mes lieux ». Son appareil Gladys n'est pas supprimé (une intégration ne peut pas le faire) : supprimez-le vous-même si vous n'en voulez plus.",
-        "de": "Beendet die Überwachung des Ortes, dessen Nummer Sie hier wählen — es sind die Nummern, die „Meine Orte anzeigen“ auflistet. Sein Gladys-Gerät wird nicht gelöscht (das kann eine Integration nicht): Löschen Sie es selbst, wenn Sie es nicht mehr möchten.",
+        "de": "Beendet die Überwachung des Ortes, dessen Nummer du hier wählst — es sind die Nummern, die „Meine Orte anzeigen“ auflistet. Sein Gladys-Gerät wird nicht gelöscht (das kann eine Integration nicht): Lösche es selbst, wenn du es nicht mehr möchtest.",
         "es": "Deja de vigilar el lugar cuyo número elija aquí: son los números que muestra «Mostrar mis lugares». Su dispositivo de Gladys no se elimina (una integración no puede hacerlo): elimínelo usted mismo si ya no lo quiere."
       },
       "timeout_seconds": 15,
@@ -568,7 +568,7 @@
           "description": {
             "en": "Run the action once unchecked to see which location would be removed.",
             "fr": "Lancez l'action une fois sans cocher pour voir quel lieu serait supprimé.",
-            "de": "Führen Sie die Aktion einmal ohne Haken aus, um zu sehen, welcher Ort entfernt würde.",
+            "de": "Führe die Aktion einmal ohne Haken aus, um zu sehen, welcher Ort entfernt würde.",
             "es": "Ejecute la acción una vez sin marcar para ver qué lugar se eliminaría."
           },
           "required": false,
@@ -606,9 +606,9 @@
             "es": "Lugar"
           },
           "description": {
-            "en": "The pollen device to display. Only the devices you already added from the Discovery tab are offered.",
+            "en": "The pollen device to display. Only the devices you already added from the Discover tab are offered.",
             "fr": "L'appareil pollens à afficher. Seuls les appareils déjà ajoutés depuis l'onglet Découverte sont proposés.",
-            "de": "Das anzuzeigende Pollengerät. Angeboten werden nur die Geräte, die Sie bereits über den Tab „Entdecken“ hinzugefügt haben.",
+            "de": "Das anzuzeigende Pollengerät. Angeboten werden nur die Geräte, die du bereits über den Tab „Entdecken“ hinzugefügt hast.",
             "es": "El dispositivo de polen que se va a mostrar. Solo se ofrecen los dispositivos que ya añadió desde la pestaña «Descubrir»."
           },
           "required": true
@@ -625,7 +625,7 @@
           "description": {
             "en": "Tick the species you react to: the level shown, the list and the chart then only account for those. Nothing ticked means all of them.",
             "fr": "Cochez les espèces auxquelles vous réagissez : le niveau affiché, la liste et le graphique ne tiennent alors compte que de celles-là. Rien de coché signifie toutes.",
-            "de": "Haken Sie die Arten an, auf die Sie reagieren: Das angezeigte Niveau, die Liste und das Diagramm berücksichtigen dann nur diese. Nichts angehakt bedeutet alle.",
+            "de": "Hake die Arten an, auf die du reagierst: Das angezeigte Niveau, die Liste und das Diagramm berücksichtigen dann nur diese. Nichts angehakt bedeutet alle.",
             "es": "Marque las especies a las que reacciona: el nivel mostrado, la lista y el gráfico solo tienen en cuenta esas. No marcar ninguna significa todas."
           },
           "required": false,
@@ -698,7 +698,7 @@
           "description": {
             "en": "The hour-by-hour risk for today and tomorrow, as a chart. Untick it for a compact card.",
             "fr": "Le risque heure par heure pour aujourd'hui et demain, sous forme de graphique. Décochez pour une carte compacte.",
-            "de": "Das stündliche Risiko für heute und morgen als Diagramm. Entfernen Sie den Haken für eine kompakte Karte.",
+            "de": "Das stündliche Risiko für heute und morgen als Diagramm. Entferne den Haken für eine kompakte Karte.",
             "es": "El riesgo hora a hora de hoy y mañana, en forma de gráfico. Desmárquelo para una tarjeta compacta."
           },
           "required": false,
@@ -753,7 +753,7 @@
           "description": {
             "en": "Leave empty to react to any of your places.",
             "fr": "Laissez vide pour réagir à n'importe lequel de vos lieux.",
-            "de": "Leer lassen, um auf jeden Ihrer Orte zu reagieren.",
+            "de": "Leer lassen, um auf jeden deiner Orte zu reagieren.",
             "es": "Déjelo vacío para reaccionar a cualquiera de sus lugares."
           },
           "required": false
@@ -770,7 +770,7 @@
           "description": {
             "en": "Tick the levels to react to. Nothing ticked means any level.",
             "fr": "Cochez les niveaux auxquels réagir. Rien de coché signifie n'importe quel niveau.",
-            "de": "Haken Sie die Niveaus an, auf die reagiert werden soll. Nichts angehakt bedeutet jedes Niveau.",
+            "de": "Hake die Niveaus an, auf die reagiert werden soll. Nichts angehakt bedeutet jedes Niveau.",
             "es": "Marque los niveles a los que reaccionar. No marcar ninguno significa cualquier nivel."
           },
           "required": false,
@@ -988,7 +988,7 @@
           "description": {
             "en": "Leave empty to react to any of your places.",
             "fr": "Laissez vide pour réagir à n'importe lequel de vos lieux.",
-            "de": "Leer lassen, um auf jeden Ihrer Orte zu reagieren.",
+            "de": "Leer lassen, um auf jeden deiner Orte zu reagieren.",
             "es": "Déjelo vacío para reaccionar a cualquiera de sus lugares."
           },
           "required": false
@@ -1005,7 +1005,7 @@
           "description": {
             "en": "Tick the pollens you react to. Nothing ticked means all of them.",
             "fr": "Cochez les pollens auxquels vous réagissez. Rien de coché signifie tous.",
-            "de": "Haken Sie die Pollen an, auf die Sie reagieren. Nichts angehakt bedeutet alle.",
+            "de": "Hake die Pollen an, auf die du reagierst. Nichts angehakt bedeutet alle.",
             "es": "Marque los pólenes a los que reacciona. No marcar ninguno significa todos."
           },
           "required": false,
@@ -1078,7 +1078,7 @@
           "description": {
             "en": "Tick the levels to react to. Nothing ticked means any level.",
             "fr": "Cochez les niveaux auxquels réagir. Rien de coché signifie n'importe quel niveau.",
-            "de": "Haken Sie die Niveaus an, auf die reagiert werden soll. Nichts angehakt bedeutet jedes Niveau.",
+            "de": "Hake die Niveaus an, auf die reagiert werden soll. Nichts angehakt bedeutet jedes Niveau.",
             "es": "Marque los niveles a los que reaccionar. No marcar ninguno significa cualquier nivel."
           },
           "required": false,
@@ -1320,7 +1320,7 @@
           "description": {
             "en": "\"Overall risk\" reports the worst species of the moment and names it. Pick a species to read that one only.",
             "fr": "« Risque global » rapporte la pire espèce du moment et la nomme. Choisissez une espèce pour ne lire que celle-là.",
-            "de": "„Gesamtrisiko“ meldet die derzeit schlimmste Art und nennt sie. Wählen Sie eine Art, um nur diese zu lesen.",
+            "de": "„Gesamtrisiko“ meldet die derzeit schlimmste Art und nennt sie. Wähle eine Art, um nur diese zu lesen.",
             "es": "«Riesgo global» informa de la peor especie del momento y la nombra. Elija una especie para leer solo esa."
           },
           "required": false,
@@ -1492,7 +1492,7 @@
       "description": {
         "en": "Reads the forecast again and republishes the states, without waiting for the next refresh. Leave the place empty to refresh them all.",
         "fr": "Relit la prévision et republie les états, sans attendre le prochain rafraîchissement. Laissez le lieu vide pour tous les rafraîchir.",
-        "de": "Liest die Vorhersage erneut und veröffentlicht die Zustände neu, ohne auf die nächste Aktualisierung zu warten. Lassen Sie den Ort leer, um alle zu aktualisieren.",
+        "de": "Liest die Vorhersage erneut und veröffentlicht die Zustände neu, ohne auf die nächste Aktualisierung zu warten. Lass den Ort leer, um alle zu aktualisieren.",
         "es": "Vuelve a leer la previsión y republica los estados, sin esperar a la próxima actualización. Deje el lugar vacío para actualizarlos todos."
       },
       "timeout_seconds": 60,

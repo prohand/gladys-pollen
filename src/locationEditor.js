@@ -137,7 +137,7 @@ export function createLocationEditor({
         problem: {
           en: `No place found for "${query}". Check the spelling, or narrow it down with a comma: "Montauban, Tarn-et-Garonne".`,
           fr: `Aucun lieu trouvé pour « ${query} ». Vérifiez l'orthographe, ou précisez après une virgule : « Montauban, Tarn-et-Garonne ».`,
-          de: `Kein Ort für „${query}“ gefunden. Prüfen Sie die Schreibweise oder präzisieren Sie nach einem Komma: „Montauban, Tarn-et-Garonne“.`,
+          de: `Kein Ort für „${query}“ gefunden. Prüfe die Schreibweise oder präzisiere nach einem Komma: „Montauban, Tarn-et-Garonne“.`,
           es: `No se ha encontrado ningún lugar para «${query}». Compruebe la ortografía o precise tras una coma: «Montauban, Tarn-et-Garonne».`,
         },
       };
@@ -150,7 +150,7 @@ export function createLocationEditor({
         problem: {
           en: `Several places are named "${query}". Add a comma and the region, the country or the postal code: ${list}`,
           fr: `Plusieurs lieux s'appellent « ${query} ». Ajoutez une virgule puis la région, le pays ou le code postal : ${list}`,
-          de: `Mehrere Orte heißen „${query}“. Fügen Sie ein Komma und die Region, das Land oder die Postleitzahl hinzu: ${list}`,
+          de: `Mehrere Orte heißen „${query}“. Füge ein Komma und die Region, das Land oder die Postleitzahl hinzu: ${list}`,
           es: `Varios lugares se llaman «${query}». Añada una coma y la región, el país o el código postal: ${list}`,
         },
       };
@@ -250,7 +250,7 @@ export function createLocationEditor({
           return {
             en: 'Type the town of the location to add, or its latitude and its longitude.',
             fr: 'Saisissez la commune du lieu à ajouter, ou sa latitude et sa longitude.',
-            de: 'Geben Sie die Gemeinde des hinzuzufügenden Ortes ein, oder seinen Breiten- und Längengrad.',
+            de: 'Gib die Gemeinde des hinzuzufügenden Ortes ein, oder seinen Breiten- und Längengrad.',
             es: 'Escriba la localidad del lugar que desea añadir, o su latitud y su longitud.',
           };
         }
@@ -260,7 +260,7 @@ export function createLocationEditor({
           return {
             en: `Maximum ${MAX_LOCATIONS} locations. Delete one first.`,
             fr: `Maximum ${MAX_LOCATIONS} lieux. Supprimez-en un d'abord.`,
-            de: `Maximal ${MAX_LOCATIONS} Orte. Entfernen Sie zuerst einen.`,
+            de: `Maximal ${MAX_LOCATIONS} Orte. Entferne zuerst einen.`,
             es: `Máximo ${MAX_LOCATIONS} lugares. Elimine uno primero.`,
           };
         }
@@ -318,9 +318,9 @@ export function createLocationEditor({
         const saved = findLocationById(getConfig().locations, id);
         const position = positionOf(getConfig().locations, id);
         return {
-          en: `Location ${position} "${name}" added: ${describeLocation(saved)}. Add its device from the Discovery tab; "Show my locations" lists them all.`,
+          en: `Location ${position} "${name}" added: ${describeLocation(saved)}. Add its device from the Discover tab; "Show my locations" lists them all.`,
           fr: `Lieu ${position} « ${name} » ajouté : ${describeLocation(saved)}. Ajoutez son appareil depuis l'onglet Découverte ; « Afficher mes lieux » les liste tous.`,
-          de: `Ort ${position} „${name}“ hinzugefügt: ${describeLocation(saved)}. Fügen Sie sein Gerät über den Tab „Entdecken“ hinzu; „Meine Orte anzeigen“ listet alle auf.`,
+          de: `Ort ${position} „${name}“ hinzugefügt: ${describeLocation(saved)}. Füge sein Gerät über den Tab „Entdecken“ hinzu; „Meine Orte anzeigen“ listet alle auf.`,
           es: `Lugar ${position} «${name}» añadido: ${describeLocation(saved)}. Añada su dispositivo desde la pestaña «Descubrir»; «Mostrar mis lugares» los muestra todos.`,
         };
       },
@@ -371,7 +371,7 @@ export function createLocationEditor({
             return {
               en: 'Gladys refuses to share the coordinates of your houses with this integration. That access is granted when the integration is installed: update it to a version that asks for it, or remove and re-install it, and accept the request shown on the install screen. Meanwhile "Add a location" works the same way with the name of a town.',
               fr: "Gladys refuse de partager les coordonnées de vos maisons avec cette intégration. Cet accès s'accorde à l'installation : mettez l'intégration à jour vers une version qui le demande, ou supprimez-la et réinstallez-la en acceptant la demande affichée sur l'écran d'installation. En attendant, « Ajouter un lieu » fait la même chose avec le nom d'une commune.",
-              de: 'Gladys verweigert dieser Integration die Koordinaten Ihrer Häuser. Dieser Zugriff wird bei der Installation gewährt: Aktualisieren Sie die Integration auf eine Version, die ihn anfordert, oder entfernen Sie sie und installieren Sie sie neu, und akzeptieren Sie die Anfrage auf dem Installationsbildschirm. In der Zwischenzeit funktioniert „Ort hinzufügen“ genauso mit dem Namen einer Gemeinde.',
+              de: 'Gladys verweigert dieser Integration die Koordinaten deiner Häuser. Dieser Zugriff wird bei der Installation gewährt: Aktualisiere die Integration auf eine Version, die ihn anfordert, oder entferne sie und installiere sie neu, und akzeptiere die Anfrage auf dem Installationsbildschirm. In der Zwischenzeit funktioniert „Ort hinzufügen“ genauso mit dem Namen einer Gemeinde.',
               es: 'Gladys se niega a compartir las coordenadas de sus viviendas con esta integración. Ese acceso se concede durante la instalación: actualice la integración a una versión que lo solicite, o elimínela y vuelva a instalarla, y acepte la solicitud que aparece en la pantalla de instalación. Mientras tanto, «Añadir un lugar» funciona igual con el nombre de una localidad.',
             };
           }
@@ -380,7 +380,7 @@ export function createLocationEditor({
           return {
             en: `Could not read the houses configured in Gladys: ${reason}. Add the location by the name of its town instead.`,
             fr: `Impossible de lire les maisons configurées dans Gladys : ${reason}. Ajoutez plutôt le lieu par le nom de sa commune.`,
-            de: `Die in Gladys konfigurierten Häuser konnten nicht gelesen werden: ${reason}. Fügen Sie den Ort stattdessen über den Namen seiner Gemeinde hinzu.`,
+            de: `Die in Gladys konfigurierten Häuser konnten nicht gelesen werden: ${reason}. Füge den Ort stattdessen über den Namen seiner Gemeinde hinzu.`,
             es: `No se han podido leer las viviendas configuradas en Gladys: ${reason}. Añada el lugar por el nombre de su localidad.`,
           };
         }
@@ -389,7 +389,7 @@ export function createLocationEditor({
           return {
             en: 'Gladys has no house configured. Create one in Settings > Houses, place it on the map, then click this button again.',
             fr: 'Gladys ne contient aucune maison. Créez-en une dans Réglages > Maisons, placez-la sur la carte, puis relancez cette action.',
-            de: 'In Gladys ist kein Haus konfiguriert. Legen Sie eines unter Einstellungen > Zuhause an, platzieren Sie es auf der Karte und klicken Sie dann erneut auf diese Schaltfläche.',
+            de: 'In Gladys ist kein Haus konfiguriert. Lege eines unter Einstellungen > Zuhause an, platziere es auf der Karte und klicke dann erneut auf diese Schaltfläche.',
             es: 'Gladys no tiene ninguna vivienda configurada. Cree una en Configuración > Viviendas, colóquela en el mapa y vuelva a pulsar este botón.',
           };
         }
@@ -399,7 +399,7 @@ export function createLocationEditor({
             return {
               en: 'The house picked in "House" no longer exists in Gladys: it was deleted or renamed since. Pick it again in the list, or leave the field empty to add every house.',
               fr: "La maison choisie dans « Maison » n'existe plus dans Gladys : elle a été supprimée ou renommée depuis. Choisissez-la de nouveau dans la liste, ou laissez le champ vide pour ajouter toutes les maisons.",
-              de: 'Das unter „Haus“ gewählte Haus existiert in Gladys nicht mehr: Es wurde inzwischen gelöscht oder umbenannt. Wählen Sie es erneut in der Liste, oder lassen Sie das Feld leer, um alle Häuser hinzuzufügen.',
+              de: 'Das unter „Haus“ gewählte Haus existiert in Gladys nicht mehr: Es wurde inzwischen gelöscht oder umbenannt. Wähle es erneut in der Liste, oder lass das Feld leer, um alle Häuser hinzuzufügen.',
               es: 'La vivienda elegida en «Vivienda» ya no existe en Gladys: se ha eliminado o renombrado desde entonces. Vuelva a elegirla en la lista, o deje el campo vacío para añadir todas las viviendas.',
             };
           }
@@ -493,7 +493,7 @@ export function createLocationEditor({
         if (unlocated.length > 0) {
           notes.en += ` Not placed on the map in Gladys, so there is no point to watch: ${quoteNames(unlocated, 'en')}. Set their location in Settings > Houses and click again.`;
           notes.fr += ` Sans position sur la carte dans Gladys, donc sans point à surveiller : ${quoteNames(unlocated, 'fr')}. Renseignez leur emplacement dans Réglages > Maisons puis relancez l'action.`;
-          notes.de += ` Nicht auf der Karte in Gladys platziert, also ohne zu überwachenden Punkt: ${quoteNames(unlocated, 'de')}. Legen Sie ihre Position unter Einstellungen > Zuhause fest und klicken Sie erneut.`;
+          notes.de += ` Nicht auf der Karte in Gladys platziert, also ohne zu überwachenden Punkt: ${quoteNames(unlocated, 'de')}. Lege ihre Position unter Einstellungen > Zuhause fest und klicke erneut.`;
           notes.es += ` Sin posición en el mapa de Gladys, por lo que no hay ningún punto que vigilar: ${quoteNames(unlocated, 'es')}. Indique su ubicación en Configuración > Viviendas y vuelva a pulsar.`;
         }
         if (uncovered.length > 0) {
@@ -513,14 +513,14 @@ export function createLocationEditor({
           return {
             en: `No house to add: your ${houses.length} Gladys house(s) are already watched or cannot be.${notes.en}`,
             fr: `Aucune maison à ajouter : vos ${houses.length} maison(s) Gladys sont déjà surveillées ou ne peuvent pas l'être.${notes.fr}`,
-            de: `Kein Haus hinzuzufügen: Ihre Gladys-Häuser (${houses.length}) werden bereits überwacht oder können es nicht werden.${notes.de}`,
+            de: `Kein Haus hinzuzufügen: Deine Gladys-Häuser (${houses.length}) werden bereits überwacht oder können es nicht werden.${notes.de}`,
             es: `No hay ninguna vivienda que añadir: sus ${houses.length} vivienda(s) de Gladys ya están vigiladas o no pueden estarlo.${notes.es}`,
           };
         }
         return {
-          en: `${addedIds.length} Gladys house(s) added. Add their devices from the Discovery tab:${LOCATION_LINE_SEPARATOR}${lines}${notes.en}`,
+          en: `${addedIds.length} Gladys house(s) added. Add their devices from the Discover tab:${LOCATION_LINE_SEPARATOR}${lines}${notes.en}`,
           fr: `${addedIds.length} maison(s) Gladys ajoutée(s). Ajoutez leurs appareils depuis l'onglet Découverte :${LOCATION_LINE_SEPARATOR}${lines}${notes.fr}`,
-          de: `Gladys-Häuser hinzugefügt: ${addedIds.length}. Fügen Sie ihre Geräte über den Tab „Entdecken“ hinzu:${LOCATION_LINE_SEPARATOR}${lines}${notes.de}`,
+          de: `Gladys-Häuser hinzugefügt: ${addedIds.length}. Füge ihre Geräte über den Tab „Entdecken“ hinzu:${LOCATION_LINE_SEPARATOR}${lines}${notes.de}`,
           es: `${addedIds.length} vivienda(s) de Gladys añadida(s). Añada sus dispositivos desde la pestaña «Descubrir»:${LOCATION_LINE_SEPARATOR}${lines}${notes.es}`,
         };
       },
@@ -539,7 +539,7 @@ export function createLocationEditor({
           return {
             en: 'No location yet. Add one with "Add a location".',
             fr: "Aucun lieu pour l'instant. Ajoutez-en un avec « Ajouter un lieu ».",
-            de: 'Noch kein Ort. Fügen Sie einen mit „Ort hinzufügen“ hinzu.',
+            de: 'Noch kein Ort. Füge einen mit „Ort hinzufügen“ hinzu.',
             es: 'Aún no hay ningún lugar. Añada uno con «Añadir un lugar».',
           };
         }
@@ -565,7 +565,7 @@ export function createLocationEditor({
           return {
             en: 'No location yet. Add one with "Add a location".',
             fr: "Aucun lieu pour l'instant. Ajoutez-en un avec « Ajouter un lieu ».",
-            de: 'Noch kein Ort. Fügen Sie einen mit „Ort hinzufügen“ hinzu.',
+            de: 'Noch kein Ort. Füge einen mit „Ort hinzufügen“ hinzu.',
             es: 'Aún no hay ningún lugar. Añada uno con «Añadir un lugar».',
           };
         }
@@ -585,7 +585,7 @@ export function createLocationEditor({
           return {
             en: `Tick "I confirm" to delete location ${fields.location} "${location.name}" (${describeLocation(location)}).`,
             fr: `Cochez « Je confirme » pour supprimer le lieu ${fields.location} « ${location.name} » (${describeLocation(location)}).`,
-            de: `Haken Sie „Ich bestätige“ an, um Ort ${fields.location} „${location.name}“ (${describeLocation(location)}) zu entfernen.`,
+            de: `Hake „Ich bestätige“ an, um Ort ${fields.location} „${location.name}“ (${describeLocation(location)}) zu entfernen.`,
             es: `Marque «Confirmo» para eliminar el lugar ${fields.location} «${location.name}» (${describeLocation(location)}).`,
           };
         }
@@ -604,7 +604,7 @@ export function createLocationEditor({
             ? {
                 en: ' The locations after it moved up one rank: run "Show my locations" before deleting another one.',
                 fr: " Les lieux suivants remontent d'un rang : lancez « Afficher mes lieux » avant d'en supprimer un autre.",
-                de: ' Die nachfolgenden Orte sind um einen Rang nach oben gerückt: Führen Sie „Meine Orte anzeigen“ aus, bevor Sie einen weiteren entfernen.',
+                de: ' Die nachfolgenden Orte sind um einen Rang nach oben gerückt: Führe „Meine Orte anzeigen“ aus, bevor du einen weiteren entfernst.',
                 es: ' Los lugares siguientes suben un puesto: ejecute «Mostrar mis lugares» antes de eliminar otro.',
               }
             : inEveryLanguage(() => '');
@@ -613,7 +613,7 @@ export function createLocationEditor({
           // Never created: re-publishing the list without it is enough, the
           // Discovery screen stops offering it on the spot.
           return {
-            en: `Location "${location.name}" removed, and it is no longer offered in the Discovery tab.${renumbered.en}`,
+            en: `Location "${location.name}" removed, and it is no longer offered in the Discover tab.${renumbered.en}`,
             fr: `Lieu « ${location.name} » supprimé, et il n'est plus proposé dans l'onglet Découverte.${renumbered.fr}`,
             de: `Ort „${location.name}“ entfernt; er wird im Tab „Entdecken“ nicht mehr angeboten.${renumbered.de}`,
             es: `Lugar «${location.name}» eliminado; ya no se ofrece en la pestaña «Descubrir».${renumbered.es}`,
@@ -624,7 +624,7 @@ export function createLocationEditor({
         return {
           en: `Location "${location.name}" removed. Its device "${created.name}" still exists in Gladys and will stop updating: delete it yourself from the integration's Devices tab — an integration is not allowed to delete a device.${renumbered.en}`,
           fr: `Lieu « ${location.name} » supprimé. Son appareil « ${created.name} » existe toujours dans Gladys et ne se mettra plus à jour : supprimez-le vous-même depuis l'onglet Appareils de l'intégration — une intégration n'a pas le droit de supprimer un appareil.${renumbered.fr}`,
-          de: `Ort „${location.name}“ entfernt. Sein Gerät „${created.name}“ existiert weiterhin in Gladys und wird nicht mehr aktualisiert: Löschen Sie es selbst über den Tab „Geräte“ der Integration — eine Integration darf kein Gerät löschen.${renumbered.de}`,
+          de: `Ort „${location.name}“ entfernt. Sein Gerät „${created.name}“ existiert weiterhin in Gladys und wird nicht mehr aktualisiert: Lösche es selbst über den Tab „Geräte“ der Integration — eine Integration darf kein Gerät löschen.${renumbered.de}`,
           es: `Lugar «${location.name}» eliminado. Su dispositivo «${created.name}» sigue existiendo en Gladys y dejará de actualizarse: elimínelo usted mismo desde la pestaña «Dispositivos» de la integración; una integración no tiene permiso para eliminar un dispositivo.${renumbered.es}`,
         };
       },

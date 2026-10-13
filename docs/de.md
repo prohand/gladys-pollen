@@ -1,16 +1,16 @@
 # Pollens
 
-Diese Integration stellt das **Pollenrisiko** der Orte Ihrer Wahl als
+Diese Integration stellt das **Pollenrisiko** der Orte deiner Wahl als
 Gladys-Geräte bereit: ein Gerät pro Ort, mit einem Risikoniveau von 0 bis 3 — der
-Skala von Gladys selbst — für jede Pollenart. Sie fügen Ihre **Gladys-Häuser mit
-einem Klick** hinzu, oder einen Ort, indem Sie seine **Gemeinde** eingeben.
+Skala von Gladys selbst — für jede Pollenart. Du fügst deine **Gladys-Häuser mit
+einem Klick** hinzu, oder einen Ort, indem du seine **Gemeinde** eingibst.
 
 Kein Konto anzulegen, kein API-Schlüssel einzufügen.
 
-Das Risiko erscheint auch auf Ihrem **Dashboard** (zwei Widgets) und steuert Ihre
+Das Risiko erscheint auch auf deinem **Dashboard** (zwei Widgets) und steuert deine
 **Szenen** (zwei Auslöser, zwei Aktionen).
 
-> Diese Version erfordert **Gladys 5.2** oder neuer: Die Liste Ihrer Gladys-Häuser
+> Diese Version erfordert **Gladys 5.2** oder neuer: Die Liste deiner Gladys-Häuser
 > in „Meine Gladys-Häuser hinzufügen“ gibt es vorher nicht, ebenso wenig (vor 5.1)
 > die Dashboard-Widgets und Szenenkarten einer Integration.
 
@@ -36,31 +36,31 @@ ein Land gewählt werden.
 > das jeder Benutzer anlegen müsste, bevor die Integration überhaupt funktioniert.
 > CAMS wurde gewählt, weil es offiziell _und_ ohne jede Einrichtung nutzbar ist.
 
-## Ihre Gladys-Häuser mit einem Klick hinzufügen
+## Deine Gladys-Häuser mit einem Klick hinzufügen
 
-Sie haben Gladys bereits gesagt, wo Sie wohnen: Das ist die Karte unter
+Du hast Gladys bereits gesagt, wo du wohnst: Das ist die Karte unter
 **Einstellungen > Zuhause**. Die Schaltfläche **„Meine Gladys-Häuser hinzufügen“**
 liest diese Häuser und legt für jedes noch nicht überwachte Haus einen Ort an —
-ohne eine Gemeinde einzugeben. Um nur eines davon hinzuzufügen, wählen Sie es in
-der Liste **Haus** der Schaltfläche; lassen Sie die Liste leer, um alle
+ohne eine Gemeinde einzugeben. Um nur eines davon hinzuzufügen, wähle es in
+der Liste **Haus** der Schaltfläche; lass die Liste leer, um alle
 hinzuzufügen.
 
 Vier Dinge sind gut zu wissen:
 
-- **Der Zugriff ist eine Berechtigung.** Wo Sie wohnen, sind personenbezogene
-  Daten: Gladys teilt sie nur, wenn Sie die Anfrage auf dem Installationsbildschirm
-  der Integration akzeptiert haben. Antwortet die Schaltfläche, dass der Zugriff
-  verweigert wird, entfernen Sie die Integration und installieren Sie sie neu,
-  indem Sie die dort angezeigte Anfrage akzeptieren.
-- **Ein Haus, das Sie nie auf der Karte platziert haben, hat keine Koordinaten.**
-  Es wird in der Antwort genannt; verorten Sie es unter Einstellungen > Zuhause
-  und klicken Sie erneut auf die Schaltfläche.
+- **Der Zugriff ist eine Berechtigung.** Wo du wohnst, sind personenbezogene
+  Daten: Gladys teilt sie nur, wenn du die Anfrage auf dem Installationsbildschirm
+  der Integration akzeptiert hast. Antwortet die Schaltfläche, dass der Zugriff
+  verweigert wird, entferne die Integration und installiere sie neu,
+  indem du die dort angezeigte Anfrage akzeptierst.
+- **Ein Haus, das du nie auf der Karte platziert hast, hat keine Koordinaten.**
+  Es wird in der Antwort genannt; verorte es unter Einstellungen > Zuhause
+  und klicke erneut auf die Schaltfläche.
 - **Ein Haus außerhalb des europäischen CAMS-Gebiets** wird ebenfalls genannt und
   ausgelassen: Keine Pollenvorhersage deckt es ab (siehe „Geografische Abdeckung“
   unten).
 - **Es ist keine Synchronisierung.** Die Häuser werden im Moment des Klicks
-  gelesen. Heraus kommt ein gewöhnlicher Ort, den Sie wie jeden anderen umbenennen
-  und entfernen, und ein später in Gladys verschobenes Haus verschiebt seinen Ort
+  gelesen. Heraus kommt ein gewöhnlicher Ort, den du wie jeden anderen umbenennst
+  und entfernst, und ein später in Gladys verschobenes Haus verschiebt seinen Ort
   nicht.
 
 Erneutes Klicken ist unbedenklich: Ein bereits überwachtes Haus wird gemeldet,
@@ -72,31 +72,31 @@ diese Integration voraussetzt.
 
 ## Einen Ort hinzufügen
 
-1. Öffnen Sie den Tab **Konfiguration** der Integration.
-2. Klicken Sie auf **Ort hinzufügen**.
-3. Geben Sie die **Gemeinde** ein, z. B. `Montauban`. Den Ort zu benennen ist
+1. Öffne den Tab **Konfiguration** der Integration.
+2. Klicke auf **Ort hinzufügen**.
+3. Gib die **Gemeinde** ein, z. B. `Montauban`. Den Ort zu benennen ist
    optional: Bleibt das Feld leer, wird der Name der Gemeinde verwendet.
-4. Bestätigen Sie.
+4. Bestätige.
 
 Die meisten Ortsnamen teilen sich mehrere Gemeinden — allein in Frankreich gibt
 es zwei Montauban und weltweit ein Dutzend Paris. In diesem Fall listet die
-Integration die Kandidaten auf, statt zu raten: Führen Sie die Aktion erneut aus,
+Integration die Kandidaten auf, statt zu raten: Führe die Aktion erneut aus,
 mit einem Komma und der Region, dem Land oder der Postleitzahl, z. B.
 `Montauban, Tarn-et-Garonne` oder `Paris, France`.
 
-Sie können auch direkt einen Punkt hinzufügen: Geben Sie den **Breitengrad** und
+Du kannst auch direkt einen Punkt hinzufügen: Gib den **Breitengrad** und
 den **Längengrad** ein (Dezimalgrad WGS-84, beide — einer allein ergibt keinen
 Punkt). Beide Dezimaltrennzeichen werden gelesen, `48,8566` funktioniert also
 ebenso wie `48.8566`. Die Koordinaten haben Vorrang vor der Gemeinde, die dann nur
 noch als Bezeichnung des Ortes dient.
 
 Der Ort erscheint dann im Tab **Entdecken** unter dem Namen
-`Pollens — <Name>`. Klicken Sie darauf, um das Gerät in Gladys anzulegen — erst
+`Pollens — <Name>`. Klicke auf **Zu Gladys hinzufügen**, um das Gerät anzulegen — erst
 dann ist es in Dashboards und Szenen nutzbar.
 
-Sie können bis zu 20 Orte hinzufügen.
+Du kannst bis zu 20 Orte hinzufügen.
 
-## Ihre Orte anzeigen und entfernen
+## Deine Orte anzeigen und entfernen
 
 **Meine Orte anzeigen** gibt sie nummeriert aus:
 
@@ -107,17 +107,17 @@ Sie können bis zu 20 Orte hinzufügen.
 
 Diese Nummern bietet die Auswahlliste zum Entfernen an, denn eine in einem
 Manifest deklarierte Auswahlliste kann nur feste Optionen enthalten — nie die
-Namen Ihrer Orte.
+Namen deiner Orte.
 
-Um einen Ort zu entfernen: Klicken Sie auf **Ort entfernen**, wählen Sie seine
-Nummer, haken Sie **Ich bestätige** an und bestätigen Sie. Ohne den Haken sagt
-Ihnen die Aktion, welcher Ort entfernt _würde_. Der Ort verschwindet sofort aus
+Um einen Ort zu entfernen: Klicke auf **Ort entfernen**, wähle seine
+Nummer, hake **Ich bestätige** an und bestätige. Ohne den Haken sagt
+dir die Aktion, welcher Ort entfernt _würde_. Der Ort verschwindet sofort aus
 dem Tab „Entdecken“, und die Orte darunter rücken um einen Rang nach oben —
-lassen Sie die Liste also erneut anzeigen, bevor Sie einen zweiten entfernen.
+lass die Liste also erneut anzeigen, bevor du einen zweiten entfernst.
 
-> Wenn Sie das Gerät bereits zu Gladys hinzugefügt hatten, löschen Sie es auch auf
-> der Geräteseite: Eine Integration darf kein Gerät löschen, das Sie angelegt
-> haben. Umgekehrt: Löschen Sie das Gerät, ohne den Ort zu entfernen, erscheint es
+> Wenn du das Gerät bereits zu Gladys hinzugefügt hattest, lösche es auch auf
+> der Geräteseite: Eine Integration darf kein Gerät löschen, das du angelegt
+> hast. Umgekehrt: Löschst du das Gerät, ohne den Ort zu entfernen, erscheint es
 > wieder im Tab „Entdecken“, bereit, erneut hinzugefügt zu werden.
 
 ## Was das Gerät misst
@@ -162,8 +162,8 @@ beide `3` im Index, aber „4/5 (hoch)“ und „5/5 (sehr hoch)“ im Text.
 > Standardmäßig ist sie auf **Französisch** gestellt (`Risque pollinique — Bouleau`)
 > — siehe [Die Sprache der Namen](#die-sprache-der-namen) unten.
 
-Die numerischen Messwerte behalten ihren Verlauf, sodass Sie die Pollensaison
-Ihrer Gemeinde als Diagramm darstellen können.
+Die numerischen Messwerte behalten ihren Verlauf, sodass du die Pollensaison
+deiner Gemeinde als Diagramm darstellen können.
 
 Hat das Modell für eine Art an dieser Position keinen Wert, wird **nichts
 veröffentlicht** — ein fehlender Messwert ist kein Risiko von null.
@@ -176,12 +176,12 @@ Uhrzeit, für die die angezeigte Vorhersage gilt, im Format `06.08.2026 13:00`.
 Es ist das Datum der **Daten**, nicht der letzten Anfrage: CAMS veröffentlicht
 seine Vorhersage einmal täglich und Open-Meteo interpoliert sie Stunde für Stunde,
 daher liest eine erfolgreiche Aktualisierung meist genau dieselben Zahlen erneut.
-Was Sie wissen wollen, ist, wie alt diese Zahlen sind, nicht wann sie zuletzt
+Was du wissen willst, ist, wie alt diese Zahlen sind, nicht wann sie zuletzt
 abgerufen wurden.
 
 Die angezeigte Uhrzeit ist die **des Ortes selbst**: Eine Vorhersage liest man
-nach der Uhr der Gemeinde, die sie abdeckt. Für einen Ort in Ihrer Zeitzone ist
-das einfach Ihre Uhrzeit; für einen weiter entfernten ist es die dortige
+nach der Uhr der Gemeinde, die sie abdeckt. Für einen Ort in deiner Zeitzone ist
+das einfach deine Uhrzeit; für einen weiter entfernten ist es die dortige
 Ortszeit. Deshalb sitzt dieser Messwert auch **auf jedem Gerät** und nicht auf
 einem einzigen, das die ganze Integration teilt: Zwei Orte tragen nicht unbedingt
 dieselbe.
@@ -206,7 +206,7 @@ benennen, und Gladys schreibt die Bezeichnung neben den Messwert in der Box
 Die Integration veröffentlicht genau diese vier Niveaus und nichts anderes. So
 sagen die Gerätebox, die Widgets, die Szenenauslöser und die Benachrichtigungen
 alle dasselbe über dieselbe Zahl. Die Textmesswerte und die Widgets fügen dem Wort
-die Skala hinzu — „2/3 (mittel)“ —, sodass Sie ein Niveau einordnen können, ohne
+die Skala hinzu — „2/3 (mittel)“ —, sodass du ein Niveau einordnen kannst, ohne
 die Skala auswendig zu kennen.
 
 Die CAMS-Daten folgen den Stufen des European Aeroallergen Network (EAN), das
@@ -223,7 +223,7 @@ sechs davon hat. Sie werden auf die vier Niveaus von Gladys gefaltet:
 
 Bei der Faltung geht nichts Wichtiges verloren: Die beiden ruhigen Stufen
 bedeuten beide „es gibt kaum welche“, und die beiden starken bedeuten beide
-„bleiben Sie drinnen, wenn Sie darauf reagieren“.
+„bleib drinnen, wenn du darauf reagierst“.
 
 **Die gemessene Stufe bleibt lesbar**: Die „(Text)“-Messwerte des Geräts zeigen sie
 unverändert, von 0 bis 5. Das ist der einzige Ort, an dem sie erhalten bleibt,
@@ -235,18 +235,18 @@ abgeleitet, mit **Schwellenwerten pro Art**: 30 Körner/m³ sind ein ruhiger Tag
 für die Birke (Niveau 2), aber ein starker für Ambrosia (Niveau 3), deren
 allergene Wirkung weit stärker ist.
 
-## Sie kommen von einer Version mit 0-5?
+## Du kommst von einer Version mit 0-5?
 
 Die ersten Versionen veröffentlichten die sechs EAN-Stufen unverändert, von 0 bis 5. Das funktionierte nicht: Gladys kann nur vier Niveaus benennen, daher erschien
 ein Niveau 3 als „Hoch“, obwohl es „mittel“ bedeutete, und die Niveaus 4 und 5
 erschienen als „Unbekannt“. Die veröffentlichte Skala ist jetzt die von Gladys.
 
-Zwei Dinge sollten Sie nach dem Update prüfen:
+Zwei Dinge solltest du nach dem Update prüfen:
 
 - **Das Gerät.** Es erscheint im Tab **Entdecken** mit einer Schaltfläche
   **Aktualisieren**: Ein Klick genügt. Verlauf, Räume und Szenen bleiben erhalten.
-- **Ihre Szenen.** Ein Auslöser oder eine Bedingung für Niveau 4 oder 5 trifft
-  nichts mehr: Zielen Sie stattdessen auf Niveau 3 („hoch“). Ein Niveau 3, das
+- **Deine Szenen.** Ein Auslöser oder eine Bedingung für Niveau 4 oder 5 trifft
+  nichts mehr: Ziele stattdessen auf Niveau 3 („hoch“). Ein Niveau 3, das
   „mittel“ bedeutete, wird zu einer 2.
 
 Der bereits aufgezeichnete Verlauf behält seine alten Werte: In einem Diagramm über
@@ -262,28 +262,28 @@ Szene oder ein Diagramm liest, stehen auf der Skala 0-3.
 
 Geräte- und Funktionsnamen werden **standardmäßig auf Französisch** geschrieben:
 Die Messwerte heißen `Risque pollinique global`, `Risque pollinique — Bouleau`, und
-der Hauptpollen erscheint als `Bouleau`. Stellen Sie **Sprache der Gerätenamen** im
+der Hauptpollen erscheint als `Bouleau`. Stelle **Sprache der Gerätenamen** im
 Tab „Konfiguration“ auf Deutsch, um die Namen aus der Tabelle oben zu erhalten
 (Englisch und Spanisch werden ebenfalls angeboten).
 
-Warum eine Einstellung statt der Sprache Ihres Kontos? Alles, was die Integration
-_anzeigt_ — die Nachricht unter einer Schaltfläche, der Status im Bildschirm
+Warum eine Einstellung statt der Sprache deines Kontos? Alles, was die Integration
+_anzeigt_ — die Nachricht unter einer Schaltfläche, der Status im Tab
 „Überwachung“ —, wird Gladys auf Englisch, Französisch, Deutsch und Spanisch
 gesendet, und Gladys wählt die Sprache der lesenden Person. Ein Gerätename ist
 keine Nachricht: Er ist ein einfacher Text, der so gespeichert wird, wie er am Tag
 der Geräteerstellung ist, und nichts in der Integrations-API sagt, welche Sprache
-Sie lesen. Daher wird er einmal hier gewählt.
+du liest. Daher wird er einmal hier gewählt.
 
 Eine Folge: Eine Änderung der Einstellung benennt die Funktionen der **noch
 anzulegenden** Geräte um. Ein bereits zu Gladys hinzugefügtes Gerät behält die
-Namen, mit denen es angelegt wurde — löschen Sie es und fügen Sie es über den Tab
+Namen, mit denen es angelegt wurde — lösche es und füge es über den Tab
 „Entdecken“ erneut hinzu, um es umzubenennen (sein Verlauf geht mit dem gelöschten
 Gerät).
 
-## Auf Ihrem Dashboard
+## Auf deinem Dashboard
 
-Zwei Widgets werden mit der Integration geliefert. Fügen Sie sie von einem
-Gladys-Dashboard aus hinzu: **Bearbeiten**, **Hinzufügen**, dann wählen Sie sie
+Zwei Widgets werden mit der Integration geliefert. Füge sie von einem
+Gladys-Dashboard aus hinzu: **Bearbeiten**, **Neues Widget**, dann wähle sie
 aus der Liste.
 
 ### Pollen — ein Ort
@@ -301,11 +301,11 @@ Risiko in Worten auf diese Arten, wie die Messanzeige.
 
 Drei Einstellungen pro Karte:
 
-| Einstellung                       | Wirkung                                                                                                                                    |
-| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Ort**                           | Das anzuzeigende Gerät. Angeboten werden nur die Geräte, die Sie bereits über den Tab „Entdecken“ hinzugefügt haben.                       |
-| **Verfolgte Pollenarten**         | Haken Sie die Arten an, auf die Sie reagieren: Messanzeige, Liste und Kurve berücksichtigen dann nur diese. Nichts angehakt bedeutet alle. |
-| **Zwei-Tage-Vorhersage anzeigen** | Die stündliche Kurve. Entfernen Sie den Haken für eine kompakte Karte.                                                                     |
+| Einstellung                       | Wirkung                                                                                                                              |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| **Ort**                           | Das anzuzeigende Gerät. Angeboten werden nur die Geräte, die du bereits über den Tab „Entdecken“ hinzugefügt hast.                   |
+| **Verfolgte Pollenarten**         | Hake die Arten an, auf die du reagierst: Messanzeige, Liste und Kurve berücksichtigen dann nur diese. Nichts angehakt bedeutet alle. |
+| **Zwei-Tage-Vorhersage anzeigen** | Die stündliche Kurve. Entferne den Haken für eine kompakte Karte.                                                                    |
 
 Die Kurve zeigt **heute und morgen**, Stunde für Stunde, mit einer Markierung zur
 aktuellen Uhrzeit. Es ist eine Vorhersage: Gladys speichert keinen Verlauf davon,
@@ -315,7 +315,7 @@ wiederverwendet, statt erneut angefragt zu werden. Bei vier oder weniger
 verfolgten Arten erhält jede ihre eigene Kurve; darüber zeigt eine einzige Kurve
 die schlimmste davon.
 
-Wenn Sie alle Arten verfolgen, ist die Messanzeige an den Messwert des Geräts
+Wenn du alle Arten verfolgst, ist die Messanzeige an den Messwert des Geräts
 selbst gebunden und folgt den veröffentlichten Werten in Echtzeit. Bei einer
 Auswahl von Arten entspricht ihr kein Messwert — die Messanzeige zeigt dann die
 von der Karte berechnete Zahl.
@@ -328,8 +328,7 @@ Die Karte zeigt die Liste, die der Tab „Konfiguration“ verwaltet. Sie endet 
 zehn Zeilen und sagt es.
 
 Beide Karten werden in **der Sprache der Person geschrieben, die sie ansieht**:
-Anders als bei einem Gerätenamen teilt Gladys uns hier mit, welche Sprache Sie
-lesen.
+Anders als bei einem Gerätenamen teilt Gladys uns hier mit, welche Sprache du liest.
 
 ## Das Risiko in einer Szene verwenden
 
@@ -343,8 +342,8 @@ jeder numerische Sensor. Einige Ideen:
 - die Rollläden schließen oder die Lüftung abschalten, wenn das Gesamtrisiko
   über 3 steigt;
 - morgens eine Benachrichtigung senden, wenn das Risiko „Gräser“ ≥ 4 ist;
-- den Luftreiniger einschalten, wenn der Hauptpollen der ist, auf den Sie
-  reagieren.
+- den Luftreiniger einschalten, wenn der Hauptpollen der ist, auf den du
+  reagierst.
 
 ### 2. Die Auslöser
 
@@ -360,7 +359,7 @@ CAMS-Vorhersage wird einmal täglich neu veröffentlicht, eine Szene, die bei je
 Lesen auslöst, würde also vierundzwanzigmal für denselben Wert auslösen.
 
 Jeder Auslöser lässt sich filtern: der **Ort** (leer bedeutet jeder), die
-**Niveaus**, die Sie interessieren (haken Sie 3 an, um nur auf Spitzen zu
+**Niveaus**, die dich interessieren (hake 3 an, um nur auf Spitzen zu
 reagieren), die **Richtung** (steigend, um die Fenster zu schließen, fallend, um
 sie wieder zu öffnen), und beim zweiten die **Arten**.
 
@@ -384,14 +383,13 @@ Ebenfalls im Szeneneditor, unter **Integrationen**:
 | Aktion                        | Wirkung                                                                                                        |
 | ----------------------------- | -------------------------------------------------------------------------------------------------------------- |
 | **Pollenrisiko lesen**        | Liest einen Ort sofort und übergibt das Niveau, den Hauptpollen und den fertigen Satz an die nächsten Aktionen |
-| **Pollendaten aktualisieren** | Liest die Vorhersage erneut und veröffentlicht die Messwerte neu; lassen Sie den Ort leer für alle Orte        |
+| **Pollendaten aktualisieren** | Liest die Vorhersage erneut und veröffentlicht die Messwerte neu; Ort leer lassen für alle Orte                |
 
 „Pollenrisiko lesen“ macht aus „jeden Morgen um 7 Uhr“ ein „jeden Morgen um 7 Uhr,
-sag mir das Risiko“: Wählen Sie den Ort, lassen Sie **Gesamtrisiko** (oder wählen
-Sie eine Art) und senden Sie dann eine Nachricht mit der Ausgabe `summary`. Die
+sag mir das Risiko“: Wähle den Ort, lass **Gesamtrisiko** (oder wähle eine Art) und sende dann eine Nachricht mit der Ausgabe `summary`. Die
 Ausgaben `level` (0 bis 3), `level_label`, `taxon`, `taxon_name`, `concentration`,
-`location_name` und `measured_at` stehen bereit, wenn Sie lieber Ihren eigenen
-Satz schreiben.
+`location_name` und `measured_at` stehen bereit, wenn du lieber deinen eigenen
+Satz schreibst.
 
 > Wenn die Quelle nichts antwortet, schlägt die Aktion nicht fehl: Sie gibt ein
 > leeres `level` und eine `summary` zurück, die sagt, dass die Daten nicht
@@ -407,7 +405,7 @@ aktualisiert — nur sein Ort —, ohne auf den nächsten Zyklus zu warten.
 
 Einige Dinge sorgen dafür, dass die Integration beide Dienste schont:
 
-- **Alle Ihre Orte werden in einer einzigen Anfrage** an Open-Meteo gelesen, und
+- **Alle deine Orte werden in einer einzigen Anfrage** an Open-Meteo gelesen, und
   eine weniger als 30 Minuten alte Antwort wird von den Dashboard-Karten und den
   Szenenaktionen wiederverwendet, statt erneut angefragt zu werden.
 - **Eine Aktualisierung nach der anderen**: Eine Schaltfläche, die während einer
@@ -437,19 +435,19 @@ Wert hätte.
   gelesenen Daten, sodass eine in der Vergangenheit hängende Quelle auch hier
   auffällt. Der schnellste Weg, ein Netzwerkproblem von einem
   Konfigurationsproblem zu unterscheiden.
-- **Der Bildschirm „Überwachung“** sagt, _wer_ fehlgeschlagen ist:
+- **Der Tab „Überwachung“** sagt, _wer_ fehlgeschlagen ist:
   „Pollenvorhersage nicht verfügbar“ ist die Quelle (Open-Meteo), „Ratenlimit von
-  Gladys erreicht“ oder „Gladys hat die Zustände nicht akzeptiert“ ist Ihr
+  Gladys erreicht“ oder „Gladys hat die Zustände nicht akzeptiert“ ist dein
   Gladys — die Quelle trifft dann keine Schuld, und die nächste Aktualisierung
   veröffentlicht die Werte.
-- **Die Protokolle**: Lesen Sie die Protokolle der Integration in der Oberfläche
-  von Gladys oder mit `docker logs`. Setzen Sie `LOG_LEVEL` auf `debug`, um jede
+- **Die Protokolle**: Lies sie im Tab „Protokolle“ der Integration
+  oder mit `docker logs`. Setze `LOG_LEVEL` auf `debug`, um jede
   Anfrage an die Quelle und die genaue an Gladys gesendete Gerätenutzlast zu
-  sehen. Die Koordinaten Ihrer Orte erscheinen nie in den Protokollen, auf keiner
+  sehen. Die Koordinaten deiner Orte erscheinen nie in den Protokollen, auf keiner
   Stufe.
-- **Im Tab „Entdecken“ erscheint nichts**: Prüfen Sie den Status der Integration im
-  Bildschirm „Überwachung“ — lehnt Gladys ein Gerät ab, wird der Grund dort
+- **Im Tab „Entdecken“ erscheint nichts**: Prüfe den Status der Integration im
+  Tab „Überwachung“ — lehnt Gladys ein Gerät ab, wird der Grund dort
   gemeldet.
-- **Ein Gerät bleibt leer**: Prüfen Sie, ob sein Ort noch von „Meine Orte
+- **Ein Gerät bleibt leer**: Prüfe, ob sein Ort noch von „Meine Orte
   anzeigen“ aufgelistet wird. Ein Gerät, dessen Ort entfernt wurde, wird nicht
   mehr aktualisiert.

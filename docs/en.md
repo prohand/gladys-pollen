@@ -81,8 +81,8 @@ They are read with either decimal separator, so `48,8566` works as well as
 `48.8566`. Coordinates win over the town, which is then only kept as the label
 of the location.
 
-The location then shows up in the **Discovery** tab, named
-`Pollens — <name>`. Click it to create the device in Gladys — that is when it
+The location then shows up in the **Discover** tab, named
+`Pollens — <name>`. Click **Add to Gladys** to create the device — that is when it
 becomes usable in dashboards and scenes.
 
 You can add up to 20 locations.
@@ -101,14 +101,14 @@ in a manifest can only hold fixed options — never your location names.
 
 To remove one: click **Remove a location**, pick its number, tick **I confirm**
 and submit. Running it without the checkbox tells you which location _would_ be
-removed. The location disappears from the Discovery tab immediately, and the
+removed. The location disappears from the Discover tab immediately, and the
 locations below it move up a rank — so print the list again before deleting a
 second one.
 
 > If you had already added the device to Gladys, delete it from the device page
 > too: an integration is not allowed to delete a device you created. Conversely,
 > if you delete the device without removing the location, it comes back in the
-> Discovery tab, ready to be added again.
+> Discover tab, ready to be added again.
 
 ## What the device measures
 
@@ -230,7 +230,7 @@ The published scale is now Gladys's own.
 
 Two things to check after the update:
 
-- **The device.** It shows up in the **Discovery** tab with an **Update**
+- **The device.** It shows up in the **Discover** tab with an **Update**
   button: one click is enough. The history, the rooms and the scenes are kept.
 - **Your scenes.** A trigger or a condition aimed at level 4 or 5 no longer
   matches anything: aim at level 3 ("high") instead. A level 3 that meant
@@ -253,7 +253,7 @@ the Configuration tab to get the names in the table above (German and Spanish ar
 offered too).
 
 Why a setting rather than your account language? Everything the integration
-_displays_ — the message under a button, the status in the Supervision screen —
+_displays_ — the message under a button, the status in the Supervision tab —
 is sent to Gladys in English, French, German and Spanish, and Gladys picks the one of the person
 reading. A device name is not a message: it is a plain text stored as it is the
 day you create the device, and nothing in the integration API says which language
@@ -261,13 +261,13 @@ you read. So it is chosen once, here.
 
 One consequence: changing the setting renames the features of the devices **yet
 to be created**. A device already added to Gladys keeps the names it was created
-with — delete it and add it again from the Discovery tab to rename it (its
+with — delete it and add it again from the Discover tab to rename it (its
 history goes with the deleted device).
 
 ## On your dashboard
 
-Two widgets ship with the integration. Add them from a Gladys dashboard: **Edit
-the dashboard**, **Add a box**, then pick them from the list.
+Two widgets ship with the integration. Add them from a Gladys dashboard: **Edit**,
+**New widget**, then pick them from the list.
 
 ### Pollen — one place
 
@@ -285,7 +285,7 @@ Three settings, per card:
 
 | Setting                       | What it does                                                                                                                    |
 | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| **Place**                     | The device to display. Only the devices you already added from the Discovery tab are offered.                                   |
+| **Place**                     | The device to display. Only the devices you already added from the Discover tab are offered.                                    |
 | **Species followed**          | Tick the species you react to: the gauge, the list and the curve then only account for those. Nothing ticked means all of them. |
 | **Show the two-day forecast** | The hour-by-hour curve. Untick it for a compact card.                                                                           |
 
@@ -409,16 +409,16 @@ a value.
   line ends with the date of the data it read, so a source stuck in the past
   shows up here too. The quickest way to tell a network problem from a
   configuration one.
-- **The Supervision screen** says _who_ failed: "pollen forecast unavailable"
+- **The Supervision tab** says _who_ failed: "pollen forecast unavailable"
   is the source (Open-Meteo), "Gladys rate limit reached" or "Gladys did not
   accept the states" is your Gladys — the source is not at fault then, and the
   next refresh publishes the values.
-- **The logs**: read the integration logs from the Gladys UI, or with
+- **The logs**: read them in the **Logs** tab of the integration, or with
   `docker logs`. Set `LOG_LEVEL` to `debug` to see each request to the source
   and the exact device payload sent to Gladys. The coordinates of your places
   never appear in the logs, at any level.
-- **Nothing appears in the Discovery tab**: check the integration's status in
-  the Supervision screen — when Gladys refuses a device, the reason is reported
+- **Nothing appears in the Discover tab**: check the integration's status in
+  the Supervision tab — when Gladys refuses a device, the reason is reported
   there.
 - **A device stays empty**: check that its location is still listed by "Show my
   locations". A device whose location was removed is no longer refreshed.
