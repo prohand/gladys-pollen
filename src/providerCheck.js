@@ -12,6 +12,7 @@
 import { createLogger } from '@gladysassistant/integration-sdk';
 import { formatDateTime } from './dateTime.js';
 import { DEVICE_TYPE, watchedLocations } from './devices/pollenStation.js';
+import { inEveryLanguage } from './language.js';
 import { LOCATION_LINE_SEPARATOR, locationLine, positionOf } from './locations.js';
 import { readPollenRisks } from './pollen/index.js';
 import { taxonName } from './pollen/taxa.js';
@@ -24,10 +25,12 @@ const logger = createLogger({ name: DEVICE_TYPE });
 const NO_LOCATION_MESSAGE = {
   en: 'No location with usable coordinates yet. Add one with "Add a location".',
   fr: 'Aucun lieu avec des coordonnées utilisables. Ajoutez-en un avec « Ajouter un lieu ».',
+  de: 'Noch kein Ort mit verwendbaren Koordinaten. Füge einen mit „Ort hinzufügen“ hinzu.',
+  es: 'Aún no hay ningún lugar con coordenadas utilizables. Añada uno con «Añadir un lugar».',
 };
 
 /**
- * A header plus one line per location, in both languages — EXACTLY the format of
+ * A header plus one line per location, in every language — EXACTLY the format of
  * the location listing (`• n. name — detail`, built by the same `locationLine`),
  * because both actions answer about the same list under the same numbers.
  */
@@ -36,10 +39,9 @@ function report(header, lines) {
     lines
       .map((line) => locationLine(line.position, line.name, line[language]))
       .join(LOCATION_LINE_SEPARATOR);
-  return {
-    en: `${header.en}${LOCATION_LINE_SEPARATOR}${join('en')}`,
-    fr: `${header.fr}${LOCATION_LINE_SEPARATOR}${join('fr')}`,
-  };
+  return inEveryLanguage(
+    (language) => `${header[language]}${LOCATION_LINE_SEPARATOR}${join(language)}`,
+  );
 }
 
 /**
@@ -47,7 +49,7 @@ function report(header, lines) {
  * each one, turning a failure into a LINE rather than into a rejection: one
  * location the provider refuses must not hide the answer of the others, and a
  * bare error naming no location helps nobody.
- * @param {(reading: object) => { en: string, fr: string }} describe
+ * @param {(reading: object) => { en: string, fr: string, de: string, es: string }} describe
  */
 async function readEachLocation(config, locations, describe) {
   const outcomes = await readPollenRisks(locations);
@@ -65,7 +67,7 @@ async function readEachLocation(config, locations, describe) {
 /**
  * Manifest actions answered here, keyed by the action `key` declared in
  * `gladys-assistant-integration.json`. Each handler takes the SDK and the
- * current configuration, and RETURNS its `{ en, fr }` message.
+ * current configuration, and RETURNS its `{ en, fr, de, es }` message.
  */
 export const PROVIDER_ACTIONS = {
   /**
@@ -74,7 +76,7 @@ export const PROVIDER_ACTIONS = {
    * this screen designates a single location anyway.
    * @param {import('@gladysassistant/integration-sdk').GladysIntegration} gladys
    * @param {{ config: object }} context
-   * @returns {Promise<{ en: string, fr: string }>}
+   * @returns {Promise<{ en: string, fr: string, de: string, es: string }>}
    */
   async test_provider(gladys, { config }) {
     const locations = watchedLocations(config);
@@ -92,16 +94,19 @@ export const PROVIDER_ACTIONS = {
         const at = formatDateTime(reading.measuredAt, language);
         return at ? `, ${prefix} ${at}` : '';
       };
-      return {
-        en:
-          `risk ${levelText(level, 'en')}` +
-          `${dominant ? `, dominant ${taxonName(dominant, 'en')}` : ''} — ${reading.provider}` +
-          measuredAt('en', 'updated'),
-        fr:
-          `risque ${levelText(level, 'fr')}` +
-          `${dominant ? `, dominant ${taxonName(dominant, 'fr')}` : ''} — ${reading.provider}` +
-          measuredAt('fr', 'à jour au'),
+      const words = {
+        en: { risk: 'risk', dominant: 'dominant', updated: 'updated' },
+        fr: { risk: 'risque', dominant: 'dominant', updated: 'à jour au' },
+        de: { risk: 'Risiko', dominant: 'vorherrschend', updated: 'Stand' },
+        es: { risk: 'riesgo', dominant: 'dominante', updated: 'actualizado el' },
       };
+      return inEveryLanguage(
+        (language) =>
+          `${words[language].risk} ${levelText(level, language)}` +
+          `${dominant ? `, ${words[language].dominant} ${taxonName(dominant, language)}` : ''}` +
+          ` — ${reading.provider}` +
+          measuredAt(language, words[language].updated),
+      );
     });
 
     // "Provider OK" only when it actually is: the header counts the locations
@@ -111,10 +116,14 @@ export const PROVIDER_ACTIONS = {
         ? {
             en: `Pollen provider OK — ${locations.length} location(s):`,
             fr: `Fournisseur de pollens OK — ${locations.length} lieu(x) :`,
+            de: `Pollenanbieter OK — ${locations.length} Ort(e):`,
+            es: `Proveedor de polen OK — ${locations.length} lugar(es):`,
           }
         : {
             en: `Pollen provider — ${failed} of ${locations.length} location(s) failing:`,
             fr: `Fournisseur de pollens — ${failed} lieu(x) en échec sur ${locations.length} :`,
+            de: `Pollenanbieter — ${failed} von ${locations.length} Ort(en) fehlgeschlagen:`,
+            es: `Proveedor de polen — ${failed} de ${locations.length} lugar(es) con error:`,
           };
     return report(header, lines);
   },

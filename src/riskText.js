@@ -13,7 +13,7 @@
 // not re-label. See `src/pollen/risk.js` for the fold and why the numbers stay
 // on the core's 0-3 scale.
 //
-// Each helper takes a language rather than returning `{ en, fr }`, because
+// Each helper takes a language rather than returning `{ en, fr, de, es }`, because
 // everything it feeds is a PLAIN STRING the core stores or substitutes as it
 // is: a scene event variable, an action output, a widget row. The language is
 // `config.language` — the same one the device names use, and for the same
@@ -65,16 +65,24 @@ const OVERALL_SENTENCE = {
     `Pollen in ${place}: risk ${level}${dominant ? `, dominant ${dominant}` : ''}.`,
   fr: (place, level, dominant) =>
     `Pollens à ${place} : risque ${level}${dominant ? `, dominant ${dominant}` : ''}.`,
+  de: (place, level, dominant) =>
+    `Pollen in ${place}: Risiko ${level}${dominant ? `, vorherrschend ${dominant}` : ''}.`,
+  es: (place, level, dominant) =>
+    `Polen en ${place}: riesgo ${level}${dominant ? `, dominante ${dominant}` : ''}.`,
 };
 
 const NO_DATA_SENTENCE = {
   en: (place) => `Pollen in ${place}: no data available.`,
   fr: (place) => `Pollens à ${place} : données indisponibles.`,
+  de: (place) => `Pollen in ${place}: keine Daten verfügbar.`,
+  es: (place) => `Polen en ${place}: datos no disponibles.`,
 };
 
 const TAXON_SENTENCE = {
   en: (place, species, level) => `${species} in ${place}: risk ${level}.`,
   fr: (place, species, level) => `${species} à ${place} : risque ${level}.`,
+  de: (place, species, level) => `${species} in ${place}: Risiko ${level}.`,
+  es: (place, species, level) => `${species} en ${place}: riesgo ${level}.`,
 };
 
 /**

@@ -257,13 +257,14 @@ lisent les scènes et les graphiques sont sur l'échelle 0-3.
 ## La langue des noms
 
 Ces noms sont écrits **en français par défaut**. Le réglage **Langue du nom des
-appareils**, dans l'onglet Configuration, permet de passer à l'anglais : les
+appareils**, dans l'onglet Configuration, permet de passer à l'anglais (l'allemand
+et l'espagnol sont aussi proposés) : les
 mesures s'appellent alors `Overall pollen risk`, `Birch pollen risk`, et le
 pollen dominant s'affiche `Birch` plutôt que `Bouleau`.
 
 Pourquoi un réglage et non la langue de votre compte ? Tout ce que l'intégration
 _affiche_ — les messages sous les boutons, l'état dans l'écran Supervision — est
-envoyé à Gladys dans les deux langues, et Gladys choisit celle de la personne qui
+envoyé à Gladys en anglais, français, allemand et espagnol, et Gladys choisit celle de la personne qui
 lit. Le nom d'un appareil et de ses mesures, lui, n'est pas un message : c'est un
 texte enregistré tel quel le jour où vous créez l'appareil, et rien dans
 l'interface des intégrations ne dit dans quelle langue vous lisez. Il faut donc

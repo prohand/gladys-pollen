@@ -4,7 +4,9 @@
   "name": "Pollens",
   "description": {
     "en": "Pollen risk for the locations you choose, from the Copernicus CAMS European forecast.",
-    "fr": "Risque pollinique pour les lieux de votre choix, via la prévision européenne CAMS de Copernicus."
+    "fr": "Risque pollinique pour les lieux de votre choix, via la prévision européenne CAMS de Copernicus.",
+    "de": "Pollenrisiko für die Orte deiner Wahl, aus der europäischen CAMS-Vorhersage von Copernicus.",
+    "es": "Riesgo de polen en los lugares que elija, según la previsión europea CAMS de Copernicus."
   },
   "version": "2.3.0",
   "docker_image": "ghcr.io/prohand/gladys-pollen:2.3.0",
@@ -19,25 +21,33 @@
       "type": "section",
       "label": {
         "en": "How it works",
-        "fr": "Comment ça marche"
+        "fr": "Comment ça marche",
+        "de": "So funktioniert es",
+        "es": "Cómo funciona"
       },
       "description": {
-        "en": "Add a location with the button below: type a town, it is geocoded, and a pollen device appears in the Discovery tab, ready to be added to Gladys. Pollen data comes from the CAMS European air quality forecast (Copernicus), republished as open data by Open-Meteo, and places are searched through the Open-Meteo geocoding API: no account and no API key are needed. Coverage is Europe, wherever the CAMS model reaches.",
-        "fr": "Ajoutez un lieu avec le bouton ci-dessous : saisissez une commune, elle est géocodée, puis un appareil pollens apparaît dans l'onglet Découverte, prêt à être ajouté à Gladys. Les données polliniques proviennent de la prévision européenne de qualité de l'air CAMS (Copernicus), rediffusée en open data par Open-Meteo, et les lieux sont recherchés via l'API de géocodage Open-Meteo : aucun compte ni clé d'API n'est nécessaire. La couverture est européenne, partout où porte le modèle CAMS."
+        "en": "Add a location with the button below: type a town, it is geocoded, and a pollen device appears in the Discover tab, ready to be added to Gladys. Pollen data comes from the CAMS European air quality forecast (Copernicus), republished as open data by Open-Meteo, and places are searched through the Open-Meteo geocoding API: no account and no API key are needed. Coverage is Europe, wherever the CAMS model reaches.",
+        "fr": "Ajoutez un lieu avec le bouton ci-dessous : saisissez une commune, elle est géocodée, puis un appareil pollens apparaît dans l'onglet Découverte, prêt à être ajouté à Gladys. Les données polliniques proviennent de la prévision européenne de qualité de l'air CAMS (Copernicus), rediffusée en open data par Open-Meteo, et les lieux sont recherchés via l'API de géocodage Open-Meteo : aucun compte ni clé d'API n'est nécessaire. La couverture est européenne, partout où porte le modèle CAMS.",
+        "de": "Füge mit der Schaltfläche unten einen Ort hinzu: Gib eine Gemeinde ein, sie wird geokodiert, und ein Pollengerät erscheint im Tab „Entdecken“, bereit, zu Gladys hinzugefügt zu werden. Die Pollendaten stammen aus der europäischen CAMS-Luftqualitätsvorhersage (Copernicus), die Open-Meteo als Open Data weiterverbreitet, und Orte werden über die Geokodierungs-API von Open-Meteo gesucht: Es werden weder ein Konto noch ein API-Schlüssel benötigt. Abgedeckt ist Europa, so weit das CAMS-Modell reicht.",
+        "es": "Añada un lugar con el botón de abajo: escriba una localidad, se geocodifica y aparece un dispositivo de polen en la pestaña «Descubrir», listo para añadirlo a Gladys. Los datos de polen proceden de la previsión europea de calidad del aire CAMS (Copernicus), redistribuida como datos abiertos por Open-Meteo, y los lugares se buscan mediante la API de geocodificación de Open-Meteo: no se necesita ninguna cuenta ni clave de API. La cobertura es Europa, hasta donde llega el modelo CAMS."
       },
       "links": [
         {
           "url": "https://open-meteo.com/en/docs/air-quality-api",
           "label": {
             "en": "Open-Meteo Air Quality API",
-            "fr": "API Qualité de l'air Open-Meteo"
+            "fr": "API Qualité de l'air Open-Meteo",
+            "de": "Open-Meteo-Luftqualitäts-API",
+            "es": "API de calidad del aire de Open-Meteo"
           }
         },
         {
           "url": "https://open-meteo.com/en/docs/geocoding-api",
           "label": {
             "en": "Open-Meteo Geocoding API",
-            "fr": "API de géocodage Open-Meteo"
+            "fr": "API de géocodage Open-Meteo",
+            "de": "Open-Meteo-Geokodierungs-API",
+            "es": "API de geocodificación de Open-Meteo"
           }
         }
       ]
@@ -47,11 +57,15 @@
       "type": "section",
       "label": {
         "en": "General settings",
-        "fr": "Réglages généraux"
+        "fr": "Réglages généraux",
+        "de": "Allgemeine Einstellungen",
+        "es": "Ajustes generales"
       },
       "description": {
         "en": "These settings apply to every configured location.",
-        "fr": "Ces réglages s'appliquent à tous les lieux configurés."
+        "fr": "Ces réglages s'appliquent à tous les lieux configurés.",
+        "de": "Diese Einstellungen gelten für alle konfigurierten Orte.",
+        "es": "Estos ajustes se aplican a todos los lugares configurados."
       }
     },
     {
@@ -59,11 +73,15 @@
       "type": "select",
       "label": {
         "en": "Language of the device names",
-        "fr": "Langue du nom des appareils"
+        "fr": "Langue du nom des appareils",
+        "de": "Sprache der Gerätenamen",
+        "es": "Idioma de los nombres de los dispositivos"
       },
       "description": {
-        "en": "The language the pollen names are written in: \"Bouleau\" or \"Birch\". Everything else this integration displays already follows your Gladys language, but the name of a device and of its features is stored as it is published, so it has to be chosen here. A device already added to Gladys keeps the names it was created with: delete it and add it again from the Discovery tab to rename it.",
-        "fr": "La langue dans laquelle sont écrits les noms de pollens : « Bouleau » ou « Birch ». Tout le reste de ce que l'intégration affiche suit déjà la langue de votre compte Gladys, mais le nom d'un appareil et de ses fonctionnalités est enregistré tel qu'il est publié : il faut donc le choisir ici. Un appareil déjà ajouté à Gladys conserve les noms avec lesquels il a été créé : supprimez-le et rajoutez-le depuis l'onglet Découverte pour le renommer."
+        "en": "The language the pollen names are written in: \"Bouleau\" or \"Birch\". Everything else this integration displays already follows your Gladys language, but the name of a device and of its features is stored as it is published, so it has to be chosen here. A device already added to Gladys keeps the names it was created with: delete it and add it again from the Discover tab to rename it.",
+        "fr": "La langue dans laquelle sont écrits les noms de pollens : « Bouleau » ou « Birch ». Tout le reste de ce que l'intégration affiche suit déjà la langue de votre compte Gladys, mais le nom d'un appareil et de ses fonctionnalités est enregistré tel qu'il est publié : il faut donc le choisir ici. Un appareil déjà ajouté à Gladys conserve les noms avec lesquels il a été créé : supprimez-le et rajoutez-le depuis l'onglet Découverte pour le renommer.",
+        "de": "Die Sprache, in der die Pollennamen geschrieben werden: „Birke“ oder „Birch“. Alles andere, was diese Integration anzeigt, folgt bereits deiner Gladys-Sprache, aber der Name eines Geräts und seiner Funktionen wird so gespeichert, wie er veröffentlicht wird, daher muss er hier gewählt werden. Ein bereits zu Gladys hinzugefügtes Gerät behält die Namen, mit denen es erstellt wurde: Lösche es und füge es über den Tab „Entdecken“ erneut hinzu, um es umzubenennen.",
+        "es": "El idioma en el que se escriben los nombres de los pólenes: «Abedul» o «Birch». Todo lo demás que muestra esta integración ya sigue el idioma de su cuenta de Gladys, pero el nombre de un dispositivo y de sus funciones se guarda tal como se publica, por lo que hay que elegirlo aquí. Un dispositivo ya añadido a Gladys conserva los nombres con los que se creó: elimínelo y vuelva a añadirlo desde la pestaña «Descubrir» para cambiarle el nombre."
       },
       "required": false,
       "default": "fr",
@@ -72,14 +90,36 @@
           "value": "fr",
           "label": {
             "en": "French",
-            "fr": "Français"
+            "fr": "Français",
+            "de": "Französisch",
+            "es": "Francés"
           }
         },
         {
           "value": "en",
           "label": {
             "en": "English",
-            "fr": "Anglais"
+            "fr": "Anglais",
+            "de": "Englisch",
+            "es": "Inglés"
+          }
+        },
+        {
+          "value": "de",
+          "label": {
+            "en": "German",
+            "fr": "Allemand",
+            "de": "Deutsch",
+            "es": "Alemán"
+          }
+        },
+        {
+          "value": "es",
+          "label": {
+            "en": "Spanish",
+            "fr": "Espagnol",
+            "de": "Spanisch",
+            "es": "Español"
           }
         }
       ]
@@ -89,11 +129,15 @@
       "type": "number",
       "label": {
         "en": "Refresh interval (s)",
-        "fr": "Intervalle de rafraîchissement (s)"
+        "fr": "Intervalle de rafraîchissement (s)",
+        "de": "Aktualisierungsintervall (s)",
+        "es": "Intervalo de actualización (s)"
       },
       "description": {
         "en": "How often each location is refreshed, in seconds. The forecast is updated once a day and interpolated hourly, so there is nothing to gain below one hour.",
-        "fr": "Fréquence de rafraîchissement de chaque lieu, en secondes. La prévision est mise à jour une fois par jour et interpolée à l'heure : descendre sous une heure n'apporte rien."
+        "fr": "Fréquence de rafraîchissement de chaque lieu, en secondes. La prévision est mise à jour une fois par jour et interpolée à l'heure : descendre sous une heure n'apporte rien.",
+        "de": "Wie oft jeder Ort aktualisiert wird, in Sekunden. Die Vorhersage wird einmal täglich aktualisiert und stündlich interpoliert: Unter einer Stunde bringt es nichts.",
+        "es": "Frecuencia de actualización de cada lugar, en segundos. La previsión se actualiza una vez al día y se interpola por horas: bajar de una hora no aporta nada."
       },
       "required": false,
       "default": 3600,
@@ -105,11 +149,15 @@
       "type": "section",
       "label": {
         "en": "Your locations",
-        "fr": "Vos lieux"
+        "fr": "Vos lieux",
+        "de": "Deine Orte",
+        "es": "Sus lugares"
       },
       "description": {
         "en": "Use the buttons below to add, list and remove your locations. \"Add my Gladys houses\" turns the houses you already placed on the map in Gladys into locations, in one click. They are not fields of this form: a list you build as you go cannot be one, so everything about them happens under a button, and the answer displayed there is what shows you the list.",
-        "fr": "Utilisez les boutons ci-dessous pour ajouter, lister et supprimer vos lieux. « Ajouter mes maisons Gladys » transforme en lieux, en un clic, les maisons que vous avez déjà placées sur la carte dans Gladys. Ce ne sont pas des champs de ce formulaire : une liste que l'on construit au fil de l'eau ne peut pas en être un, donc tout se passe sous un bouton et c'est la réponse affichée là qui vous montre la liste."
+        "fr": "Utilisez les boutons ci-dessous pour ajouter, lister et supprimer vos lieux. « Ajouter mes maisons Gladys » transforme en lieux, en un clic, les maisons que vous avez déjà placées sur la carte dans Gladys. Ce ne sont pas des champs de ce formulaire : une liste que l'on construit au fil de l'eau ne peut pas en être un, donc tout se passe sous un bouton et c'est la réponse affichée là qui vous montre la liste.",
+        "de": "Verwende die Schaltflächen unten, um deine Orte hinzuzufügen, aufzulisten und zu entfernen. „Meine Gladys-Häuser hinzufügen“ verwandelt die Häuser, die du in Gladys bereits auf der Karte platziert hast, mit einem Klick in Orte. Sie sind keine Felder dieses Formulars: Eine Liste, die nach und nach entsteht, kann keines sein, daher geschieht alles unter einer Schaltfläche, und die dort angezeigte Antwort zeigt dir die Liste.",
+        "es": "Utilice los botones de abajo para añadir, listar y eliminar sus lugares. «Añadir mis viviendas de Gladys» convierte en lugares, con un clic, las viviendas que ya colocó en el mapa de Gladys. No son campos de este formulario: una lista que se construye sobre la marcha no puede serlo, así que todo ocurre bajo un botón, y la respuesta que aparece allí es la que le muestra la lista."
       }
     }
   ],
@@ -118,11 +166,15 @@
       "key": "add_location",
       "label": {
         "en": "Add a location",
-        "fr": "Ajouter un lieu"
+        "fr": "Ajouter un lieu",
+        "de": "Ort hinzufügen",
+        "es": "Añadir un lugar"
       },
       "description": {
-        "en": "Geocodes the town you type and adds a location watching that point. Fill the latitude and the longitude in instead to add a point directly. Its device then shows up in the Discovery tab, and \"Show my locations\" lists it.",
-        "fr": "Géocode la commune saisie et ajoute un lieu surveillant ce point. Renseignez plutôt la latitude et la longitude pour ajouter un point directement. Son appareil apparaît ensuite dans l'onglet Découverte, et « Afficher mes lieux » le liste."
+        "en": "Geocodes the town you type and adds a location watching that point. Fill the latitude and the longitude in instead to add a point directly. Its device then shows up in the Discover tab, and \"Show my locations\" lists it.",
+        "fr": "Géocode la commune saisie et ajoute un lieu surveillant ce point. Renseignez plutôt la latitude et la longitude pour ajouter un point directement. Son appareil apparaît ensuite dans l'onglet Découverte, et « Afficher mes lieux » le liste.",
+        "de": "Geokodiert die eingegebene Gemeinde und fügt einen Ort hinzu, der diesen Punkt überwacht. Gib stattdessen Breiten- und Längengrad ein, um einen Punkt direkt hinzuzufügen. Sein Gerät erscheint dann im Tab „Entdecken“, und „Meine Orte anzeigen“ listet es auf.",
+        "es": "Geocodifica la localidad que escriba y añade un lugar que vigila ese punto. Rellene en su lugar la latitud y la longitud para añadir un punto directamente. Su dispositivo aparece después en la pestaña «Descubrir», y «Mostrar mis lugares» lo incluye."
       },
       "timeout_seconds": 30,
       "fields": [
@@ -131,16 +183,22 @@
           "type": "string",
           "label": {
             "en": "Location name",
-            "fr": "Nom du lieu"
+            "fr": "Nom du lieu",
+            "de": "Name des Ortes",
+            "es": "Nombre del lugar"
           },
           "description": {
             "en": "Optional: the name of the place found is used when left empty.",
-            "fr": "Facultatif : le nom du lieu trouvé est utilisé si vous le laissez vide."
+            "fr": "Facultatif : le nom du lieu trouvé est utilisé si vous le laissez vide.",
+            "de": "Optional: Bleibt das Feld leer, wird der Name des gefundenen Ortes verwendet.",
+            "es": "Opcional: si lo deja vacío, se usa el nombre del lugar encontrado."
           },
           "required": false,
           "placeholder": {
             "en": "Home",
-            "fr": "Maison"
+            "fr": "Maison",
+            "de": "Zuhause",
+            "es": "Casa"
           }
         },
         {
@@ -148,16 +206,22 @@
           "type": "string",
           "label": {
             "en": "Town",
-            "fr": "Commune"
+            "fr": "Commune",
+            "de": "Gemeinde",
+            "es": "Localidad"
           },
           "description": {
             "en": "The town to watch, anywhere in Europe. Several places share most names: add a comma and the region, the country or the postal code to narrow it down, e.g. \"Montauban, Tarn-et-Garonne\". Optional if you fill the two coordinates in below.",
-            "fr": "La commune à surveiller, partout en Europe. La plupart des noms sont partagés par plusieurs lieux : ajoutez une virgule puis la région, le pays ou le code postal pour préciser, par exemple « Montauban, Tarn-et-Garonne ». Facultatif si vous renseignez les deux coordonnées ci-dessous."
+            "fr": "La commune à surveiller, partout en Europe. La plupart des noms sont partagés par plusieurs lieux : ajoutez une virgule puis la région, le pays ou le code postal pour préciser, par exemple « Montauban, Tarn-et-Garonne ». Facultatif si vous renseignez les deux coordonnées ci-dessous.",
+            "de": "Die zu überwachende Gemeinde, überall in Europa. Die meisten Namen teilen sich mehrere Orte: Füge ein Komma und die Region, das Land oder die Postleitzahl hinzu, um einzugrenzen, z. B. „Montauban, Tarn-et-Garonne“. Optional, wenn du unten die beiden Koordinaten angibst.",
+            "es": "La localidad que se va a vigilar, en cualquier lugar de Europa. La mayoría de los nombres los comparten varios lugares: añada una coma y la región, el país o el código postal para precisar, por ejemplo «Montauban, Tarn-et-Garonne». Opcional si rellena las dos coordenadas de abajo."
           },
           "required": false,
           "placeholder": {
             "en": "Montauban, France",
-            "fr": "Montauban, France"
+            "fr": "Montauban, France",
+            "de": "Montauban, Frankreich",
+            "es": "Montauban, Francia"
           }
         },
         {
@@ -165,16 +229,22 @@
           "type": "string",
           "label": {
             "en": "Latitude (optional)",
-            "fr": "Latitude (facultatif)"
+            "fr": "Latitude (facultatif)",
+            "de": "Breitengrad (optional)",
+            "es": "Latitud (opcional)"
           },
           "description": {
             "en": "WGS-84 decimal degrees, -90 to 90. Filled in together with the longitude, this point is used as it is and the town above is then only a label.",
-            "fr": "Degrés décimaux WGS-84, de -90 à 90. Renseignée avec la longitude, ce point est utilisé tel quel et la commune ci-dessus ne sert plus que de libellé."
+            "fr": "Degrés décimaux WGS-84, de -90 à 90. Renseignée avec la longitude, ce point est utilisé tel quel et la commune ci-dessus ne sert plus que de libellé.",
+            "de": "Dezimalgrad WGS-84, -90 bis 90. Zusammen mit dem Längengrad angegeben, wird dieser Punkt unverändert verwendet, und die Gemeinde oben dient dann nur noch als Bezeichnung.",
+            "es": "Grados decimales WGS-84, de -90 a 90. Si se rellena junto con la longitud, este punto se usa tal cual y la localidad de arriba solo sirve de etiqueta."
           },
           "required": false,
           "placeholder": {
             "en": "48.8566",
-            "fr": "48,8566"
+            "fr": "48,8566",
+            "de": "48,8566",
+            "es": "48,8566"
           }
         },
         {
@@ -182,16 +252,22 @@
           "type": "string",
           "label": {
             "en": "Longitude (optional)",
-            "fr": "Longitude (facultatif)"
+            "fr": "Longitude (facultatif)",
+            "de": "Längengrad (optional)",
+            "es": "Longitud (opcional)"
           },
           "description": {
             "en": "WGS-84 decimal degrees, -180 to 180. Both coordinates go together: one alone is not a point.",
-            "fr": "Degrés décimaux WGS-84, de -180 à 180. Les deux coordonnées vont ensemble : une seule ne fait pas un point."
+            "fr": "Degrés décimaux WGS-84, de -180 à 180. Les deux coordonnées vont ensemble : une seule ne fait pas un point.",
+            "de": "Dezimalgrad WGS-84, -180 bis 180. Beide Koordinaten gehören zusammen: Eine allein ergibt keinen Punkt.",
+            "es": "Grados decimales WGS-84, de -180 a 180. Las dos coordenadas van juntas: una sola no forma un punto."
           },
           "required": false,
           "placeholder": {
             "en": "2.3522",
-            "fr": "2,3522"
+            "fr": "2,3522",
+            "de": "2,3522",
+            "es": "2,3522"
           }
         }
       ]
@@ -200,11 +276,15 @@
       "key": "import_houses",
       "label": {
         "en": "Add my Gladys houses",
-        "fr": "Ajouter mes maisons Gladys"
+        "fr": "Ajouter mes maisons Gladys",
+        "de": "Meine Gladys-Häuser hinzufügen",
+        "es": "Añadir mis viviendas de Gladys"
       },
       "description": {
         "en": "Reads the houses you configured in Gladys and adds a location for each one that is not watched yet — no town to type. Pick one house below to add only that one. A house you never placed on the map has no coordinates: locate it in Settings > Houses first. The houses are read once, when you click: a location added this way is an ordinary one, which you rename and remove like the others.",
-        "fr": "Lit les maisons que vous avez configurées dans Gladys et ajoute un lieu pour chacune qui n'est pas déjà surveillée — aucune commune à saisir. Choisissez une maison ci-dessous pour n'ajouter que celle-là. Une maison jamais placée sur la carte n'a pas de coordonnées : localisez-la d'abord dans Réglages > Maisons. Les maisons sont lues une fois, au clic : un lieu ajouté ainsi est un lieu ordinaire, que vous renommez et supprimez comme les autres."
+        "fr": "Lit les maisons que vous avez configurées dans Gladys et ajoute un lieu pour chacune qui n'est pas déjà surveillée — aucune commune à saisir. Choisissez une maison ci-dessous pour n'ajouter que celle-là. Une maison jamais placée sur la carte n'a pas de coordonnées : localisez-la d'abord dans Réglages > Maisons. Les maisons sont lues une fois, au clic : un lieu ajouté ainsi est un lieu ordinaire, que vous renommez et supprimez comme les autres.",
+        "de": "Liest die Häuser, die du in Gladys konfiguriert hast, und fügt für jedes noch nicht überwachte Haus einen Ort hinzu — ohne eine Gemeinde einzugeben. Wähle unten ein Haus, um nur dieses hinzuzufügen. Ein Haus, das du nie auf der Karte platziert hast, hat keine Koordinaten: Verorte es zuerst unter Einstellungen > Zuhause. Die Häuser werden einmal gelesen, beim Klick: Ein so hinzugefügter Ort ist ein gewöhnlicher Ort, den du wie die anderen umbenennst und entfernst.",
+        "es": "Lee las viviendas que configuró en Gladys y añade un lugar por cada una que aún no se vigila, sin escribir ninguna localidad. Elija una vivienda abajo para añadir solo esa. Una vivienda que nunca colocó en el mapa no tiene coordenadas: ubíquela primero en Configuración > Viviendas. Las viviendas se leen una vez, al pulsar: un lugar añadido así es un lugar normal, que se renombra y se elimina como los demás."
       },
       "timeout_seconds": 30,
       "fields": [
@@ -214,11 +294,15 @@
           "source": "houses",
           "label": {
             "en": "House",
-            "fr": "Maison"
+            "fr": "Maison",
+            "de": "Haus",
+            "es": "Vivienda"
           },
           "description": {
             "en": "Optional: leave it empty to add every Gladys house, or pick the one house to add.",
-            "fr": "Facultatif : laissez vide pour ajouter toutes les maisons Gladys, ou choisissez la seule maison à ajouter."
+            "fr": "Facultatif : laissez vide pour ajouter toutes les maisons Gladys, ou choisissez la seule maison à ajouter.",
+            "de": "Optional: Leer lassen, um alle Gladys-Häuser hinzuzufügen, oder das eine hinzuzufügende Haus wählen.",
+            "es": "Opcional: déjelo vacío para añadir todas las viviendas de Gladys, o elija la única vivienda que desea añadir."
           },
           "required": false
         }
@@ -228,11 +312,15 @@
       "key": "list_locations",
       "label": {
         "en": "Show my locations",
-        "fr": "Afficher mes lieux"
+        "fr": "Afficher mes lieux",
+        "de": "Meine Orte anzeigen",
+        "es": "Mostrar mis lugares"
       },
       "description": {
         "en": "Lists every configured location: name, place and coordinates. Each entry opens with a \"•\" and its number — the numbers the deletion dropdown offers.",
-        "fr": "Liste tous les lieux configurés : nom, lieu et coordonnées. Chaque entrée commence par « • » et son numéro — les numéros que propose la liste déroulante de la suppression."
+        "fr": "Liste tous les lieux configurés : nom, lieu et coordonnées. Chaque entrée commence par « • » et son numéro — les numéros que propose la liste déroulante de la suppression.",
+        "de": "Listet alle konfigurierten Orte auf: Name, Lage und Koordinaten. Jeder Eintrag beginnt mit „•“ und seiner Nummer — den Nummern, die die Auswahlliste zum Entfernen anbietet.",
+        "es": "Muestra todos los lugares configurados: nombre, ubicación y coordenadas. Cada entrada empieza por «•» y su número, los números que ofrece la lista desplegable de eliminación."
       },
       "timeout_seconds": 15
     },
@@ -240,11 +328,15 @@
       "key": "test_provider",
       "label": {
         "en": "Test the pollen provider (all locations)",
-        "fr": "Tester le fournisseur de pollens (tous les lieux)"
+        "fr": "Tester le fournisseur de pollens (tous les lieux)",
+        "de": "Pollenanbieter testen (alle Orte)",
+        "es": "Probar el proveedor de polen (todos los lugares)"
       },
       "description": {
         "en": "Reads the forecast for every location and shows its risk, in the format of \"Show my locations\": each entry opens with a \"•\" and its number.",
-        "fr": "Lit la prévision de chaque lieu et affiche son risque, au format d'« Afficher mes lieux » : chaque entrée commence par « • » et son numéro."
+        "fr": "Lit la prévision de chaque lieu et affiche son risque, au format d'« Afficher mes lieux » : chaque entrée commence par « • » et son numéro.",
+        "de": "Liest die Vorhersage für jeden Ort und zeigt sein Risiko im Format von „Meine Orte anzeigen“: Jeder Eintrag beginnt mit „•“ und seiner Nummer.",
+        "es": "Lee la previsión de cada lugar y muestra su riesgo, con el formato de «Mostrar mis lugares»: cada entrada empieza por «•» y su número."
       },
       "timeout_seconds": 60
     },
@@ -252,11 +344,15 @@
       "key": "remove_location",
       "label": {
         "en": "Remove a location",
-        "fr": "Supprimer un lieu"
+        "fr": "Supprimer un lieu",
+        "de": "Ort entfernen",
+        "es": "Eliminar un lugar"
       },
       "description": {
         "en": "Stops watching the location whose number you pick here — the numbers are the ones \"Show my locations\" lists. Its Gladys device is not deleted (an integration cannot do that): delete it yourself if you no longer want it.",
-        "fr": "Arrête de surveiller le lieu dont vous choisissez le numéro ici — ce sont les numéros qu'affiche « Afficher mes lieux ». Son appareil Gladys n'est pas supprimé (une intégration ne peut pas le faire) : supprimez-le vous-même si vous n'en voulez plus."
+        "fr": "Arrête de surveiller le lieu dont vous choisissez le numéro ici — ce sont les numéros qu'affiche « Afficher mes lieux ». Son appareil Gladys n'est pas supprimé (une intégration ne peut pas le faire) : supprimez-le vous-même si vous n'en voulez plus.",
+        "de": "Beendet die Überwachung des Ortes, dessen Nummer du hier wählst — es sind die Nummern, die „Meine Orte anzeigen“ auflistet. Sein Gladys-Gerät wird nicht gelöscht (das kann eine Integration nicht): Lösche es selbst, wenn du es nicht mehr möchtest.",
+        "es": "Deja de vigilar el lugar cuyo número elija aquí: son los números que muestra «Mostrar mis lugares». Su dispositivo de Gladys no se elimina (una integración no puede hacerlo): elimínelo usted mismo si ya no lo quiere."
       },
       "timeout_seconds": 15,
       "fields": [
@@ -265,11 +361,15 @@
           "type": "select",
           "label": {
             "en": "Location to remove",
-            "fr": "Lieu à supprimer"
+            "fr": "Lieu à supprimer",
+            "de": "Zu entfernender Ort",
+            "es": "Lugar que se va a eliminar"
           },
           "description": {
             "en": "The number of the location to remove, as \"Show my locations\" numbers them.",
-            "fr": "Le numéro du lieu à supprimer, tel qu'« Afficher mes lieux » les numérote."
+            "fr": "Le numéro du lieu à supprimer, tel qu'« Afficher mes lieux » les numérote.",
+            "de": "Die Nummer des zu entfernenden Ortes, wie „Meine Orte anzeigen“ sie nummeriert.",
+            "es": "El número del lugar que se va a eliminar, tal como lo numera «Mostrar mis lugares»."
           },
           "required": true,
           "default": "1",
@@ -278,140 +378,180 @@
               "value": "1",
               "label": {
                 "en": "Location 1",
-                "fr": "Lieu 1"
+                "fr": "Lieu 1",
+                "de": "Ort 1",
+                "es": "Lugar 1"
               }
             },
             {
               "value": "2",
               "label": {
                 "en": "Location 2",
-                "fr": "Lieu 2"
+                "fr": "Lieu 2",
+                "de": "Ort 2",
+                "es": "Lugar 2"
               }
             },
             {
               "value": "3",
               "label": {
                 "en": "Location 3",
-                "fr": "Lieu 3"
+                "fr": "Lieu 3",
+                "de": "Ort 3",
+                "es": "Lugar 3"
               }
             },
             {
               "value": "4",
               "label": {
                 "en": "Location 4",
-                "fr": "Lieu 4"
+                "fr": "Lieu 4",
+                "de": "Ort 4",
+                "es": "Lugar 4"
               }
             },
             {
               "value": "5",
               "label": {
                 "en": "Location 5",
-                "fr": "Lieu 5"
+                "fr": "Lieu 5",
+                "de": "Ort 5",
+                "es": "Lugar 5"
               }
             },
             {
               "value": "6",
               "label": {
                 "en": "Location 6",
-                "fr": "Lieu 6"
+                "fr": "Lieu 6",
+                "de": "Ort 6",
+                "es": "Lugar 6"
               }
             },
             {
               "value": "7",
               "label": {
                 "en": "Location 7",
-                "fr": "Lieu 7"
+                "fr": "Lieu 7",
+                "de": "Ort 7",
+                "es": "Lugar 7"
               }
             },
             {
               "value": "8",
               "label": {
                 "en": "Location 8",
-                "fr": "Lieu 8"
+                "fr": "Lieu 8",
+                "de": "Ort 8",
+                "es": "Lugar 8"
               }
             },
             {
               "value": "9",
               "label": {
                 "en": "Location 9",
-                "fr": "Lieu 9"
+                "fr": "Lieu 9",
+                "de": "Ort 9",
+                "es": "Lugar 9"
               }
             },
             {
               "value": "10",
               "label": {
                 "en": "Location 10",
-                "fr": "Lieu 10"
+                "fr": "Lieu 10",
+                "de": "Ort 10",
+                "es": "Lugar 10"
               }
             },
             {
               "value": "11",
               "label": {
                 "en": "Location 11",
-                "fr": "Lieu 11"
+                "fr": "Lieu 11",
+                "de": "Ort 11",
+                "es": "Lugar 11"
               }
             },
             {
               "value": "12",
               "label": {
                 "en": "Location 12",
-                "fr": "Lieu 12"
+                "fr": "Lieu 12",
+                "de": "Ort 12",
+                "es": "Lugar 12"
               }
             },
             {
               "value": "13",
               "label": {
                 "en": "Location 13",
-                "fr": "Lieu 13"
+                "fr": "Lieu 13",
+                "de": "Ort 13",
+                "es": "Lugar 13"
               }
             },
             {
               "value": "14",
               "label": {
                 "en": "Location 14",
-                "fr": "Lieu 14"
+                "fr": "Lieu 14",
+                "de": "Ort 14",
+                "es": "Lugar 14"
               }
             },
             {
               "value": "15",
               "label": {
                 "en": "Location 15",
-                "fr": "Lieu 15"
+                "fr": "Lieu 15",
+                "de": "Ort 15",
+                "es": "Lugar 15"
               }
             },
             {
               "value": "16",
               "label": {
                 "en": "Location 16",
-                "fr": "Lieu 16"
+                "fr": "Lieu 16",
+                "de": "Ort 16",
+                "es": "Lugar 16"
               }
             },
             {
               "value": "17",
               "label": {
                 "en": "Location 17",
-                "fr": "Lieu 17"
+                "fr": "Lieu 17",
+                "de": "Ort 17",
+                "es": "Lugar 17"
               }
             },
             {
               "value": "18",
               "label": {
                 "en": "Location 18",
-                "fr": "Lieu 18"
+                "fr": "Lieu 18",
+                "de": "Ort 18",
+                "es": "Lugar 18"
               }
             },
             {
               "value": "19",
               "label": {
                 "en": "Location 19",
-                "fr": "Lieu 19"
+                "fr": "Lieu 19",
+                "de": "Ort 19",
+                "es": "Lugar 19"
               }
             },
             {
               "value": "20",
               "label": {
                 "en": "Location 20",
-                "fr": "Lieu 20"
+                "fr": "Lieu 20",
+                "de": "Ort 20",
+                "es": "Lugar 20"
               }
             }
           ]
@@ -421,11 +561,15 @@
           "type": "boolean",
           "label": {
             "en": "I confirm the deletion",
-            "fr": "Je confirme la suppression"
+            "fr": "Je confirme la suppression",
+            "de": "Ich bestätige das Entfernen",
+            "es": "Confirmo la eliminación"
           },
           "description": {
             "en": "Run the action once unchecked to see which location would be removed.",
-            "fr": "Lancez l'action une fois sans cocher pour voir quel lieu serait supprimé."
+            "fr": "Lancez l'action une fois sans cocher pour voir quel lieu serait supprimé.",
+            "de": "Führe die Aktion einmal ohne Haken aus, um zu sehen, welcher Ort entfernt würde.",
+            "es": "Ejecute la acción una vez sin marcar para ver qué lugar se eliminaría."
           },
           "required": false,
           "default": false
@@ -438,11 +582,15 @@
       "key": "pollen_station",
       "label": {
         "en": "Pollen — one place",
-        "fr": "Pollens — un lieu"
+        "fr": "Pollens — un lieu",
+        "de": "Pollen — ein Ort",
+        "es": "Polen — un lugar"
       },
       "description": {
         "en": "Risk of one place: overall level, species in the air and the two-day forecast.",
-        "fr": "Risque d'un lieu : niveau global, espèces dans l'air et prévision sur deux jours."
+        "fr": "Risque d'un lieu : niveau global, espèces dans l'air et prévision sur deux jours.",
+        "de": "Risiko eines Ortes: Gesamtniveau, Arten in der Luft und die Zwei-Tage-Vorhersage.",
+        "es": "Riesgo de un lugar: nivel global, especies en el aire y la previsión a dos días."
       },
       "icon": "wind",
       "action_timeout_seconds": 30,
@@ -453,11 +601,15 @@
           "source": "devices",
           "label": {
             "en": "Place",
-            "fr": "Lieu"
+            "fr": "Lieu",
+            "de": "Ort",
+            "es": "Lugar"
           },
           "description": {
-            "en": "The pollen device to display. Only the devices you already added from the Discovery tab are offered.",
-            "fr": "L'appareil pollens à afficher. Seuls les appareils déjà ajoutés depuis l'onglet Découverte sont proposés."
+            "en": "The pollen device to display. Only the devices you already added from the Discover tab are offered.",
+            "fr": "L'appareil pollens à afficher. Seuls les appareils déjà ajoutés depuis l'onglet Découverte sont proposés.",
+            "de": "Das anzuzeigende Pollengerät. Angeboten werden nur die Geräte, die du bereits über den Tab „Entdecken“ hinzugefügt hast.",
+            "es": "El dispositivo de polen que se va a mostrar. Solo se ofrecen los dispositivos que ya añadió desde la pestaña «Descubrir»."
           },
           "required": true
         },
@@ -466,11 +618,15 @@
           "type": "multi_select",
           "label": {
             "en": "Species followed",
-            "fr": "Pollens suivis"
+            "fr": "Pollens suivis",
+            "de": "Verfolgte Pollenarten",
+            "es": "Pólenes seguidos"
           },
           "description": {
             "en": "Tick the species you react to: the level shown, the list and the chart then only account for those. Nothing ticked means all of them.",
-            "fr": "Cochez les espèces auxquelles vous réagissez : le niveau affiché, la liste et le graphique ne tiennent alors compte que de celles-là. Rien de coché signifie toutes."
+            "fr": "Cochez les espèces auxquelles vous réagissez : le niveau affiché, la liste et le graphique ne tiennent alors compte que de celles-là. Rien de coché signifie toutes.",
+            "de": "Hake die Arten an, auf die du reagierst: Das angezeigte Niveau, die Liste und das Diagramm berücksichtigen dann nur diese. Nichts angehakt bedeutet alle.",
+            "es": "Marque las especies a las que reacciona: el nivel mostrado, la lista y el gráfico solo tienen en cuenta esas. No marcar ninguna significa todas."
           },
           "required": false,
           "options": [
@@ -478,42 +634,54 @@
               "value": "alder",
               "label": {
                 "en": "Alder",
-                "fr": "Aulne"
+                "fr": "Aulne",
+                "de": "Erle",
+                "es": "Aliso"
               }
             },
             {
               "value": "birch",
               "label": {
                 "en": "Birch",
-                "fr": "Bouleau"
+                "fr": "Bouleau",
+                "de": "Birke",
+                "es": "Abedul"
               }
             },
             {
               "value": "grass",
               "label": {
                 "en": "Grass",
-                "fr": "Graminées"
+                "fr": "Graminées",
+                "de": "Gräser",
+                "es": "Gramíneas"
               }
             },
             {
               "value": "mugwort",
               "label": {
                 "en": "Mugwort",
-                "fr": "Armoise"
+                "fr": "Armoise",
+                "de": "Beifuß",
+                "es": "Artemisa"
               }
             },
             {
               "value": "olive",
               "label": {
                 "en": "Olive",
-                "fr": "Olivier"
+                "fr": "Olivier",
+                "de": "Olive",
+                "es": "Olivo"
               }
             },
             {
               "value": "ragweed",
               "label": {
                 "en": "Ragweed",
-                "fr": "Ambroisie"
+                "fr": "Ambroisie",
+                "de": "Ambrosia",
+                "es": "Ambrosía"
               }
             }
           ]
@@ -523,11 +691,15 @@
           "type": "boolean",
           "label": {
             "en": "Show the two-day forecast",
-            "fr": "Afficher la prévision sur deux jours"
+            "fr": "Afficher la prévision sur deux jours",
+            "de": "Zwei-Tage-Vorhersage anzeigen",
+            "es": "Mostrar la previsión a dos días"
           },
           "description": {
             "en": "The hour-by-hour risk for today and tomorrow, as a chart. Untick it for a compact card.",
-            "fr": "Le risque heure par heure pour aujourd'hui et demain, sous forme de graphique. Décochez pour une carte compacte."
+            "fr": "Le risque heure par heure pour aujourd'hui et demain, sous forme de graphique. Décochez pour une carte compacte.",
+            "de": "Das stündliche Risiko für heute und morgen als Diagramm. Entferne den Haken für eine kompakte Karte.",
+            "es": "El riesgo hora a hora de hoy y mañana, en forma de gráfico. Desmárquelo para una tarjeta compacta."
           },
           "required": false,
           "default": true
@@ -538,11 +710,15 @@
       "key": "pollen_locations",
       "label": {
         "en": "Pollen — all places",
-        "fr": "Pollens — tous les lieux"
+        "fr": "Pollens — tous les lieux",
+        "de": "Pollen — alle Orte",
+        "es": "Polen — todos los lugares"
       },
       "description": {
         "en": "One line per configured place, with its overall risk and its dominant pollen.",
-        "fr": "Une ligne par lieu configuré, avec son risque global et son pollen dominant."
+        "fr": "Une ligne par lieu configuré, avec son risque global et son pollen dominant.",
+        "de": "Eine Zeile pro konfiguriertem Ort, mit seinem Gesamtrisiko und seinem Hauptpollen.",
+        "es": "Una línea por lugar configurado, con su riesgo global y su polen dominante."
       },
       "icon": "list",
       "action_timeout_seconds": 60
@@ -553,11 +729,15 @@
       "key": "risk_level_changed",
       "label": {
         "en": "Overall pollen risk changed",
-        "fr": "Le risque pollinique global a changé"
+        "fr": "Le risque pollinique global a changé",
+        "de": "Gesamtes Pollenrisiko hat sich geändert",
+        "es": "El riesgo de polen global ha cambiado"
       },
       "description": {
         "en": "Fired once when the overall risk of a place moves from one level to another — never on every refresh.",
-        "fr": "Se déclenche une fois quand le risque global d'un lieu passe d'un niveau à un autre — jamais à chaque rafraîchissement."
+        "fr": "Se déclenche une fois quand le risque global d'un lieu passe d'un niveau à un autre — jamais à chaque rafraîchissement.",
+        "de": "Wird einmal ausgelöst, wenn das Gesamtrisiko eines Ortes von einem Niveau zu einem anderen wechselt — nie bei jeder Aktualisierung.",
+        "es": "Se activa una vez cuando el riesgo global de un lugar pasa de un nivel a otro, nunca en cada actualización."
       },
       "fields": [
         {
@@ -566,11 +746,15 @@
           "source": "devices",
           "label": {
             "en": "Place",
-            "fr": "Lieu"
+            "fr": "Lieu",
+            "de": "Ort",
+            "es": "Lugar"
           },
           "description": {
             "en": "Leave empty to react to any of your places.",
-            "fr": "Laissez vide pour réagir à n'importe lequel de vos lieux."
+            "fr": "Laissez vide pour réagir à n'importe lequel de vos lieux.",
+            "de": "Leer lassen, um auf jeden deiner Orte zu reagieren.",
+            "es": "Déjelo vacío para reaccionar a cualquiera de sus lugares."
           },
           "required": false
         },
@@ -579,11 +763,15 @@
           "type": "multi_select",
           "label": {
             "en": "New level",
-            "fr": "Nouveau niveau"
+            "fr": "Nouveau niveau",
+            "de": "Neues Niveau",
+            "es": "Nuevo nivel"
           },
           "description": {
             "en": "Tick the levels to react to. Nothing ticked means any level.",
-            "fr": "Cochez les niveaux auxquels réagir. Rien de coché signifie n'importe quel niveau."
+            "fr": "Cochez les niveaux auxquels réagir. Rien de coché signifie n'importe quel niveau.",
+            "de": "Hake die Niveaus an, auf die reagiert werden soll. Nichts angehakt bedeutet jedes Niveau.",
+            "es": "Marque los niveles a los que reaccionar. No marcar ninguno significa cualquier nivel."
           },
           "required": false,
           "options": [
@@ -591,28 +779,36 @@
               "value": "0",
               "label": {
                 "en": "0 — no risk",
-                "fr": "0 — pas de risque"
+                "fr": "0 — pas de risque",
+                "de": "0 — kein Risiko",
+                "es": "0 — sin riesgo"
               }
             },
             {
               "value": "1",
               "label": {
                 "en": "1 — low",
-                "fr": "1 — faible"
+                "fr": "1 — faible",
+                "de": "1 — niedrig",
+                "es": "1 — bajo"
               }
             },
             {
               "value": "2",
               "label": {
                 "en": "2 — medium",
-                "fr": "2 — moyen"
+                "fr": "2 — moyen",
+                "de": "2 — mittel",
+                "es": "2 — medio"
               }
             },
             {
               "value": "3",
               "label": {
                 "en": "3 — high",
-                "fr": "3 — élevé"
+                "fr": "3 — élevé",
+                "de": "3 — hoch",
+                "es": "3 — alto"
               }
             }
           ]
@@ -622,11 +818,15 @@
           "type": "select",
           "label": {
             "en": "Direction",
-            "fr": "Sens"
+            "fr": "Sens",
+            "de": "Richtung",
+            "es": "Sentido"
           },
           "description": {
             "en": "Leave empty for both. \"Rising\" is the one to pick to close the windows.",
-            "fr": "Laissez vide pour les deux sens. « À la hausse » est celui à choisir pour fermer les fenêtres."
+            "fr": "Laissez vide pour les deux sens. « À la hausse » est celui à choisir pour fermer les fenêtres.",
+            "de": "Leer lassen für beide Richtungen. „Steigend“ ist die richtige Wahl, um die Fenster zu schließen.",
+            "es": "Déjelo vacío para ambos sentidos. «Al alza» es el que hay que elegir para cerrar las ventanas."
           },
           "required": false,
           "options": [
@@ -634,14 +834,18 @@
               "value": "rising",
               "label": {
                 "en": "Rising",
-                "fr": "À la hausse"
+                "fr": "À la hausse",
+                "de": "Steigend",
+                "es": "Al alza"
               }
             },
             {
               "value": "falling",
               "label": {
                 "en": "Falling",
-                "fr": "À la baisse"
+                "fr": "À la baisse",
+                "de": "Fallend",
+                "es": "A la baja"
               }
             }
           ]
@@ -653,7 +857,9 @@
           "type": "string",
           "label": {
             "en": "Place name",
-            "fr": "Nom du lieu"
+            "fr": "Nom du lieu",
+            "de": "Name des Ortes",
+            "es": "Nombre del lugar"
           }
         },
         {
@@ -661,7 +867,9 @@
           "type": "string",
           "label": {
             "en": "New level (0-3)",
-            "fr": "Nouveau niveau (0-3)"
+            "fr": "Nouveau niveau (0-3)",
+            "de": "Neues Niveau (0-3)",
+            "es": "Nuevo nivel (0-3)"
           }
         },
         {
@@ -669,7 +877,9 @@
           "type": "string",
           "label": {
             "en": "New level, in words",
-            "fr": "Nouveau niveau, en toutes lettres"
+            "fr": "Nouveau niveau, en toutes lettres",
+            "de": "Neues Niveau, in Worten",
+            "es": "Nuevo nivel, en palabras"
           }
         },
         {
@@ -677,7 +887,9 @@
           "type": "string",
           "label": {
             "en": "Previous level (0-3)",
-            "fr": "Niveau précédent (0-3)"
+            "fr": "Niveau précédent (0-3)",
+            "de": "Vorheriges Niveau (0-3)",
+            "es": "Nivel anterior (0-3)"
           }
         },
         {
@@ -685,7 +897,9 @@
           "type": "string",
           "label": {
             "en": "Previous level, in words",
-            "fr": "Niveau précédent, en toutes lettres"
+            "fr": "Niveau précédent, en toutes lettres",
+            "de": "Vorheriges Niveau, in Worten",
+            "es": "Nivel anterior, en palabras"
           }
         },
         {
@@ -693,7 +907,9 @@
           "type": "string",
           "label": {
             "en": "Direction (rising / falling)",
-            "fr": "Sens (rising / falling)"
+            "fr": "Sens (rising / falling)",
+            "de": "Richtung (rising / falling)",
+            "es": "Sentido (rising / falling)"
           }
         },
         {
@@ -701,7 +917,9 @@
           "type": "string",
           "label": {
             "en": "Dominant pollen (key)",
-            "fr": "Pollen dominant (clé)"
+            "fr": "Pollen dominant (clé)",
+            "de": "Hauptpollen (Schlüssel)",
+            "es": "Polen dominante (clave)"
           }
         },
         {
@@ -709,7 +927,9 @@
           "type": "string",
           "label": {
             "en": "Dominant pollen",
-            "fr": "Pollen dominant"
+            "fr": "Pollen dominant",
+            "de": "Hauptpollen",
+            "es": "Polen dominante"
           }
         },
         {
@@ -717,7 +937,9 @@
           "type": "string",
           "label": {
             "en": "Hour of the forecast",
-            "fr": "Heure de la prévision"
+            "fr": "Heure de la prévision",
+            "de": "Uhrzeit der Vorhersage",
+            "es": "Hora de la previsión"
           }
         },
         {
@@ -725,11 +947,15 @@
           "type": "string",
           "label": {
             "en": "Ready-made sentence",
-            "fr": "Phrase toute faite"
+            "fr": "Phrase toute faite",
+            "de": "Fertiger Satz",
+            "es": "Frase lista para usar"
           },
           "description": {
             "en": "\"Pollen in Montauban: high risk (4/5), dominant Birch.\" — to drop straight into a notification.",
-            "fr": "« Pollens à Montauban : risque élevé (4/5), dominant Bouleau. » — à glisser tel quel dans une notification."
+            "fr": "« Pollens à Montauban : risque élevé (4/5), dominant Bouleau. » — à glisser tel quel dans une notification.",
+            "de": "„Pollen in Montauban: hohes Risiko (4/5), vorherrschend Birke.“ — direkt in eine Benachrichtigung einzufügen.",
+            "es": "«Polen en Montauban: riesgo alto (4/5), dominante Abedul.», para insertar tal cual en una notificación."
           }
         }
       ]
@@ -738,11 +964,15 @@
       "key": "taxon_risk_level_changed",
       "label": {
         "en": "Pollen risk of one species changed",
-        "fr": "Le risque d'une espèce de pollen a changé"
+        "fr": "Le risque d'une espèce de pollen a changé",
+        "de": "Pollenrisiko einer Art hat sich geändert",
+        "es": "El riesgo de una especie de polen ha cambiado"
       },
       "description": {
         "en": "Same thing, species by species: fired when the level of one pollen changes at a place.",
-        "fr": "La même chose, espèce par espèce : se déclenche quand le niveau d'un pollen change sur un lieu."
+        "fr": "La même chose, espèce par espèce : se déclenche quand le niveau d'un pollen change sur un lieu.",
+        "de": "Dasselbe, Art für Art: wird ausgelöst, wenn sich das Niveau eines Pollens an einem Ort ändert.",
+        "es": "Lo mismo, especie por especie: se activa cuando cambia el nivel de un polen en un lugar."
       },
       "fields": [
         {
@@ -751,11 +981,15 @@
           "source": "devices",
           "label": {
             "en": "Place",
-            "fr": "Lieu"
+            "fr": "Lieu",
+            "de": "Ort",
+            "es": "Lugar"
           },
           "description": {
             "en": "Leave empty to react to any of your places.",
-            "fr": "Laissez vide pour réagir à n'importe lequel de vos lieux."
+            "fr": "Laissez vide pour réagir à n'importe lequel de vos lieux.",
+            "de": "Leer lassen, um auf jeden deiner Orte zu reagieren.",
+            "es": "Déjelo vacío para reaccionar a cualquiera de sus lugares."
           },
           "required": false
         },
@@ -764,11 +998,15 @@
           "type": "multi_select",
           "label": {
             "en": "Species",
-            "fr": "Espèces"
+            "fr": "Espèces",
+            "de": "Arten",
+            "es": "Especies"
           },
           "description": {
             "en": "Tick the pollens you react to. Nothing ticked means all of them.",
-            "fr": "Cochez les pollens auxquels vous réagissez. Rien de coché signifie tous."
+            "fr": "Cochez les pollens auxquels vous réagissez. Rien de coché signifie tous.",
+            "de": "Hake die Pollen an, auf die du reagierst. Nichts angehakt bedeutet alle.",
+            "es": "Marque los pólenes a los que reacciona. No marcar ninguno significa todos."
           },
           "required": false,
           "options": [
@@ -776,42 +1014,54 @@
               "value": "alder",
               "label": {
                 "en": "Alder",
-                "fr": "Aulne"
+                "fr": "Aulne",
+                "de": "Erle",
+                "es": "Aliso"
               }
             },
             {
               "value": "birch",
               "label": {
                 "en": "Birch",
-                "fr": "Bouleau"
+                "fr": "Bouleau",
+                "de": "Birke",
+                "es": "Abedul"
               }
             },
             {
               "value": "grass",
               "label": {
                 "en": "Grass",
-                "fr": "Graminées"
+                "fr": "Graminées",
+                "de": "Gräser",
+                "es": "Gramíneas"
               }
             },
             {
               "value": "mugwort",
               "label": {
                 "en": "Mugwort",
-                "fr": "Armoise"
+                "fr": "Armoise",
+                "de": "Beifuß",
+                "es": "Artemisa"
               }
             },
             {
               "value": "olive",
               "label": {
                 "en": "Olive",
-                "fr": "Olivier"
+                "fr": "Olivier",
+                "de": "Olive",
+                "es": "Olivo"
               }
             },
             {
               "value": "ragweed",
               "label": {
                 "en": "Ragweed",
-                "fr": "Ambroisie"
+                "fr": "Ambroisie",
+                "de": "Ambrosia",
+                "es": "Ambrosía"
               }
             }
           ]
@@ -821,11 +1071,15 @@
           "type": "multi_select",
           "label": {
             "en": "New level",
-            "fr": "Nouveau niveau"
+            "fr": "Nouveau niveau",
+            "de": "Neues Niveau",
+            "es": "Nuevo nivel"
           },
           "description": {
             "en": "Tick the levels to react to. Nothing ticked means any level.",
-            "fr": "Cochez les niveaux auxquels réagir. Rien de coché signifie n'importe quel niveau."
+            "fr": "Cochez les niveaux auxquels réagir. Rien de coché signifie n'importe quel niveau.",
+            "de": "Hake die Niveaus an, auf die reagiert werden soll. Nichts angehakt bedeutet jedes Niveau.",
+            "es": "Marque los niveles a los que reaccionar. No marcar ninguno significa cualquier nivel."
           },
           "required": false,
           "options": [
@@ -833,28 +1087,36 @@
               "value": "0",
               "label": {
                 "en": "0 — no risk",
-                "fr": "0 — pas de risque"
+                "fr": "0 — pas de risque",
+                "de": "0 — kein Risiko",
+                "es": "0 — sin riesgo"
               }
             },
             {
               "value": "1",
               "label": {
                 "en": "1 — low",
-                "fr": "1 — faible"
+                "fr": "1 — faible",
+                "de": "1 — niedrig",
+                "es": "1 — bajo"
               }
             },
             {
               "value": "2",
               "label": {
                 "en": "2 — medium",
-                "fr": "2 — moyen"
+                "fr": "2 — moyen",
+                "de": "2 — mittel",
+                "es": "2 — medio"
               }
             },
             {
               "value": "3",
               "label": {
                 "en": "3 — high",
-                "fr": "3 — élevé"
+                "fr": "3 — élevé",
+                "de": "3 — hoch",
+                "es": "3 — alto"
               }
             }
           ]
@@ -864,11 +1126,15 @@
           "type": "select",
           "label": {
             "en": "Direction",
-            "fr": "Sens"
+            "fr": "Sens",
+            "de": "Richtung",
+            "es": "Sentido"
           },
           "description": {
             "en": "Leave empty for both.",
-            "fr": "Laissez vide pour les deux sens."
+            "fr": "Laissez vide pour les deux sens.",
+            "de": "Leer lassen für beide Richtungen.",
+            "es": "Déjelo vacío para ambos sentidos."
           },
           "required": false,
           "options": [
@@ -876,14 +1142,18 @@
               "value": "rising",
               "label": {
                 "en": "Rising",
-                "fr": "À la hausse"
+                "fr": "À la hausse",
+                "de": "Steigend",
+                "es": "Al alza"
               }
             },
             {
               "value": "falling",
               "label": {
                 "en": "Falling",
-                "fr": "À la baisse"
+                "fr": "À la baisse",
+                "de": "Fallend",
+                "es": "A la baja"
               }
             }
           ]
@@ -895,7 +1165,9 @@
           "type": "string",
           "label": {
             "en": "Place name",
-            "fr": "Nom du lieu"
+            "fr": "Nom du lieu",
+            "de": "Name des Ortes",
+            "es": "Nombre del lugar"
           }
         },
         {
@@ -903,7 +1175,9 @@
           "type": "string",
           "label": {
             "en": "Species (key)",
-            "fr": "Espèce (clé)"
+            "fr": "Espèce (clé)",
+            "de": "Art (Schlüssel)",
+            "es": "Especie (clave)"
           }
         },
         {
@@ -911,7 +1185,9 @@
           "type": "string",
           "label": {
             "en": "Species",
-            "fr": "Espèce"
+            "fr": "Espèce",
+            "de": "Arten",
+            "es": "Especies"
           }
         },
         {
@@ -919,7 +1195,9 @@
           "type": "string",
           "label": {
             "en": "New level (0-3)",
-            "fr": "Nouveau niveau (0-3)"
+            "fr": "Nouveau niveau (0-3)",
+            "de": "Neues Niveau (0-3)",
+            "es": "Nuevo nivel (0-3)"
           }
         },
         {
@@ -927,7 +1205,9 @@
           "type": "string",
           "label": {
             "en": "New level, in words",
-            "fr": "Nouveau niveau, en toutes lettres"
+            "fr": "Nouveau niveau, en toutes lettres",
+            "de": "Neues Niveau, in Worten",
+            "es": "Nuevo nivel, en palabras"
           }
         },
         {
@@ -935,7 +1215,9 @@
           "type": "string",
           "label": {
             "en": "Previous level (0-3)",
-            "fr": "Niveau précédent (0-3)"
+            "fr": "Niveau précédent (0-3)",
+            "de": "Vorheriges Niveau (0-3)",
+            "es": "Nivel anterior (0-3)"
           }
         },
         {
@@ -943,7 +1225,9 @@
           "type": "string",
           "label": {
             "en": "Previous level, in words",
-            "fr": "Niveau précédent, en toutes lettres"
+            "fr": "Niveau précédent, en toutes lettres",
+            "de": "Vorheriges Niveau, in Worten",
+            "es": "Nivel anterior, en palabras"
           }
         },
         {
@@ -951,7 +1235,9 @@
           "type": "string",
           "label": {
             "en": "Direction (rising / falling)",
-            "fr": "Sens (rising / falling)"
+            "fr": "Sens (rising / falling)",
+            "de": "Richtung (rising / falling)",
+            "es": "Sentido (rising / falling)"
           }
         },
         {
@@ -959,7 +1245,9 @@
           "type": "number",
           "label": {
             "en": "Concentration (grains/m³)",
-            "fr": "Concentration (grains/m³)"
+            "fr": "Concentration (grains/m³)",
+            "de": "Konzentration (Körner/m³)",
+            "es": "Concentración (granos/m³)"
           }
         },
         {
@@ -967,7 +1255,9 @@
           "type": "string",
           "label": {
             "en": "Hour of the forecast",
-            "fr": "Heure de la prévision"
+            "fr": "Heure de la prévision",
+            "de": "Uhrzeit der Vorhersage",
+            "es": "Hora de la previsión"
           }
         },
         {
@@ -975,7 +1265,9 @@
           "type": "string",
           "label": {
             "en": "Ready-made sentence",
-            "fr": "Phrase toute faite"
+            "fr": "Phrase toute faite",
+            "de": "Fertiger Satz",
+            "es": "Frase lista para usar"
           }
         }
       ]
@@ -986,11 +1278,15 @@
       "key": "get_pollen_risk",
       "label": {
         "en": "Read the pollen risk",
-        "fr": "Lire le risque pollinique"
+        "fr": "Lire le risque pollinique",
+        "de": "Pollenrisiko lesen",
+        "es": "Leer el riesgo de polen"
       },
       "description": {
         "en": "Reads a place now and hands the level, the dominant pollen and a ready-made sentence to the next actions of the scene.",
-        "fr": "Lit un lieu maintenant et transmet le niveau, le pollen dominant et une phrase toute faite aux actions suivantes de la scène."
+        "fr": "Lit un lieu maintenant et transmet le niveau, le pollen dominant et une phrase toute faite aux actions suivantes de la scène.",
+        "de": "Liest einen Ort sofort und übergibt das Niveau, den Hauptpollen und einen fertigen Satz an die nächsten Aktionen der Szene.",
+        "es": "Lee un lugar ahora y pasa el nivel, el polen dominante y una frase lista para usar a las siguientes acciones de la escena."
       },
       "timeout_seconds": 30,
       "fields": [
@@ -1000,11 +1296,15 @@
           "source": "devices",
           "label": {
             "en": "Place",
-            "fr": "Lieu"
+            "fr": "Lieu",
+            "de": "Ort",
+            "es": "Lugar"
           },
           "description": {
             "en": "The pollen device to read.",
-            "fr": "L'appareil pollens à lire."
+            "fr": "L'appareil pollens à lire.",
+            "de": "Das zu lesende Pollengerät.",
+            "es": "El dispositivo de polen que se va a leer."
           },
           "required": true
         },
@@ -1013,11 +1313,15 @@
           "type": "select",
           "label": {
             "en": "Pollen read",
-            "fr": "Pollen lu"
+            "fr": "Pollen lu",
+            "de": "Gelesener Pollen",
+            "es": "Polen leído"
           },
           "description": {
             "en": "\"Overall risk\" reports the worst species of the moment and names it. Pick a species to read that one only.",
-            "fr": "« Risque global » rapporte la pire espèce du moment et la nomme. Choisissez une espèce pour ne lire que celle-là."
+            "fr": "« Risque global » rapporte la pire espèce du moment et la nomme. Choisissez une espèce pour ne lire que celle-là.",
+            "de": "„Gesamtrisiko“ meldet die derzeit schlimmste Art und nennt sie. Wähle eine Art, um nur diese zu lesen.",
+            "es": "«Riesgo global» informa de la peor especie del momento y la nombra. Elija una especie para leer solo esa."
           },
           "required": false,
           "default": "overall",
@@ -1026,49 +1330,63 @@
               "value": "overall",
               "label": {
                 "en": "Overall risk",
-                "fr": "Risque global"
+                "fr": "Risque global",
+                "de": "Gesamtrisiko",
+                "es": "Riesgo global"
               }
             },
             {
               "value": "alder",
               "label": {
                 "en": "Alder",
-                "fr": "Aulne"
+                "fr": "Aulne",
+                "de": "Erle",
+                "es": "Aliso"
               }
             },
             {
               "value": "birch",
               "label": {
                 "en": "Birch",
-                "fr": "Bouleau"
+                "fr": "Bouleau",
+                "de": "Birke",
+                "es": "Abedul"
               }
             },
             {
               "value": "grass",
               "label": {
                 "en": "Grass",
-                "fr": "Graminées"
+                "fr": "Graminées",
+                "de": "Gräser",
+                "es": "Gramíneas"
               }
             },
             {
               "value": "mugwort",
               "label": {
                 "en": "Mugwort",
-                "fr": "Armoise"
+                "fr": "Armoise",
+                "de": "Beifuß",
+                "es": "Artemisa"
               }
             },
             {
               "value": "olive",
               "label": {
                 "en": "Olive",
-                "fr": "Olivier"
+                "fr": "Olivier",
+                "de": "Olive",
+                "es": "Olivo"
               }
             },
             {
               "value": "ragweed",
               "label": {
                 "en": "Ragweed",
-                "fr": "Ambroisie"
+                "fr": "Ambroisie",
+                "de": "Ambrosia",
+                "es": "Ambrosía"
               }
             }
           ]
@@ -1080,7 +1398,9 @@
           "type": "number",
           "label": {
             "en": "Risk level (0-3)",
-            "fr": "Niveau de risque (0-3)"
+            "fr": "Niveau de risque (0-3)",
+            "de": "Risikoniveau (0-3)",
+            "es": "Nivel de riesgo (0-3)"
           }
         },
         {
@@ -1088,7 +1408,9 @@
           "type": "string",
           "label": {
             "en": "Level, in words",
-            "fr": "Niveau, en toutes lettres"
+            "fr": "Niveau, en toutes lettres",
+            "de": "Niveau, in Worten",
+            "es": "Nivel, en palabras"
           }
         },
         {
@@ -1096,7 +1418,9 @@
           "type": "string",
           "label": {
             "en": "Pollen read (key)",
-            "fr": "Pollen lu (clé)"
+            "fr": "Pollen lu (clé)",
+            "de": "Gelesener Pollen (Schlüssel)",
+            "es": "Polen leído (clave)"
           }
         },
         {
@@ -1104,7 +1428,9 @@
           "type": "string",
           "label": {
             "en": "Pollen read",
-            "fr": "Pollen lu"
+            "fr": "Pollen lu",
+            "de": "Gelesener Pollen",
+            "es": "Polen leído"
           }
         },
         {
@@ -1112,7 +1438,9 @@
           "type": "number",
           "label": {
             "en": "Concentration (grains/m³)",
-            "fr": "Concentration (grains/m³)"
+            "fr": "Concentration (grains/m³)",
+            "de": "Konzentration (Körner/m³)",
+            "es": "Concentración (granos/m³)"
           }
         },
         {
@@ -1120,7 +1448,9 @@
           "type": "string",
           "label": {
             "en": "Place name",
-            "fr": "Nom du lieu"
+            "fr": "Nom du lieu",
+            "de": "Name des Ortes",
+            "es": "Nombre del lugar"
           }
         },
         {
@@ -1128,7 +1458,9 @@
           "type": "string",
           "label": {
             "en": "Hour of the forecast",
-            "fr": "Heure de la prévision"
+            "fr": "Heure de la prévision",
+            "de": "Uhrzeit der Vorhersage",
+            "es": "Hora de la previsión"
           }
         },
         {
@@ -1136,11 +1468,15 @@
           "type": "string",
           "label": {
             "en": "Ready-made sentence",
-            "fr": "Phrase toute faite"
+            "fr": "Phrase toute faite",
+            "de": "Fertiger Satz",
+            "es": "Frase lista para usar"
           },
           "description": {
             "en": "\"Pollen in Montauban: high risk (4/5), dominant Birch.\" — to drop straight into a notification.",
-            "fr": "« Pollens à Montauban : risque élevé (4/5), dominant Bouleau. » — à glisser tel quel dans une notification."
+            "fr": "« Pollens à Montauban : risque élevé (4/5), dominant Bouleau. » — à glisser tel quel dans une notification.",
+            "de": "„Pollen in Montauban: hohes Risiko (4/5), vorherrschend Birke.“ — direkt in eine Benachrichtigung einzufügen.",
+            "es": "«Polen en Montauban: riesgo alto (4/5), dominante Abedul.», para insertar tal cual en una notificación."
           }
         }
       ]
@@ -1149,11 +1485,15 @@
       "key": "refresh_pollen",
       "label": {
         "en": "Refresh the pollen data",
-        "fr": "Rafraîchir les données polliniques"
+        "fr": "Rafraîchir les données polliniques",
+        "de": "Pollendaten aktualisieren",
+        "es": "Actualizar los datos de polen"
       },
       "description": {
         "en": "Reads the forecast again and republishes the states, without waiting for the next refresh. Leave the place empty to refresh them all.",
-        "fr": "Relit la prévision et republie les états, sans attendre le prochain rafraîchissement. Laissez le lieu vide pour tous les rafraîchir."
+        "fr": "Relit la prévision et republie les états, sans attendre le prochain rafraîchissement. Laissez le lieu vide pour tous les rafraîchir.",
+        "de": "Liest die Vorhersage erneut und veröffentlicht die Zustände neu, ohne auf die nächste Aktualisierung zu warten. Lass den Ort leer, um alle zu aktualisieren.",
+        "es": "Vuelve a leer la previsión y republica los estados, sin esperar a la próxima actualización. Deje el lugar vacío para actualizarlos todos."
       },
       "timeout_seconds": 60,
       "fields": [
@@ -1163,11 +1503,15 @@
           "source": "devices",
           "label": {
             "en": "Place",
-            "fr": "Lieu"
+            "fr": "Lieu",
+            "de": "Ort",
+            "es": "Lugar"
           },
           "description": {
             "en": "Empty means every configured place.",
-            "fr": "Vide signifie tous les lieux configurés."
+            "fr": "Vide signifie tous les lieux configurés.",
+            "de": "Leer bedeutet alle konfigurierten Orte.",
+            "es": "Vacío significa todos los lugares configurados."
           },
           "required": false
         }
@@ -1178,7 +1522,9 @@
           "type": "number",
           "label": {
             "en": "Places refreshed",
-            "fr": "Lieux rafraîchis"
+            "fr": "Lieux rafraîchis",
+            "de": "Aktualisierte Orte",
+            "es": "Lugares actualizados"
           }
         },
         {
@@ -1186,7 +1532,9 @@
           "type": "number",
           "label": {
             "en": "Places in error",
-            "fr": "Lieux en échec"
+            "fr": "Lieux en échec",
+            "de": "Fehlgeschlagene Orte",
+            "es": "Lugares con error"
           }
         }
       ]

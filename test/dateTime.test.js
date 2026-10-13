@@ -35,7 +35,9 @@ test('the instant is written in the language of the device names', () => {
   assert.equal(formatDateTime('2026-08-06T13:00+02:00', 'en'), '2026-08-06 13:00');
   // Same fallback as everything else: French when the language is unknown.
   assert.equal(formatDateTime('2026-08-06T13:00+02:00'), '06/08/2026 13:00');
-  assert.equal(formatDateTime('2026-08-06T13:00+02:00', 'de'), '06/08/2026 13:00');
+  assert.equal(formatDateTime('2026-08-06T13:00+02:00', 'de'), '06.08.2026 13:00');
+  assert.equal(formatDateTime('2026-08-06T13:00+02:00', 'es'), '06/08/2026 13:00');
+  assert.equal(formatDateTime('2026-08-06T13:00+02:00', 'it'), '06/08/2026 13:00');
 });
 
 test('the hour printed is the one of the location, not of the container', () => {

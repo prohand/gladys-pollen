@@ -37,12 +37,26 @@ export const MAX_ROWS = 10;
 const NO_LOCATION = {
   en: 'No place configured yet: add one in the integration settings.',
   fr: 'Aucun lieu configuré : ajoutez-en un dans les réglages de l’intégration.',
+  de: 'Kein Ort konfiguriert: Füge einen in den Integrationseinstellungen hinzu.',
+  es: 'Aún no hay ningún lugar configurado: añada uno en los ajustes de la integración.',
 };
-const UNREADABLE = { en: 'unavailable', fr: 'indisponible' };
-const SOURCE = { en: 'Source: CAMS (Copernicus)', fr: 'Source : CAMS (Copernicus)' };
+const UNREADABLE = {
+  en: 'unavailable',
+  fr: 'indisponible',
+  de: 'nicht verfügbar',
+  es: 'no disponible',
+};
+const SOURCE = {
+  en: 'Source: CAMS (Copernicus)',
+  fr: 'Source : CAMS (Copernicus)',
+  de: 'Quelle: CAMS (Copernicus)',
+  es: 'Fuente: CAMS (Copernicus)',
+};
 const MORE_PLACES = {
   en: (shown, total) => `${shown} of ${total} places · CAMS (Copernicus)`,
   fr: (shown, total) => `${shown} lieux sur ${total} · CAMS (Copernicus)`,
+  de: (shown, total) => `${shown} von ${total} Orten · CAMS (Copernicus)`,
+  es: (shown, total) => `${shown} de ${total} lugares · CAMS (Copernicus)`,
 };
 
 /** One row: the place, its level, and the pollen that sets it. */
@@ -120,10 +134,17 @@ export const locationsWidget = {
       config.language,
     );
     return failed === 0
-      ? { en: `${refreshed} place(s) refreshed.`, fr: `${refreshed} lieu(x) rafraîchi(s).` }
+      ? {
+          en: `${refreshed} place(s) refreshed.`,
+          fr: `${refreshed} lieu(x) rafraîchi(s).`,
+          de: `${refreshed} Ort(e) aktualisiert.`,
+          es: `${refreshed} lugar(es) actualizado(s).`,
+        }
       : {
           en: `${refreshed} refreshed, ${failed} failing.`,
           fr: `${refreshed} rafraîchi(s), ${failed} en échec.`,
+          de: `${refreshed} aktualisiert, ${failed} fehlgeschlagen.`,
+          es: `${refreshed} actualizado(s), ${failed} con error.`,
         };
   },
 };

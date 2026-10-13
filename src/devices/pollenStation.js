@@ -71,29 +71,50 @@ export function taxonTextFeatureId(taxon) {
 
 /** Names of the features that are not about one taxon. */
 const FEATURE_NAMES = {
-  [FEATURE.OVERALL_RISK]: { en: 'Overall pollen risk', fr: 'Risque pollinique global' },
+  [FEATURE.OVERALL_RISK]: {
+    en: 'Overall pollen risk',
+    fr: 'Risque pollinique global',
+    de: 'Pollenrisiko gesamt',
+    es: 'Riesgo de polen global',
+  },
   [FEATURE.OVERALL_RISK_TEXT]: {
     en: 'Overall pollen risk (text)',
     fr: 'Risque pollinique global (texte)',
+    de: 'Pollenrisiko gesamt (Text)',
+    es: 'Riesgo de polen global (texto)',
   },
-  [FEATURE.DOMINANT_POLLEN]: { en: 'Dominant pollen', fr: 'Pollen dominant' },
-  [FEATURE.LAST_UPDATE]: { en: 'Last data update', fr: 'Dernière mise à jour des données' },
+  [FEATURE.DOMINANT_POLLEN]: {
+    en: 'Dominant pollen',
+    fr: 'Pollen dominant',
+    de: 'Hauptpollen',
+    es: 'Polen dominante',
+  },
+  [FEATURE.LAST_UPDATE]: {
+    en: 'Last data update',
+    fr: 'Dernière mise à jour des données',
+    de: 'Letzte Datenaktualisierung',
+    es: 'Última actualización de los datos',
+  },
 };
 
 /** How the name of a taxon becomes the name of its risk feature. */
 const TAXON_FEATURE_NAME = {
   en: (name) => `${name} pollen risk`,
   fr: (name) => `Risque pollinique — ${name}`,
+  de: (name) => `Pollenrisiko — ${name}`,
+  es: (name) => `Riesgo de polen — ${name}`,
 };
 
 /** Same, for the wording that doubles it. */
 const TAXON_TEXT_FEATURE_NAME = {
   en: (name) => `${name} pollen risk (text)`,
   fr: (name) => `Risque pollinique — ${name} (texte)`,
+  de: (name) => `Pollenrisiko — ${name} (Text)`,
+  es: (name) => `Riesgo de polen — ${name} (texto)`,
 };
 
 /** What the "dominant pollen" feature says when nothing is in the air. */
-const NO_DOMINANT_POLLEN = { en: 'None', fr: 'Aucun' };
+const NO_DOMINANT_POLLEN = { en: 'None', fr: 'Aucun', de: 'Keiner', es: 'Ninguno' };
 
 /** External ids of the device of a location. */
 export function deviceExternalIds(gladys, location) {
@@ -188,7 +209,7 @@ function textFeature(externalId, name) {
  * The names are written in the configured language and nowhere else: a device
  * name and a feature name are plain strings the core copies into its own tables
  * when the user creates the device, so this is the ONE place where the
- * integration has to pick a language instead of handing Gladys `{ en, fr }`.
+ * integration has to pick a language instead of handing Gladys `{ en, fr, de, es }`.
  * @param {import('@gladysassistant/integration-sdk').GladysIntegration} gladys
  * @param {import('../locations.js').Location} location
  * @param {string} [language] one of LANGUAGES (see src/language.js)

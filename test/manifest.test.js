@@ -10,7 +10,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { DEFAULT_CONFIG, POLL_FREQUENCY_LIMITS } from '../src/config.js';
-import { DEFAULT_LANGUAGE, LANGUAGES } from '../src/language.js';
+import { DEFAULT_LANGUAGE, LANGUAGES, MESSAGE_LANGUAGES } from '../src/language.js';
 import { createLocationEditor } from '../src/locationEditor.js';
 import { MAX_LOCATIONS } from '../src/locations.js';
 import { allTaxa } from '../src/pollen/index.js';
@@ -253,6 +253,9 @@ test('the store description fits the catalog card', () => {
   // 10-100 characters PER LANGUAGE — the card is one line, and a long
   // description rejects the whole manifest at install time.
   assert.ok(manifest.description.en, 'an English description is mandatory');
+  for (const language of MESSAGE_LANGUAGES) {
+    assert.equal(typeof manifest.description[language], 'string', `description.${language}`);
+  }
   for (const [language, text] of Object.entries(manifest.description)) {
     assert.ok(
       text.length >= 10 && text.length <= 100,
@@ -264,12 +267,18 @@ test('the store description fits the catalog card', () => {
 test('every human text is a multi-language object', () => {
   // `label`, `description` and `placeholder` are ALWAYS { en, … } objects,
   // never bare strings — including a placeholder that looks like a constant.
+  // And every one speaks the four languages of the Gladys interface: a missing
+  // key silently falls back on English for that reader.
   const check = (value, path) => {
     if (value === undefined) {
       return;
     }
     assert.equal(typeof value, 'object', `${path} must be a { en, … } object, not a bare value`);
     assert.equal(typeof value.en, 'string', `${path}.en is mandatory`);
+    for (const language of MESSAGE_LANGUAGES) {
+      assert.equal(typeof value[language], 'string', `${path}.${language} is missing`);
+      assert.ok(value[language].trim() !== '', `${path}.${language} is empty`);
+    }
   };
 
   const checkField = (field, path) => {

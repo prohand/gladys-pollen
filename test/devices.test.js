@@ -194,8 +194,13 @@ test('the language of the names is the one of the configuration', () => {
   const [device] = buildDiscoveredDevices(gladys, configWith([paris], { language: 'en' }));
   assert.ok(device.features.some((feature) => feature.name === 'Ragweed pollen risk'));
 
+  const [german] = buildDiscoveredDevices(gladys, configWith([paris], { language: 'de' }));
+  assert.ok(german.features.some((feature) => feature.name === 'Pollenrisiko — Ambrosia'));
+  const [spanish] = buildDiscoveredDevices(gladys, configWith([paris], { language: 'es' }));
+  assert.ok(spanish.features.some((feature) => feature.name === 'Riesgo de polen — Ambrosía'));
+
   // An unsupported language is French, not a device named after a taxon key.
-  const [fallback] = buildDiscoveredDevices(gladys, configWith([paris], { language: 'de' }));
+  const [fallback] = buildDiscoveredDevices(gladys, configWith([paris], { language: 'it' }));
   assert.ok(fallback.features.some((feature) => feature.name === 'Risque pollinique — Ambroisie'));
 });
 

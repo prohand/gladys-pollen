@@ -52,10 +52,10 @@ export const RISK_LEVEL_MAX = RISK_LEVELS.HIGH;
  * `High`), in lower case because they read inside a sentence here.
  */
 export const RISK_LEVEL_LABELS = {
-  0: { en: 'no risk', fr: 'pas de risque' },
-  1: { en: 'low', fr: 'faible' },
-  2: { en: 'medium', fr: 'moyen' },
-  3: { en: 'high', fr: 'élevé' },
+  0: { en: 'no risk', fr: 'pas de risque', de: 'kein Risiko', es: 'sin riesgo' },
+  1: { en: 'low', fr: 'faible', de: 'niedrig', es: 'bajo' },
+  2: { en: 'medium', fr: 'moyen', de: 'mittel', es: 'medio' },
+  3: { en: 'high', fr: 'élevé', de: 'hoch', es: 'alto' },
 };
 
 /**
@@ -83,12 +83,12 @@ export const EAN_LEVEL_MAX = EAN_LEVELS.VERY_HIGH;
 
 /** Human labels of the six EAN bands, for the TEXT features. */
 export const EAN_LEVEL_LABELS = {
-  0: { en: 'none', fr: 'nul' },
-  1: { en: 'very low', fr: 'très faible' },
-  2: { en: 'low', fr: 'faible' },
-  3: { en: 'moderate', fr: 'moyen' },
-  4: { en: 'high', fr: 'élevé' },
-  5: { en: 'very high', fr: 'très élevé' },
+  0: { en: 'none', fr: 'nul', de: 'keine', es: 'nulo' },
+  1: { en: 'very low', fr: 'très faible', de: 'sehr niedrig', es: 'muy bajo' },
+  2: { en: 'low', fr: 'faible', de: 'niedrig', es: 'bajo' },
+  3: { en: 'moderate', fr: 'moyen', de: 'mittel', es: 'moderado' },
+  4: { en: 'high', fr: 'élevé', de: 'hoch', es: 'alto' },
+  5: { en: 'very high', fr: 'très élevé', de: 'sehr hoch', es: 'muy alto' },
 };
 
 /**

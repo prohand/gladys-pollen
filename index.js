@@ -64,6 +64,8 @@ let pollingCleanup = null;
 const NOT_CONFIGURED_MESSAGE = {
   en: 'Add a location to start following the pollen risk.',
   fr: 'Ajoutez un lieu pour suivre le risque pollinique.',
+  de: 'Füge einen Ort hinzu, um das Pollenrisiko zu verfolgen.',
+  es: 'Añada un lugar para seguir el riesgo de polen.',
 };
 
 /**
@@ -103,6 +105,8 @@ async function publishDevices() {
       .setConnectionStatus(false, {
         en: `Gladys refused the device: ${reason}`,
         fr: `Gladys a refusé l'appareil : ${reason}`,
+        de: `Gladys hat das Gerät abgelehnt: ${reason}`,
+        es: `Gladys ha rechazado el dispositivo: ${reason}`,
       })
       .catch(() => {});
     throw err;

@@ -41,19 +41,40 @@ const MAX_CHART_SERIES = 4;
 const NO_LOCATION = {
   en: 'Pick a place in the widget settings.',
   fr: 'Choisissez un lieu dans les réglages du widget.',
+  de: 'Wähle einen Ort in den Einstellungen des Widgets.',
+  es: 'Elija un lugar en los ajustes del widget.',
 };
 const NO_DATA = {
   en: 'No pollen data for this place right now.',
   fr: 'Aucune donnée pollinique pour ce lieu actuellement.',
+  de: 'Derzeit keine Pollendaten für diesen Ort.',
+  es: 'No hay datos de polen para este lugar en este momento.',
 };
 const NOTHING_IN_THE_AIR = {
   en: 'No pollen in the air',
   fr: 'Aucun pollen dans l’air',
+  de: 'Keine Pollen in der Luft',
+  es: 'No hay polen en el aire',
 };
-const OVERALL_LABEL = { en: 'Overall risk', fr: 'Risque global' };
-const FILTERED_LABEL = { en: 'Your risk', fr: 'Votre risque' };
-const DOMINANT_LABEL = { en: 'Dominant pollen', fr: 'Pollen dominant' };
-const CHART_TITLE = { en: 'Today and tomorrow', fr: 'Aujourd’hui et demain' };
+const OVERALL_LABEL = {
+  en: 'Overall risk',
+  fr: 'Risque global',
+  de: 'Gesamtrisiko',
+  es: 'Riesgo global',
+};
+const FILTERED_LABEL = { en: 'Your risk', fr: 'Votre risque', de: 'Dein Risiko', es: 'Su riesgo' };
+const DOMINANT_LABEL = {
+  en: 'Dominant pollen',
+  fr: 'Pollen dominant',
+  de: 'Hauptpollen',
+  es: 'Polen dominante',
+};
+const CHART_TITLE = {
+  en: 'Today and tomorrow',
+  fr: 'Aujourd’hui et demain',
+  de: 'Heute und morgen',
+  es: 'Hoy y mañana',
+};
 
 /**
  * The taxa a widget instance follows: the ticked ones, or all of them.
@@ -296,19 +317,31 @@ export const stationWidget = {
 
   /**
    * The `refresh` pill: re-read this instance's place and republish its states.
-   * @returns {Promise<{ en: string, fr: string }>} the toast shown to the user
+   * @returns {Promise<{ en: string, fr: string, de: string, es: string }>} the toast shown to the user
    */
   async onAction(gladys, config, actionKey, params, { settings }) {
     const location = findLocationByDeviceId(gladys, config, settings?.location);
     if (!location) {
-      return { en: 'No place to refresh.', fr: 'Aucun lieu à rafraîchir.' };
+      return {
+        en: 'No place to refresh.',
+        fr: 'Aucun lieu à rafraîchir.',
+        de: 'Kein Ort zum Aktualisieren.',
+        es: 'No hay ningún lugar que actualizar.',
+      };
     }
     const { failed } = await refreshLocations(gladys, [location], config.language);
     return failed === 0
-      ? { en: `${location.name} refreshed.`, fr: `${location.name} rafraîchi.` }
+      ? {
+          en: `${location.name} refreshed.`,
+          fr: `${location.name} rafraîchi.`,
+          de: `${location.name} aktualisiert.`,
+          es: `${location.name} actualizado.`,
+        }
       : {
           en: `Could not refresh ${location.name}.`,
           fr: `Impossible de rafraîchir ${location.name}.`,
+          de: `${location.name} konnte nicht aktualisiert werden.`,
+          es: `No se ha podido actualizar ${location.name}.`,
         };
   },
 };

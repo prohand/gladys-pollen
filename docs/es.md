@@ -1,0 +1,443 @@
+# Pollens
+
+Esta integración expone el **riesgo de polen** de los lugares que elija como
+dispositivos de Gladys: un dispositivo por lugar, con un nivel de riesgo de 0 a 3
+— la escala propia de Gladys — para cada tipo de polen. Puede añadir sus
+**viviendas de Gladys con un clic**, o un lugar escribiendo su **localidad**.
+
+Ninguna cuenta que crear, ninguna clave de API que pegar.
+
+El riesgo también aparece en su **panel** (dos widgets) y controla sus
+**escenas** (dos disparadores, dos acciones).
+
+> Esta versión requiere **Gladys 5.2** o posterior: la lista de sus viviendas de
+> Gladys en «Añadir mis viviendas de Gladys» no existe antes, ni tampoco (antes de
+> la 5.1) los widgets de panel y las tarjetas de escena de una integración.
+
+## De dónde vienen los datos
+
+Las concentraciones de polen proceden de la **previsión europea de calidad del
+aire CAMS** (Copernicus Atmosphere Monitoring Service, el servicio atmosférico del
+programa europeo Copernicus, gestionado por el ECMWF). Es el modelo de referencia
+en Europa, con una cuadrícula de ~11 km.
+
+Se consulta a través de [Open-Meteo](https://open-meteo.com/en/docs/air-quality-api),
+que redistribuye CAMS como datos abiertos **sin cuenta y sin clave de API**.
+
+Las localidades que escriba se convierten en coordenadas mediante la
+[API de geocodificación de Open-Meteo](https://open-meteo.com/en/docs/geocoding-api),
+basada en la base de datos GeoNames — también abierta, sin autenticación y
+mundial, por lo que no hay que elegir ningún país en ninguna parte de esta
+integración.
+
+> **¿Y Atmo France?** Atmo France publica un índice de polen para Francia, pero su
+> API exige una cuenta y un token de autenticación que cada usuario tendría que
+> crear antes de que la integración funcione siquiera. Se eligió CAMS porque es
+> oficial _y_ se puede usar sin ninguna configuración.
+
+## Añadir sus viviendas de Gladys, con un clic
+
+Ya le ha dicho a Gladys dónde vive: es el mapa de **Configuración > Viviendas**.
+El botón **«Añadir mis viviendas de Gladys»** lee esas viviendas y crea un lugar
+por cada una que aún no se vigila, sin escribir ninguna localidad. Para añadir
+solo una de ellas, elíjala en la lista **Vivienda** del botón; deje la lista vacía
+para añadirlas todas.
+
+Cuatro cosas que conviene saber:
+
+- **El acceso es un permiso.** El lugar donde vive es un dato personal: Gladys solo
+  lo comparte si aceptó la solicitud en la pantalla de instalación de la
+  integración. Si el botón responde que se deniega el acceso, elimine la
+  integración y vuelva a instalarla, aceptando la solicitud que aparece allí.
+- **Una vivienda que nunca colocó en el mapa no tiene coordenadas.** Se nombra en
+  la respuesta; ubíquela en Configuración > Viviendas y vuelva a pulsar el botón.
+- **Una vivienda fuera del dominio europeo de CAMS** también se nombra y se deja
+  de lado: ninguna previsión de polen la cubre (véase «Cobertura geográfica» más
+  abajo).
+- **No es una sincronización.** Las viviendas se leen en el momento en que pulsa.
+  Lo que sale es un lugar normal, que se renombra y se elimina como cualquier
+  otro, y una vivienda que se mueva después en Gladys no mueve su lugar.
+
+Volver a pulsar no supone ningún riesgo: una vivienda ya vigilada se indica, no se
+añade dos veces.
+
+Leer las viviendas requiere las coordenadas de las viviendas que Gladys abrió en
+la 4.85.0, y la lista **Vivienda** requiere Gladys 5.2.0, la versión que exige
+esta integración.
+
+## Añadir un lugar
+
+1. Abra la pestaña **Configuración** de la integración.
+2. Pulse **Añadir un lugar**.
+3. Escriba la **localidad**, por ejemplo `Montauban`. Dar un nombre al lugar es
+   opcional: si deja el campo vacío, se usa el nombre de la localidad.
+4. Envíe.
+
+La mayoría de los nombres de lugar los comparten varias localidades: solo en
+Francia hay dos Montauban, y una docena de París en el mundo. Cuando eso ocurre,
+la integración enumera los candidatos en lugar de adivinar: vuelva a ejecutar la
+acción con una coma y la región, el país o el código postal, por ejemplo
+`Montauban, Tarn-et-Garonne` o `Paris, France`.
+
+También puede añadir un punto directamente: rellene la **latitud** y la
+**longitud** (grados decimales WGS-84, ambas — una sola no forma un punto). Se
+leen con cualquiera de los dos separadores decimales, así que `48,8566` funciona
+igual que `48.8566`. Las coordenadas tienen prioridad sobre la localidad, que
+entonces solo se conserva como etiqueta del lugar.
+
+El lugar aparece entonces en la pestaña **Descubrir**, con el nombre
+`Pollens — <nombre>`. Pulse **Añadir a Gladys** para crear el dispositivo: es entonces
+cuando se puede usar en paneles y escenas.
+
+Puede añadir hasta 20 lugares.
+
+## Ver y eliminar sus lugares
+
+**Mostrar mis lugares** los muestra, numerados:
+
+```
+• 1. Casa — Montauban, Tarn-et-Garonne, France (44.01810, 1.35490)
+• 2. Oficina — Toulouse, Haute-Garonne, France (43.60426, 1.44367)
+```
+
+Esos números son los que ofrece la lista desplegable de eliminación, porque una
+lista desplegable declarada en un manifiesto solo puede contener opciones fijas,
+nunca los nombres de sus lugares.
+
+Para eliminar uno: pulse **Eliminar un lugar**, elija su número, marque
+**Confirmo** y envíe. Si lo ejecuta sin marcar la casilla, le indica qué lugar se
+_eliminaría_. El lugar desaparece de inmediato de la pestaña «Descubrir», y los
+lugares que hay debajo suben un puesto, así que vuelva a mostrar la lista antes
+de eliminar un segundo lugar.
+
+> Si ya había añadido el dispositivo a Gladys, elimínelo también desde la página
+> del dispositivo: una integración no tiene permiso para eliminar un dispositivo
+> que usted ha creado. A la inversa, si elimina el dispositivo sin eliminar el
+> lugar, vuelve a aparecer en la pestaña «Descubrir», listo para añadirse de nuevo.
+
+## Qué mide el dispositivo
+
+Cada dispositivo expone dieciséis medidas: un riesgo global, su redacción, el
+polen dominante, la fecha de los datos y, para cada uno de los seis pólenes, un
+índice de riesgo y el mismo riesgo en palabras.
+
+| Medida                              | Descripción                                           |
+| ----------------------------------- | ----------------------------------------------------- |
+| Riesgo de polen global              | El más alto de los seis riesgos de abajo (0 a 3)      |
+| Riesgo de polen global (texto)      | El riesgo medido en palabras: «4/5 (alto)»            |
+| Polen dominante                     | El nombre del polen que determina ese riesgo          |
+| Última actualización de los datos   | La fecha y la hora a las que corresponde la previsión |
+| Riesgo de polen — Aliso             | Riesgo de 0 a 3                                       |
+| Riesgo de polen — Aliso (texto)     | El riesgo medido en palabras: «4/5 (alto)»            |
+| Riesgo de polen — Abedul            | Riesgo de 0 a 3                                       |
+| Riesgo de polen — Abedul (texto)    | El riesgo medido en palabras: «4/5 (alto)»            |
+| Riesgo de polen — Gramíneas         | Riesgo de 0 a 3                                       |
+| Riesgo de polen — Gramíneas (texto) | El riesgo medido en palabras: «4/5 (alto)»            |
+| Riesgo de polen — Artemisa          | Riesgo de 0 a 3                                       |
+| Riesgo de polen — Artemisa (texto)  | El riesgo medido en palabras: «4/5 (alto)»            |
+| Riesgo de polen — Olivo             | Riesgo de 0 a 3                                       |
+| Riesgo de polen — Olivo (texto)     | El riesgo medido en palabras: «4/5 (alto)»            |
+| Riesgo de polen — Ambrosía          | Riesgo de 0 a 3                                       |
+| Riesgo de polen — Ambrosía (texto)  | El riesgo medido en palabras: «4/5 (alto)»            |
+
+Las medidas «(texto)» son lo que lee una notificación, un cuadro de texto del panel
+o un asistente de voz: una escena que lee el índice obtiene un `3`, y `3` es lo
+que pone en su mensaje. Un polen para el que el modelo no tiene valor no publica
+nada en absoluto, ni índice ni redacción.
+
+**El índice y la redacción no están en la misma escala, a propósito.** El índice
+está en la escala de Gladys, de 0 a 3, la única que el núcleo sabe nombrar. La
+redacción es un texto simple que nadie vuelve a interpretar después, por lo que
+lleva la **propia medida, de 0 a 5**, las bandas europeas que siguen los datos de
+CAMS. Un día «alto» y un día «muy alto» marcan ambos `3` en el índice, pero
+«4/5 (alto)» y «5/5 (muy alto)» en el texto.
+
+> Estos son los nombres con el ajuste **Idioma de los nombres de los
+> dispositivos** en español. Por defecto está en **francés**
+> (`Risque pollinique — Bouleau`): véase
+> [El idioma de los nombres](#el-idioma-de-los-nombres) más abajo.
+
+Las medidas numéricas conservan su historial, así que puede representar en un
+gráfico la temporada de polen de su localidad.
+
+Cuando el modelo no tiene valor para una especie en esa posición, **no se publica
+nada** para esa especie: una medida que falta no es un riesgo cero.
+
+### ¿Qué antigüedad tienen estas cifras?
+
+La medida **Última actualización de los datos** lo responde. Muestra la fecha y la
+hora a las que corresponde la previsión mostrada, con el formato
+`06/08/2026 13:00`.
+
+Es la fecha de los **datos**, no de la última petición: CAMS publica su previsión
+una vez al día y Open-Meteo la interpola hora a hora, por lo que una actualización
+correcta suele volver a leer exactamente las mismas cifras. Lo que usted quiere
+saber es qué antigüedad tienen esas cifras, no cuándo se obtuvieron por última
+vez.
+
+La hora mostrada es **la del propio lugar**: una previsión se lee con el reloj de
+la localidad que cubre. Para un lugar de su zona horaria es simplemente su hora;
+para uno más lejano es la hora local de allí. Por eso esta medida está **en cada
+dispositivo** y no en uno solo compartido por toda la integración: dos lugares no
+tienen por qué llevar la misma.
+
+Si la fecha se queda anclada en el pasado, la actualización está fallando: el
+botón **Probar el proveedor de polen** muestra la misma fecha para cada lugar e
+indica qué va mal, si algo va mal.
+
+## La escala de riesgo
+
+**Es la escala de Gladys, no una propia.** Gladys sabe nombrar cuatro niveles de
+riesgo, y es Gladys quien escribe la etiqueta junto a la medida en el cuadro
+«Dispositivos en la habitación»:
+
+| Nivel | Lo que muestra Gladys | Color    |
+| ----- | --------------------- | -------- |
+| 0     | Sin riesgo            | Verde    |
+| 1     | Bajo                  | Amarillo |
+| 2     | Medio                 | Naranja  |
+| 3     | Alto                  | Rojo     |
+
+La integración publica exactamente esos cuatro niveles y nada más. Así, el cuadro
+del dispositivo, los widgets, los disparadores de escena y las notificaciones
+dicen todos lo mismo sobre la misma cifra. Las medidas de texto y los widgets
+añaden la escala a la palabra — «2/3 (medio)» — para que pueda situar un nivel sin
+saberse la escala de memoria.
+
+Los datos de CAMS siguen las bandas de la European Aeroallergen Network (EAN), que
+tiene seis. Se reducen a los cuatro niveles de Gladys:
+
+| Banda EAN (medida de texto) | Índice publicado | Nombre en Gladys |
+| --------------------------- | ---------------- | ---------------- |
+| 0/5 (nulo)                  | 0                | Sin riesgo       |
+| 1/5 (muy bajo)              | 1                | Bajo             |
+| 2/5 (bajo)                  | 1                | Bajo             |
+| 3/5 (moderado)              | 2                | Medio            |
+| 4/5 (alto)                  | 3                | Alto             |
+| 5/5 (muy alto)              | 3                | Alto             |
+
+En esa reducción no se pierde nada importante: las dos bandas tranquilas
+significan ambas «apenas hay», y las dos fuertes significan ambas «quédese dentro
+si reacciona a él».
+
+**La banda medida sigue siendo legible**: las medidas «(texto)» del dispositivo la
+muestran tal cual, de 0 a 5. Es el único lugar donde se conserva, porque un texto
+se muestra exactamente como se guardó, mientras que Gladys vuelve a etiquetar una
+cifra con sus propias palabras.
+
+El nivel se deriva de la concentración en granos de polen por metro cúbico de
+aire, con **umbrales por especie**: 30 granos/m³ son un día tranquilo para el
+abedul (nivel 2) pero uno intenso para la ambrosía (nivel 3), cuyo poder alérgeno
+es mucho mayor.
+
+## ¿Viene de una versión de 0 a 5?
+
+Las primeras versiones publicaban las seis bandas EAN tal cual, de 0 a 5. Eso no
+funcionaba: Gladys solo sabe nombrar cuatro niveles, así que un nivel 3 aparecía
+como «Alto» cuando significaba «medio», y los niveles 4 y 5 aparecían como
+«Desconocido». La escala publicada es ahora la propia de Gladys.
+
+Dos cosas que comprobar después de la actualización:
+
+- **El dispositivo.** Aparece en la pestaña **Descubrir** con un botón
+  **Actualizar**: basta un clic. Se conservan el historial, las habitaciones y las
+  escenas.
+- **Sus escenas.** Un disparador o una condición dirigidos al nivel 4 o 5 ya no
+  coinciden con nada: apunte al nivel 3 («alto»). Un nivel 3 que significaba
+  «moderado» pasa a ser un 2.
+
+El historial ya registrado conserva sus valores antiguos: en un gráfico que abarque
+el cambio, los puntos anteriores están en la escala 0-5 y los posteriores en la
+escala 0-3. Se sigue leyendo, pero una comparación a lo largo de ese periodo no es
+justa.
+
+La banda medida de 0 a 5 no ha desaparecido, sin embargo: es lo que muestran las
+medidas «(texto)» del dispositivo, junto al índice. Solo las cifras que lee una
+escena o un gráfico están en la escala 0-3.
+
+## El idioma de los nombres
+
+Los nombres de los dispositivos y de las funciones se escriben **en francés por
+defecto**: las medidas se llaman `Risque pollinique global`,
+`Risque pollinique — Bouleau`, y el polen dominante aparece como `Bouleau`. Ponga
+**Idioma de los nombres de los dispositivos** en español en la pestaña
+«Configuración» para obtener los nombres de la tabla anterior (también se ofrecen
+el inglés y el alemán).
+
+¿Por qué un ajuste y no el idioma de su cuenta? Todo lo que la integración
+_muestra_ — el mensaje bajo un botón, el estado en la pestaña «Supervisión» — se
+envía a Gladys en inglés, francés, alemán y español, y Gladys elige el de la
+persona que lo lee. Un nombre de dispositivo no es un mensaje: es un texto simple
+que se guarda tal como está el día en que crea el dispositivo, y nada en la API de
+integraciones indica qué idioma lee usted. Por eso se elige una vez, aquí.
+
+Una consecuencia: cambiar el ajuste renombra las funciones de los dispositivos
+**aún por crear**. Un dispositivo ya añadido a Gladys conserva los nombres con los
+que se creó: elimínelo y vuelva a añadirlo desde la pestaña «Descubrir» para
+cambiarle el nombre (su historial se va con el dispositivo eliminado).
+
+## En su panel
+
+La integración incluye dos widgets. Añádalos desde un panel de Gladys: **Editar**,
+**Nuevo widget** y luego elíjalos en la lista.
+
+### Polen — un lugar
+
+La tarjeta de un lugar: el nivel global en un medidor, un mosaico **Polen
+dominante** que nombra la especie de la que procede ese nivel, el riesgo en
+palabras — «3/3 (alto)» —, después los pólenes realmente presentes en el aire, la
+curva de hoy y mañana y un botón **Actualizar**. Una especie a cero no ocupa
+ninguna fila: una tarjeta que no muestra nada significa que no hay nada en el
+aire, y lo dice; sin polen en el aire no hay polen dominante, y el mosaico
+desaparece.
+
+Cuando la tarjeta se limita a unas pocas especies, el polen dominante y el riesgo
+en palabras se refieren a esas especies, como el medidor.
+
+Tres ajustes, por tarjeta:
+
+| Ajuste                              | Qué hace                                                                                                                                |
+| ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| **Lugar**                           | El dispositivo que se va a mostrar. Solo se ofrecen los dispositivos que ya añadió desde la pestaña «Descubrir».                        |
+| **Pólenes seguidos**                | Marque las especies a las que reacciona: el medidor, la lista y la curva solo tienen en cuenta esas. No marcar ninguna significa todas. |
+| **Mostrar la previsión a dos días** | La curva hora a hora. Desmárquelo para una tarjeta compacta.                                                                            |
+
+La curva muestra **hoy y mañana**, hora a hora, con una marca en la hora actual.
+Es una previsión: Gladys no guarda su historial, por lo que se lee en la fuente
+junto con el nivel actual — en la misma petición —, y una respuesta de menos de 30
+minutos se reutiliza en lugar de volver a pedirse. Con cuatro especies seguidas o
+menos, cada una tiene su propia curva; por encima, una sola curva muestra la peor
+de ellas.
+
+Cuando sigue todas las especies, el medidor está vinculado a la propia medida del
+dispositivo y sigue los valores publicados en tiempo real. Con una selección de
+especies no le corresponde ninguna medida: el medidor muestra entonces la cifra
+calculada por la tarjeta.
+
+### Polen — todos los lugares
+
+Una fila por lugar configurado, con su nivel y su polen dominante, y un botón
+**Actualizar** que los vuelve a leer todos. Sin ajustes: la tarjeta muestra la
+lista que gestiona la pestaña «Configuración». Se detiene en diez filas, y lo
+indica.
+
+Ambas tarjetas se escriben en **el idioma de quien las mira**: a diferencia de un
+nombre de dispositivo, aquí Gladys nos dice qué idioma lee usted.
+
+## Usar el riesgo en una escena
+
+Tres maneras, de la más sencilla a la más fina.
+
+### 1. Las medidas, como cualquier sensor
+
+El riesgo global es una medida de la categoría «riesgo»: se comporta como
+cualquier sensor numérico. Algunas ideas:
+
+- cerrar las persianas o detener la ventilación cuando el riesgo global supere 3;
+- enviar una notificación por la mañana si el riesgo «Gramíneas» es ≥ 4;
+- encender el purificador de aire cuando el polen dominante sea aquel al que
+  reacciona.
+
+### 2. Los disparadores
+
+En el editor de escenas, en la categoría **Integraciones**:
+
+| Disparador                                        | Cuándo se activa                                    |
+| ------------------------------------------------- | --------------------------------------------------- |
+| **El riesgo de polen global ha cambiado**         | El nivel global de un lugar pasa de un nivel a otro |
+| **El riesgo de una especie de polen ha cambiado** | El nivel de un polen cambia en un lugar             |
+
+Ambos se activan **solo cuando hay un cambio**, nunca en cada actualización: la
+previsión CAMS se vuelve a publicar una vez al día, así que una escena que se
+activara en cada lectura se activaría veinticuatro veces por el mismo valor.
+
+Cada disparador se puede filtrar: el **lugar** (vacío significa cualquiera), los
+**niveles** que le interesan (marque 3 para reaccionar solo a los picos), el
+**sentido** (al alza para cerrar las ventanas, a la baja para volver a abrirlas)
+y, en el segundo, las **especies**.
+
+La escena recibe entonces lo que necesita para escribir su mensaje:
+`{{triggerEvent.data.summary}}` contiene la frase lista para usar «Polen en
+Montauban: riesgo 3/3 (alto), dominante Abedul.», y `location_name`, `level`,
+`level_label`, `previous_level`, `direction`, `taxon`, `taxon_name` y
+`measured_at` están disponibles por separado.
+
+Dos detalles:
+
+- **nada se activa al arrancar**: el nivel anterior es desconocido en ese momento,
+  y «desconocido → 3» no es un cambio. El primer cambio real se activa con
+  normalidad;
+- **una especie sin valor no activa nada**: una medida que falta no es una vuelta
+  a cero, y se conserva el último nivel conocido.
+
+### 3. Las acciones
+
+También en el editor de escenas, en **Integraciones**:
+
+| Acción                            | Qué hace                                                                                                    |
+| --------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| **Leer el riesgo de polen**       | Lee un lugar ahora y pasa el nivel, el polen dominante y la frase lista para usar a las siguientes acciones |
+| **Actualizar los datos de polen** | Vuelve a leer la previsión y republica las medidas; deje el lugar vacío para todos los lugares              |
+
+«Leer el riesgo de polen» es lo que convierte «cada mañana a las 7» en «cada
+mañana a las 7, dime el riesgo»: elija el lugar, deje **Riesgo global** (o elija
+una especie) y envíe un mensaje que contenga la salida `summary`. Las salidas
+`level` (0 a 3), `level_label`, `taxon`, `taxon_name`, `concentration`,
+`location_name` y `measured_at` están disponibles si prefiere escribir su propia
+frase.
+
+> Cuando la fuente no responde nada, la acción no falla: devuelve un `level` vacío
+> y un `summary` que indica que los datos no están disponibles. Corresponde a la
+> escena decidir qué hacer con eso.
+
+## Intervalo de actualización
+
+Cada lugar se actualiza cada hora por defecto. La previsión CAMS se recalcula una
+vez al día y se interpola por horas, así que bajar de una hora no aporta nada. El
+intervalo se puede configurar entre 15 minutos y 24 horas en la pestaña
+«Configuración». Un dispositivo que acaba de crear se actualiza de inmediato —
+solo su lugar — sin esperar al siguiente ciclo.
+
+Algunas cosas hacen que la integración sea respetuosa con ambos servicios:
+
+- **Todos sus lugares se leen en una sola petición** a Open-Meteo, y las tarjetas
+  del panel y las acciones de escena reutilizan una respuesta de menos de 30
+  minutos en lugar de volver a pedirla.
+- **Una actualización cada vez**: un botón pulsado mientras hay una actualización
+  en curso la espera, o se une a ella, en lugar de iniciar una segunda.
+- **Una reconexión o un formulario guardado no vuelve a leerlo todo** cuando la
+  última actualización es reciente: el ciclo simplemente sigue a su ritmo
+  habitual.
+- **Las medidas se envían a Gladys a su propio ritmo**: Gladys acepta 300 valores
+  por minuto e integración, y cada lugar publica 16. Por eso veinte lugares se
+  envían a lo largo de dos minutos en lugar de todos a la vez, y una respuesta
+  «demasiadas peticiones» de Gladys se reintenta una vez.
+- **Una fuente que falla puntualmente** (ocupada, reiniciándose) se vuelve a
+  consultar unos segundos después antes de dar la actualización por fallida.
+
+## Cobertura geográfica
+
+La previsión CAMS cubre el **dominio europeo**. Un lugar fuera de esa zona se
+rechaza al añadirlo, en lugar de crear un dispositivo que nunca tendría un valor.
+
+## Solución de problemas
+
+- **Botón «Probar el proveedor de polen»**: consulta la fuente para _cada_ lugar
+  (se reutiliza una respuesta de menos de 30 minutos) y muestra una línea por
+  lugar, numerada como la lista. Cada línea termina con la fecha de los datos
+  leídos, así que una fuente anclada en el pasado también se ve aquí. Es la forma
+  más rápida de distinguir un problema de red de uno de configuración.
+- **La pestaña «Supervisión»** indica _quién_ ha fallado: «previsión de polen no
+  disponible» es la fuente (Open-Meteo), «límite de peticiones de Gladys
+  alcanzado» o «Gladys no ha aceptado los estados» es su Gladys; en ese caso la
+  fuente no tiene la culpa, y la siguiente actualización publica los valores.
+- **Los registros**: léalos en la pestaña «Registros» de la integración, o
+  con `docker logs`. Ponga `LOG_LEVEL` en `debug` para ver cada petición
+  a la fuente y la carga exacta del dispositivo enviada a Gladys. Las coordenadas
+  de sus lugares nunca aparecen en los registros, en ningún nivel.
+- **No aparece nada en la pestaña «Descubrir»**: compruebe el estado de la
+  integración en la pestaña «Supervisión»; cuando Gladys rechaza un dispositivo,
+  el motivo se indica allí.
+- **Un dispositivo se queda vacío**: compruebe que su lugar sigue apareciendo en
+  «Mostrar mis lugares». Un dispositivo cuyo lugar se eliminó deja de
+  actualizarse.
