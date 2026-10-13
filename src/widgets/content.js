@@ -75,7 +75,7 @@ export function clip(text, max) {
  * An empty `components` array is a valid empty state, but a blank card looks
  * broken: one caption is what tells the user whether to configure the widget
  * or to wait for the provider.
- * @param {{ en: string, fr: string }} message
+ * @param {{ en: string, fr: string, de: string, es: string }} message
  */
 export function emptyState(message) {
   return {
@@ -88,7 +88,7 @@ export function emptyState(message) {
 export function refreshButton() {
   return {
     type: 'button',
-    label: { en: 'Refresh', fr: 'Rafraîchir' },
+    label: { en: 'Refresh', fr: 'Rafraîchir', de: 'Aktualisieren', es: 'Actualizar' },
     icon: 'refresh-cw',
     style: 'secondary',
     action: { key: 'refresh' },

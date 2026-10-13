@@ -12,12 +12,12 @@ import { DEFAULT_LANGUAGE, inLanguage } from '../language.js';
 
 /** Display names of the taxa, used to build the feature names. */
 export const TAXON_NAMES = {
-  alder: { en: 'Alder', fr: 'Aulne' },
-  birch: { en: 'Birch', fr: 'Bouleau' },
-  grass: { en: 'Grass', fr: 'Graminées' },
-  mugwort: { en: 'Mugwort', fr: 'Armoise' },
-  olive: { en: 'Olive', fr: 'Olivier' },
-  ragweed: { en: 'Ragweed', fr: 'Ambroisie' },
+  alder: { en: 'Alder', fr: 'Aulne', de: 'Erle', es: 'Aliso' },
+  birch: { en: 'Birch', fr: 'Bouleau', de: 'Birke', es: 'Abedul' },
+  grass: { en: 'Grass', fr: 'Graminées', de: 'Gräser', es: 'Gramíneas' },
+  mugwort: { en: 'Mugwort', fr: 'Armoise', de: 'Beifuß', es: 'Artemisa' },
+  olive: { en: 'Olive', fr: 'Olivier', de: 'Olive', es: 'Olivo' },
+  ragweed: { en: 'Ragweed', fr: 'Ambroisie', de: 'Ambrosia', es: 'Ambrosía' },
 };
 
 /**

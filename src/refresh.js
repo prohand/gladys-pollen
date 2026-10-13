@@ -22,7 +22,7 @@ import {
   taxonName,
   watchedLocations,
 } from './devices/pollenStation.js';
-import { DEFAULT_LANGUAGE } from './language.js';
+import { DEFAULT_LANGUAGE, inEveryLanguage } from './language.js';
 import { readPollenRisks } from './pollen/index.js';
 import { RISK_LEVEL_LABELS } from './pollen/risk.js';
 import { publishRiskEvents } from './scenes/riskEvents.js';
@@ -274,26 +274,32 @@ export function failureDetail(err, stage = 'read') {
       return {
         en: 'Gladys rate limit reached (HTTP 429), the states will be published at the next refresh',
         fr: 'limite de débit de Gladys atteinte (HTTP 429), les états seront publiés au prochain rafraîchissement',
+        de: 'Ratenlimit von Gladys erreicht (HTTP 429), die Zustände werden bei der nächsten Aktualisierung veröffentlicht',
+        es: 'límite de peticiones de Gladys alcanzado (HTTP 429), los estados se publicarán en la próxima actualización',
       };
     }
     return {
       en: `Gladys did not accept the states: ${reason}`,
       fr: `Gladys n'a pas accepté les états : ${reason}`,
+      de: `Gladys hat die Zustände nicht akzeptiert: ${reason}`,
+      es: `Gladys no ha aceptado los estados: ${reason}`,
     };
   }
   return {
     en: `pollen forecast unavailable: ${reason}`,
     fr: `prévision pollinique indisponible : ${reason}`,
+    de: `Pollenvorhersage nicht verfügbar: ${reason}`,
+    es: `previsión de polen no disponible: ${reason}`,
   };
 }
 
 /** The same reason, named, for the one-line connection status. */
 function failureMessage(err, locationName, stage) {
   const detail = failureDetail(err, stage);
-  return {
-    en: `${locationName}: ${detail.en}`,
-    fr: `${locationName} : ${detail.fr}`,
-  };
+  // French puts a space before the colon, the other languages do not.
+  return inEveryLanguage(
+    (language) => `${locationName}${language === 'fr' ? ' :' : ':'} ${detail[language]}`,
+  );
 }
 
 /**
@@ -399,12 +405,14 @@ export async function refreshCycle(gladys, config, { reportStatus } = {}) {
         ? {
             en: ` (+${failures.length - 1} other location(s) failing)`,
             fr: ` (+${failures.length - 1} autre(s) lieu(x) en échec)`,
+            de: ` (+${failures.length - 1} weitere(r) Ort(e) fehlgeschlagen)`,
+            es: ` (+${failures.length - 1} lugar(es) más con error)`,
           }
-        : { en: '', fr: '' };
-    await report(false, {
-      en: `${firstFailure.en}${others.en}`,
-      fr: `${firstFailure.fr}${others.fr}`,
-    });
+        : inEveryLanguage(() => '');
+    await report(
+      false,
+      inEveryLanguage((language) => `${firstFailure[language]}${others[language]}`),
+    );
   } catch (err) {
     logger.error('Refresh cycle failed', err);
   }

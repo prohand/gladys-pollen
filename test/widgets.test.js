@@ -419,17 +419,42 @@ test('a card is written in the language of whoever reads it', async () => {
   assert.equal(componentsOf(english, 'value')[0].value, 'Birch');
 });
 
+test('a German or Spanish reader gets a German or Spanish card', async () => {
+  const gladys = createFakeGladys();
+  stubFetch();
+
+  const german = await station.getContent(gladys, config, {
+    settings: { location: PARIS_DEVICE },
+    language: 'de',
+  });
+  const [germanStatus] = componentsOf(german, 'status');
+  assert.equal(germanStatus.items[0].label, 'Gesamtrisiko');
+  assert.equal(germanStatus.items[1].label, 'Birke');
+  assert.equal(germanStatus.items[1].value, '3/3 (hoch)');
+
+  const spanish = await station.getContent(gladys, config, {
+    settings: { location: PARIS_DEVICE },
+    language: 'es',
+  });
+  const [spanishStatus] = componentsOf(spanish, 'status');
+  assert.equal(spanishStatus.items[0].label, 'Riesgo global');
+  assert.equal(spanishStatus.items[1].label, 'Abedul');
+  assert.equal(spanishStatus.items[1].value, '3/3 (alto)');
+  assertRenderable(german);
+  assertRenderable(spanish);
+});
+
 test('a language this integration does not speak falls back to the configured one', async () => {
   const gladys = createFakeGladys();
   stubFetch();
 
-  const german = await station.getContent(gladys, normalizeConfig({ ...config, language: 'en' }), {
+  const italian = await station.getContent(gladys, normalizeConfig({ ...config, language: 'en' }), {
     settings: { location: PARIS_DEVICE },
-    language: 'de',
+    language: 'it',
   });
-  const [status] = componentsOf(german, 'status');
+  const [status] = componentsOf(italian, 'status');
   assert.equal(status.items[1].label, 'Birch', 'an English install stays English');
-  assert.equal(componentsOf(german, 'value')[0].value, 'Birch');
+  assert.equal(componentsOf(italian, 'value')[0].value, 'Birch');
 });
 
 // --- The settings ----------------------------------------------------------------

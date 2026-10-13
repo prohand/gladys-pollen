@@ -250,6 +250,8 @@ export const openMeteoProvider = {
   name: {
     en: 'Open-Meteo (CAMS Europe, Copernicus)',
     fr: 'Open-Meteo (CAMS Europe, Copernicus)',
+    de: 'Open-Meteo (CAMS Europe, Copernicus)',
+    es: 'Open-Meteo (CAMS Europe, Copernicus)',
   },
 
   /** Taxa this provider can report. */

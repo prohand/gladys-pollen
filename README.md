@@ -20,6 +20,8 @@ Gladys houses (`source: "houses"`), on top of the `widgets`, `scene_triggers` an
 
 - 🇫🇷 [User documentation (français)](./docs/fr.md)
 - 🇬🇧 [User documentation (English)](./docs/en.md)
+- 🇩🇪 [User documentation (Deutsch)](./docs/de.md)
+- 🇪🇸 [User documentation (español)](./docs/es.md)
 
 ## Data sources
 
@@ -188,7 +190,7 @@ nobody's.
 
 ### Names are the one thing Gladys cannot translate
 
-Every message this integration displays travels as an `{ en, fr }` object and is
+Every message this integration displays travels as an `{ en, fr, de, es }` object and is
 rendered by the core in the language of the user reading it. A device name and a
 feature name are not messages: they are plain strings copied into the core tables
 the day the user creates the device, and the host API never tells an integration
@@ -198,7 +200,7 @@ none of.
 
 So the language of the names is a config field (`src/language.js`), **French by
 default**, and it is the only place in the code that picks a language instead of
-handing Gladys both. It also drives the two TEXT states, which are stored strings
+handing Gladys every language. It also drives the two TEXT states, which are stored strings
 just like a name. Re-publishing renames nothing: the core upserts the params of
 an existing device, never its name, so a switch applies to the devices still to
 be created.
@@ -240,7 +242,7 @@ be created.
 │     ├─ content.js                  #   the vocabulary both cards share
 │     ├─ stationWidget.js            #   one place: gauge, species, forecast
 │     └─ locationsWidget.js          #   one row per place
-├─ docs/{en,fr}.md                   # user documentation, re-hosted by Gladys
+├─ docs/{en,fr,de,es}.md             # user documentation, re-hosted by Gladys
 ├─ test/                             # node --test, no network
 ├─ gladys-assistant-integration.json # manifest
 └─ cover.png                         # catalog cover, 800×534

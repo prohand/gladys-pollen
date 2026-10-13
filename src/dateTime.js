@@ -61,6 +61,8 @@ export function withUtcOffset(localTime, utcOffsetSeconds) {
 const DATE_TIME_FORMATS = {
   fr: (year, month, day, hour, minute) => `${day}/${month}/${year} ${hour}:${minute}`,
   en: (year, month, day, hour, minute) => `${year}-${month}-${day} ${hour}:${minute}`,
+  de: (year, month, day, hour, minute) => `${day}.${month}.${year} ${hour}:${minute}`,
+  es: (year, month, day, hour, minute) => `${day}/${month}/${year} ${hour}:${minute}`,
 };
 
 /**

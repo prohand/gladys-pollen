@@ -75,7 +75,7 @@ export function createLifecycle({
    * The connection status of a refresh cycle — unless an initialization
    * failure is pending, which stays on screen until one succeeds.
    * @param {boolean} connected
-   * @param {{ en: string, fr: string }} [message]
+   * @param {{ en: string, fr: string, de: string, es: string }} [message]
    */
   function reportStatus(connected, message) {
     if (connected && problem) {
@@ -131,6 +131,8 @@ export function createLifecycle({
     problem = {
       en: `Initialization failed: ${reason}`,
       fr: `L'initialisation a échoué : ${reason}`,
+      de: `Die Initialisierung ist fehlgeschlagen: ${reason}`,
+      es: `La inicialización ha fallado: ${reason}`,
     };
     await gladys.setConnectionStatus(false, problem).catch(() => {});
     if (isTransient(failure)) {

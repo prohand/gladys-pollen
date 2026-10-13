@@ -15,7 +15,9 @@ test('the language of the names falls back on French', () => {
   assert.equal(normalizeConfig({ language: 'en' }).language, 'en');
   assert.equal(normalizeConfig({ language: 'FR' }).language, 'fr');
   assert.equal(normalizeConfig({ language: 'en-US' }).language, 'en');
-  assert.equal(normalizeConfig({ language: 'de' }).language, 'fr');
+  assert.equal(normalizeConfig({ language: 'de' }).language, 'de');
+  assert.equal(normalizeConfig({ language: 'es-ES' }).language, 'es');
+  assert.equal(normalizeConfig({ language: 'it' }).language, 'fr');
   assert.equal(normalizeConfig({ language: null }).language, 'fr');
 });
 

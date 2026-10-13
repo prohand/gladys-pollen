@@ -249,11 +249,12 @@ reads are on the 0-3 scale.
 Device and feature names are written in **French by default**: the measurements
 read `Risque pollinique global`, `Risque pollinique — Bouleau`, and the dominant
 pollen shows up as `Bouleau`. Set **Language of the device names** to English in
-the Configuration tab to get the names in the table above.
+the Configuration tab to get the names in the table above (German and Spanish are
+offered too).
 
 Why a setting rather than your account language? Everything the integration
 _displays_ — the message under a button, the status in the Supervision screen —
-is sent to Gladys in both languages, and Gladys picks the one of the person
+is sent to Gladys in English, French, German and Spanish, and Gladys picks the one of the person
 reading. A device name is not a message: it is a plain text stored as it is the
 day you create the device, and nothing in the integration API says which language
 you read. So it is chosen once, here.
