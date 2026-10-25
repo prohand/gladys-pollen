@@ -10,9 +10,10 @@ No account to create, no API key to paste.
 The risk also shows on your **dashboard** (two widgets) and drives your
 **scenes** (two triggers, two actions).
 
-> This version requires **Gladys 5.2** or newer: the list of your Gladys houses
-> in "Add my Gladys houses" does not exist before it, nor (before 5.1) an
-> integration's dashboard widgets and scene cards.
+> This version requires **Gladys 5.3** or newer: the search keywords of the
+> integration catalog do not exist before it, nor (before 5.2) the list of your
+> Gladys houses in "Add my Gladys houses", nor (before 5.1) an integration's
+> dashboard widgets and scene cards.
 
 ## Where the data comes from
 
@@ -59,7 +60,7 @@ Four things worth knowing:
 Clicking again is safe: a house already watched is reported, not added twice.
 
 Reading the houses needs the house coordinates Gladys opened in 4.85.0, and the
-**House** list needs Gladys 5.2.0 — the version this integration requires.
+**House** list needs Gladys 5.2.0 — below the 5.3.0 this integration requires.
 
 ## Adding a location
 

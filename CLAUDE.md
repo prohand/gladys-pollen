@@ -153,7 +153,7 @@ location. Four things it is easy to get wrong:
   the install screen and enforced server-side. Without it the core answers 403,
   which no retry fixes — only re-installing does, so that status carries
   `HOUSE_ACCESS_DENIED` and gets its own message. The endpoint opened in Gladys
-  4.85.0, below the `>=5.2.0` the manifest requires anyway.
+  4.85.0, below the `>=5.3.0` the manifest requires anyway.
 - **It is read through `gladys.getHouses()`** (SDK 0.14.0). It was a hand-made
   `fetch` until the SDK wrapped it; a refusal now arrives as a `GladysApiError`
   whose `status` (never its `code`, the core's error code) is what
@@ -161,8 +161,8 @@ location. Four things it is easy to get wrong:
   `listHouses: () => fetchHouses(gladys)` into the editor, and
   `test/houses.test.js` reads through `fakeGladys`, never the network.
 - **One house or all of them.** `import_houses` takes an optional `house`
-  field, a `select` with `source: "houses"` (Gladys 5.2.0, hence the
-  `gladys_version` floor, pinned by `test/manifest.test.js`): the core lists
+  field, a `select` with `source: "houses"` (Gladys 5.2.0, which the
+  `gladys_version` floor must cover, pinned by `test/manifest.test.js`): the core lists
   the houses by NAME and hands over the picked house's `selector`, matched
   against `GET /house`. Empty = every house. No `default` on it (the store
   refuses one on a dynamic source), and a selector matching no house any more
@@ -179,7 +179,7 @@ Declaring any of them pins `gladys_version` to `>=5.1.0` — an older core
 validates manifests against a strict field allowlist and rejects the whole
 integration over the unknown field — and both the store validator and
 `test/manifest.test.js` enforce that coupling, exactly as `categories` pins
-4.86.0 and `source: "houses"` pins 5.2.0.
+4.86.0, `source: "houses"` pins 5.2.0 and `keywords` pins 5.3.0.
 
 They are registered in `index.js` by key, like the manifest `actions`, and the
 same test ties every declaration to its handler in both directions.
@@ -271,10 +271,16 @@ settings restricted to the non-sensitive types, trigger filters that are never
 `categories` is the catalog shelf, `["environment"]` here — 1 to 3 keys of the
 store vocabulary (`climate`, `lighting`, `energy`, `security`, `multimedia`,
 `appliances`, `environment`, `protocols`, `network`, `notifications`,
-`assistants`, `services`). Declaring it is what pins `gladys_version` to
+`assistants`, `services`, and since Gladys 5.3 `transport`, `vehicles`,
+`servers`, `leisure`). Declaring it is what pins `gladys_version` to
 `>=4.86.0`: an older core rejects any unknown top-level manifest field, and both
-the store validator and a test enforce that coupling. The store's admission
-checks run locally with `npx github:GladysAssistant/integration-store .`.
+the store validator and a test enforce that coupling. `keywords` (1-10
+search-only terms of 2-30 characters, never displayed) pins `>=5.3.0`, the
+manifest's floor; `countries` stays undeclared — the CAMS European domain spans
+more countries than the field's 20, and a declared list hides the integration
+from the browse views of every other one. The store's admission checks run
+locally with `npx github:GladysAssistant/integration-store --skip-image-check .`
+(the Release workflow runs them without the flag once the image is pushed).
 
 Do not hand-edit `version` or `docker_image` in the manifest — the release
 workflow rewrites both.

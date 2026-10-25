@@ -6,6 +6,15 @@ All notable changes to this integration are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- Search keywords for the Gladys integration catalog (allergy, hay fever, birch, ragweed…).
+
+### Changed
+
+- Requires Gladys 5.3.0 (the catalog keywords need it).
+- Gladys JavaScript SDK 0.16.0.
+
 ## [2.4.1] - 2026-10-23
 
 ### Security
