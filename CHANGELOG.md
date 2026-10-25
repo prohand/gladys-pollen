@@ -6,6 +6,8 @@ All notable changes to this integration are documented here. The format follows
 
 ## [Unreleased]
 
+## [2.5.0] - 2026-10-25
+
 ### Added
 
 - Search keywords for the Gladys integration catalog (allergy, hay fever, birch, ragweed…).
@@ -145,7 +147,8 @@ First public release.
 
 - Fix the manifest rejected at install time
 
-[Unreleased]: https://github.com/prohand/gladys-pollen/compare/v2.4.1...HEAD
+[Unreleased]: https://github.com/prohand/gladys-pollen/compare/v2.5.0...HEAD
+[2.5.0]: https://github.com/prohand/gladys-pollen/compare/v2.4.1...v2.5.0
 [2.4.1]: https://github.com/prohand/gladys-pollen/compare/v2.4.0...v2.4.1
 [2.4.0]: https://github.com/prohand/gladys-pollen/compare/v2.3.0...v2.4.0
 [2.3.0]: https://github.com/prohand/gladys-pollen/compare/v2.2.1...v2.3.0
