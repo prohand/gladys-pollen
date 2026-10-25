@@ -10,9 +10,10 @@ Aucun compte à créer, aucune clé d'API à saisir.
 Le risque s'affiche aussi sur votre **tableau de bord** (deux widgets) et se
 pilote depuis vos **scènes** (deux déclencheurs, deux actions).
 
-> Cette version nécessite **Gladys 5.2** ou plus récent : la liste de vos maisons
-> Gladys dans « Ajouter mes maisons Gladys » n'existe pas avant, ni (avant la
-> 5.1) les widgets de tableau de bord et les cartes de scène d'une intégration.
+> Cette version nécessite **Gladys 5.3** ou plus récent : les mots-clés de
+> recherche du catalogue des intégrations n'existent pas avant, ni (avant la 5.2)
+> la liste de vos maisons Gladys dans « Ajouter mes maisons Gladys », ni (avant
+> la 5.1) les widgets de tableau de bord et les cartes de scène d'une intégration.
 
 ## D'où viennent les données ?
 
@@ -63,8 +64,8 @@ Relancer l'action est sans risque : une maison déjà surveillée est signalée,
 ajoutée une deuxième fois.
 
 Cette lecture des maisons s'appuie sur les coordonnées des maisons ouvertes par
-Gladys 4.85.0, et la liste **Maison** sur Gladys 5.2.0 — la version que demande
-l'intégration.
+Gladys 4.85.0, et la liste **Maison** sur Gladys 5.2.0 — en deçà de la 5.3.0
+que demande l'intégration.
 
 ## Ajouter un lieu
 

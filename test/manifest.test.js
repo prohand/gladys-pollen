@@ -366,7 +366,8 @@ test('the manifest asks for the house coordinates the import button reads', () =
 test('the compatibility range covers every field the manifest declares', () => {
   // Each capability field has a floor, and the range must clear the HIGHEST
   // one: house coordinates landed in Gladys 4.85.0, `categories` in 4.86.0,
-  // the widgets / scene declarations in 5.1.0 and `source: "houses"` in 5.2.0.
+  // the widgets / scene declarations in 5.1.0, `source: "houses"` in 5.2.0 and
+  // the catalog `keywords` / `countries` (and `music`) in 5.3.0.
   // An instance older than that validates manifests against a strict allowlist
   // and rejects the whole integration over the unknown field or source — which
   // turns a catalog filter into a cryptic install failure.
@@ -393,6 +394,40 @@ test('the compatibility range covers every field the manifest declares', () => {
       `source "houses" requires gladys_version >= 5.2.0, got "${manifest.gladys_version}"`,
     );
   }
+  for (const field of ['keywords', 'countries', 'music']) {
+    if (manifest[field] !== undefined) {
+      assert.ok(
+        major > 5 || (major === 5 && minor >= 3),
+        `${field} requires gladys_version >= 5.3.0, got "${manifest.gladys_version}"`,
+      );
+    }
+  }
+});
+
+test('the search keywords are 1 to 10 distinct terms of 2 to 30 characters', () => {
+  // Search-only terms of the catalog, never displayed: what a user may type
+  // that the name and the description do not already say. The store compares
+  // them trimmed and lowercased, so "Birch" and "birch" would be one twice.
+  assert.ok(Array.isArray(manifest.keywords), 'keywords must be declared');
+  assert.ok(
+    manifest.keywords.length >= 1 && manifest.keywords.length <= 10,
+    `keywords takes 1 to 10 terms, got ${manifest.keywords.length}`,
+  );
+  const normalized = manifest.keywords.map((keyword) => keyword.trim().toLowerCase());
+  for (const keyword of normalized) {
+    assert.ok(
+      keyword.length >= 2 && keyword.length <= 30,
+      `keyword "${keyword}" must hold 2 to 30 characters`,
+    );
+  }
+  assert.equal(new Set(normalized).size, normalized.length, 'the keywords must be unique');
+});
+
+test('no countries restrict the catalog shelves', () => {
+  // The CAMS European domain spans far more than the 20 codes the field takes,
+  // and a point outside it is refused when it is added anyway: declaring a
+  // country list would only hide the integration from part of its users.
+  assert.equal(manifest.countries, undefined);
 });
 
 test('"Add my Gladys houses" offers to pick one house, by name, from the core', () => {
@@ -425,6 +460,11 @@ test('the catalog categories are 1 to 3 keys of the store vocabulary', () => {
     'notifications',
     'assistants',
     'services',
+    // Opened by the store with Gladys 5.3.
+    'transport',
+    'vehicles',
+    'servers',
+    'leisure',
   ];
   assert.ok(Array.isArray(manifest.categories), 'categories must be declared');
   assert.ok(

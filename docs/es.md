@@ -10,9 +10,10 @@ Ninguna cuenta que crear, ninguna clave de API que pegar.
 El riesgo también aparece en su **panel** (dos widgets) y controla sus
 **escenas** (dos disparadores, dos acciones).
 
-> Esta versión requiere **Gladys 5.2** o posterior: la lista de sus viviendas de
-> Gladys en «Añadir mis viviendas de Gladys» no existe antes, ni tampoco (antes de
-> la 5.1) los widgets de panel y las tarjetas de escena de una integración.
+> Esta versión requiere **Gladys 5.3** o posterior: las palabras clave de búsqueda
+> del catálogo de integraciones no existen antes, ni tampoco (antes de la 5.2) la
+> lista de sus viviendas de Gladys en «Añadir mis viviendas de Gladys», ni (antes
+> de la 5.1) los widgets de panel y las tarjetas de escena de una integración.
 
 ## De dónde vienen los datos
 
@@ -62,8 +63,8 @@ Volver a pulsar no supone ningún riesgo: una vivienda ya vigilada se indica, no
 añade dos veces.
 
 Leer las viviendas requiere las coordenadas de las viviendas que Gladys abrió en
-la 4.85.0, y la lista **Vivienda** requiere Gladys 5.2.0, la versión que exige
-esta integración.
+la 4.85.0, y la lista **Vivienda** requiere Gladys 5.2.0, por debajo de la 5.3.0
+que exige esta integración.
 
 ## Añadir un lugar
 

@@ -14,9 +14,9 @@ Built from the official
 types a town, and gets a device — plus two dashboard widgets, two scene triggers
 and two scene actions.
 
-Requires **Gladys ≥ 5.2**, the release that accepts a `select` listing the
-Gladys houses (`source: "houses"`), on top of the `widgets`, `scene_triggers` and
-`scene_actions` Gladys 5.1 opened.
+Requires **Gladys ≥ 5.3**, the release that accepts the catalog `keywords`, on
+top of the `select` listing the Gladys houses (`source: "houses"`) Gladys 5.2
+opened and the `widgets`, `scene_triggers` and `scene_actions` of Gladys 5.1.
 
 - 🇫🇷 [User documentation (français)](./docs/fr.md)
 - 🇬🇧 [User documentation (English)](./docs/en.md)
@@ -300,7 +300,8 @@ The manifest declares the catalog shelf it sits on: `"categories":
 this integration, next to the weather and air-quality ones. The field takes 1 to
 3 keys of the store vocabulary (`climate`, `lighting`, `energy`, `security`,
 `multimedia`, `appliances`, `environment`, `protocols`, `network`,
-`notifications`, `assistants`, `services`) and requires a `gladys_version`
+`notifications`, `assistants`, `services`, `transport`, `vehicles`, `servers`,
+`leisure`) and requires a `gladys_version`
 starting at **4.86.0 or later** — an older core validates the manifest against a
 strict field allowlist and rejects any unknown top-level field, which the store
 validator and `test/manifest.test.js` both enforce.

@@ -10,9 +10,10 @@ Kein Konto anzulegen, kein API-Schlüssel einzufügen.
 Das Risiko erscheint auch auf deinem **Dashboard** (zwei Widgets) und steuert deine
 **Szenen** (zwei Auslöser, zwei Aktionen).
 
-> Diese Version erfordert **Gladys 5.2** oder neuer: Die Liste deiner Gladys-Häuser
-> in „Meine Gladys-Häuser hinzufügen“ gibt es vorher nicht, ebenso wenig (vor 5.1)
-> die Dashboard-Widgets und Szenenkarten einer Integration.
+> Diese Version erfordert **Gladys 5.3** oder neuer: Die Suchbegriffe des
+> Integrationskatalogs gibt es vorher nicht, ebenso wenig (vor 5.2) die Liste
+> deiner Gladys-Häuser in „Meine Gladys-Häuser hinzufügen“ und (vor 5.1) die
+> Dashboard-Widgets und Szenenkarten einer Integration.
 
 ## Woher die Daten stammen
 
@@ -67,8 +68,8 @@ Erneutes Klicken ist unbedenklich: Ein bereits überwachtes Haus wird gemeldet,
 nicht doppelt hinzugefügt.
 
 Das Lesen der Häuser benötigt die Hauskoordinaten, die Gladys mit 4.85.0
-freigegeben hat, und die Liste **Haus** benötigt Gladys 5.2.0 — die Version, die
-diese Integration voraussetzt.
+freigegeben hat, und die Liste **Haus** benötigt Gladys 5.2.0 — weniger als die
+5.3.0, die diese Integration voraussetzt.
 
 ## Einen Ort hinzufügen
 
